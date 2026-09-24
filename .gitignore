@@ -46,6 +46,11 @@ temp/
 *.swo
 ~$*
 
+# Official inputs stay local; keep official code, docs and config.txt versioned.
+/official/data/case_*.json
+/通用神经网络处理器下的多核调度问题  附件.zip
+/通用神经网络处理器下的多核调度问题.pdf
+
 # Local editor and operating-system files
 .idea/
 .vscode/
