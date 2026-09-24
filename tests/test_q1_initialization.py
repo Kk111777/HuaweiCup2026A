@@ -233,7 +233,8 @@ class GrowthTests(unittest.TestCase):
                 if len(state.nodes) == 3:
                     closed.update(state.members)
                     state = TaskGrowth(g, remaining)
-            solved = initialize(graph, rng.choice([2, 3, 4, 5]), SETTINGS)
+            solved = initialize(graph, rng.choice([2, 3, 4, 5]), SETTINGS,
+                                candidate_jobs=1, beta_search="grid")
             view = official.derive_multicore_plan(graph, solved.plan)
             official.validate_task_order(view)
             self.assertEqual(set(view["mapping"]), set(g.ids))
@@ -269,20 +270,26 @@ class GrowthTests(unittest.TestCase):
 class ScheduleTests(unittest.TestCase):
     def test_candidate_processes_match_serial_results_and_fixed_order(self):
         graph = graph_of(7, [(0, 2), (1, 2), (2, 3), (4, 5)])
-        serial = initialize(graph, 3, SETTINGS)
-        events = []
-        parallel = initialize(graph, 3, SETTINGS, candidate_jobs=2, progress=events.append)
-        self.assertEqual(serial.plan, parallel.plan)
-        self.assertEqual(serial.evaluation, parallel.evaluation)
-        self.assertEqual(serial.selected, parallel.selected)
-        self.assertEqual(
-            [{k: v for k, v in c.items() if k != "elapsed_seconds"} for c in serial.candidates],
-            [{k: v for k, v in c.items() if k != "elapsed_seconds"} for c in parallel.candidates])
-        self.assertEqual(sum(e["event"] == "candidate_end" for e in events), 8)
-        self.assertEqual(sum(e["event"] == "candidate_start" for e in events), 8)
-        self.assertTrue(any(e.get("phase") == "preanalysis" for e in events))
+        for policy in ("fixed", "adaptive", "grid"):
+            with self.subTest(policy=policy):
+                serial = initialize(graph, 3, SETTINGS, candidate_jobs=1, beta_search=policy)
+                events = []
+                parallel = initialize(graph, 3, SETTINGS, candidate_jobs=2,
+                                      beta_search=policy, progress=events.append)
+                self.assertEqual(serial.plan, parallel.plan)
+                self.assertEqual(serial.evaluation, parallel.evaluation)
+                self.assertEqual(serial.selected, parallel.selected)
+                self.assertEqual(serial.search, parallel.search)
+                self.assertEqual(
+                    [{k: v for k, v in c.items() if k != "elapsed_seconds"} for c in serial.candidates],
+                    [{k: v for k, v in c.items() if k != "elapsed_seconds"} for c in parallel.candidates])
+                self.assertEqual(sum(e["event"] == "candidate_end" for e in events), len(serial.candidates))
+                self.assertEqual(sum(e["event"] == "candidate_start" for e in events), len(serial.candidates))
+                self.assertTrue(any(e.get("phase") == "preanalysis" for e in events))
         with self.assertRaises(ValueError):
             initialize(graph, 3, SETTINGS, candidate_jobs=0)
+        with self.assertRaises(ValueError):
+            initialize(graph, 3, SETTINGS, beta_search="unknown")
 
     def test_independent_tasks_start_at_zero_and_cross_wait_is_max(self):
         graph = graph_of(3, [(0, 2), (1, 2)], shared=False)
@@ -329,14 +336,14 @@ class ScheduleTests(unittest.TestCase):
     def test_unexpected_exception_is_not_repaired(self):
         with patch.object(official, "preanalyze", side_effect=ValueError("program error")):
             with self.assertRaisesRegex(ValueError, "program error"):
-                initialize(graph_of(2, [(0, 1)]), 2, SETTINGS)
+                initialize(graph_of(2, [(0, 1)]), 2, SETTINGS, candidate_jobs=1, beta_search="adaptive")
 
     def test_candidate_counts_and_tie_order(self):
         for links, count in (([], 8), ([(0, 1)], 4)):
             graph = graph_of(2, links)
             with patch.object(official, "evaluate", return_value={"makespan": 10,
                               "data_movement_bytes": {"added_copy_bytes": 0}}):
-                solved = initialize(graph, 2, SETTINGS)
+                solved = initialize(graph, 2, SETTINGS, candidate_jobs=1, beta_search="grid")
             self.assertEqual(len(solved.candidates), count)
             self.assertEqual(solved.selected["mode"], "global")
             self.assertEqual(solved.selected["beta"], 1)
@@ -354,13 +361,13 @@ class ScheduleTests(unittest.TestCase):
             return original(g, plan, settings)
 
         with patch.object(official, "evaluate", side_effect=fail_candidates):
-            solved = initialize(graph, 2, SETTINGS)
+            solved = initialize(graph, 2, SETTINGS, candidate_jobs=1, beta_search="grid")
         self.assertEqual(len(calls), 5)
         self.assertEqual(solved.selected["mode"], "singleton_fallback")
         self.assertEqual(solved.plan["core_schedules"], [[0, 1], []])
         with patch.object(official, "evaluate", side_effect=official.SceneAEvaluationError("failed")):
             with self.assertRaises(InitializationError) as failure:
-                initialize(graph, 2, SETTINGS)
+                initialize(graph, 2, SETTINGS, candidate_jobs=1, beta_search="grid")
         self.assertEqual(len(failure.exception.candidates), 5)
 
     def test_invalid_input_and_empty_computation(self):
@@ -375,15 +382,141 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(solved.evaluation["makespan"], 0)
 
 
+class BetaSearchTests(unittest.TestCase):
+    @staticmethod
+    def evaluator(curves, calls):
+        def evaluate(index, cores, mode, beta, scopes, progress=None):
+            calls.append((mode, beta))
+            value = curves[mode][beta - 1]
+            record = {"mode": mode, "beta": beta, "elapsed_seconds": 0}
+            if value is None:
+                return {**record, "status": "failed", "error": "official scheduling failure"}, None, None
+            time, copied = value if isinstance(value, tuple) else (value, 0)
+            evaluation = {"makespan": time, "data_movement_bytes": {"added_copy_bytes": copied}}
+            return {**record, "status": "success", **evaluation}, {"mode": mode, "beta": beta}, evaluation
+        return evaluate
+
+    def solve_curves(self, curves, policy="adaptive", graph=None):
+        calls = []
+        with patch("q1.solver._evaluate_candidate", side_effect=self.evaluator(curves, calls)):
+            solved = initialize(graph if graph is not None else graph_of(2), 2, SETTINGS,
+                                candidate_jobs=1, beta_search=policy)
+        return solved, calls
+
+    def test_fixed_ablation_keeps_both_modes_and_skips_duplicate_component(self):
+        for links, expected in (([], ["global", "components"]), ([(0, 1)], ["global"])):
+            calls = []
+            with patch("q1.solver._evaluate_candidate", side_effect=self.evaluator(
+                    {"global": [100], "components": [90]}, calls)):
+                solved = initialize(graph_of(2, links), 2, SETTINGS, candidate_jobs=1, beta_search="fixed")
+            self.assertEqual(calls, [(mode, 1) for mode in expected])
+            self.assertEqual(solved.selected, {"mode": expected[-1], "beta": 1,
+                                               "candidate_index": len(expected) - 1})
+            self.assertEqual(solved.search["policy"], "fixed")
+
+    def test_default_api_enables_adaptive_component(self):
+        calls = []
+        with patch("q1.solver._evaluate_candidate", side_effect=self.evaluator(
+                {"global": [100, 90, 90], "components": [140, 130, 120, 80]}, calls)):
+            solved = initialize(graph_of(2), 2, SETTINGS, candidate_jobs=1)
+        self.assertEqual(calls, [("global", b) for b in (1, 2, 3)] +
+                               [("components", b) for b in (1, 2, 3, 4)])
+        self.assertEqual(solved.search["policy"], "adaptive")
+        self.assertEqual(solved.selected, {"mode": "components", "beta": 4, "candidate_index": 6})
+
+    def test_modes_improve_independently_and_selected_index_is_compact(self):
+        solved, calls = self.solve_curves({"global": [100, 110, 1, 1],
+                                           "components": [140, 130, 120, 90]})
+        self.assertEqual(calls, [("global", 1), ("global", 2),
+                                 *[("components", b) for b in (1, 2, 3, 4)]])
+        self.assertEqual(solved.selected, {"mode": "components", "beta": 4, "candidate_index": 5})
+        self.assertEqual([s["stop_reason"] for s in solved.search["modes"]],
+                         ["no_makespan_improvement", "max_beta_reached"])
+        self.assertEqual(solved.search["evaluated_candidates"], 6)
+        self.assertFalse(solved.search["fallback_used"])
+
+    def test_tie_stops_despite_less_copy_and_best_visited_candidate_is_retained(self):
+        solved, calls = self.solve_curves({"global": [(100, 10), (100, 5), (1, 0)],
+                                           "components": [150, 160, 1]})
+        self.assertEqual(calls, [("global", 1), ("global", 2), ("components", 1), ("components", 2)])
+        self.assertEqual(solved.selected, {"mode": "global", "beta": 2, "candidate_index": 1})
+        self.assertFalse(solved.candidates[1]["search_decision"]["strictly_improved"])
+        self.assertEqual(solved.search["modes"][1]["best_beta"], 1)
+
+    def test_later_reversal_is_not_probed_and_single_component_has_one_search(self):
+        solved, calls = self.solve_curves({"global": [100, 90, 95, 1]}, graph=graph_of(2, [(0, 1)]))
+        self.assertEqual(calls, [("global", b) for b in (1, 2, 3)])
+        self.assertEqual(solved.selected["beta"], 2)
+        self.assertEqual(len(solved.search["modes"]), 1)
+
+    def test_failed_candidate_stops_only_its_mode_and_keeps_incumbent(self):
+        for curve in ([None, 1], [90, None, 1]):
+            with self.subTest(curve=curve):
+                solved, calls = self.solve_curves({"global": curve, "components": [100, 110]})
+                self.assertEqual(calls[-2:], [("components", 1), ("components", 2)])
+                self.assertEqual(solved.search["modes"][0]["stop_reason"], "candidate_failed")
+                self.assertEqual(solved.selected["mode"], "components" if curve[0] is None else "global")
+                self.assertFalse(solved.search["fallback_used"])
+
+    def test_all_failed_modes_use_fallback_and_preserve_search_on_failure(self):
+        solved, calls = self.solve_curves({"global": [None], "components": [None]})
+        self.assertEqual(calls, [("global", 1), ("components", 1)])
+        self.assertEqual(solved.selected, {"mode": "singleton_fallback", "beta": None, "candidate_index": 2})
+        self.assertTrue(solved.search["fallback_used"])
+        self.assertEqual(solved.plan["core_schedules"], [[0, 1], []])
+        with patch.object(official, "evaluate", side_effect=official.SceneAEvaluationError("failed")):
+            with self.assertRaises(InitializationError) as failure:
+                self.solve_curves({"global": [None], "components": [None]})
+        self.assertEqual(len(failure.exception.candidates), 3)
+        self.assertEqual(failure.exception.search["evaluated_candidates"], 2)
+
+    def test_parallel_modes_start_together_and_advance_without_waiting_for_other_mode(self):
+        from q1 import solver
+        curves = {"global": [100, 110], "components": [140, 130, 120, 90]}
+        calls, submitted = [], []
+        index = GraphIndex(graph_of(2), SETTINGS)
+        evaluate = self.evaluator(curves, calls)
+
+        class Pending:
+            def __init__(self, mode, beta):
+                self.mode, self.beta = mode, beta
+
+            def result(self):
+                return evaluate(index, 2, self.mode, self.beta, None)
+
+        def submit(function, mode, beta):
+            submitted.append((mode, beta))
+            return Pending(mode, beta)
+
+        def finish_components_first(pending, **kwargs):
+            self.assertEqual(submitted[:2], [("global", 1), ("components", 1)])
+            future = min(pending, key=lambda f: (f.mode != "components", f.beta))
+            return {future}, set(pending) - {future}
+
+        with patch.object(solver, "ProcessPoolExecutor") as pool, \
+                patch.object(solver, "wait", side_effect=finish_components_first):
+            pool.return_value.__enter__.return_value.submit.side_effect = submit
+            parallel = initialize(index.graph, 2, SETTINGS, index=index)
+            self.assertEqual(pool.call_args.kwargs["max_workers"], 2)
+        self.assertEqual(calls[:4], [("components", b) for b in (1, 2, 3, 4)])
+        serial, _ = self.solve_curves(curves)
+        self.assertEqual(parallel, serial)
+
+
 class RunnerTests(unittest.TestCase):
     def test_cli_defaults_to_published_archive(self):
         from q1.__main__ import main
         with patch("q1.__main__.run_cases", return_value=0) as run:
             self.assertEqual(main(["solve", "official/data/case_001.json", "--cores", "2"]), 0)
             self.assertEqual(run.call_args.args[-1], ROOT / "results/problem_1_singlecore")
+            self.assertEqual(run.call_args.args[-2], 2)
+            self.assertEqual(run.call_args.kwargs["beta_search"], "adaptive")
             self.assertEqual(main(["solve", "official/data/case_001.json", "--cores", "2",
                                    "--recompute-baseline"]), 0)
             self.assertIsNone(run.call_args.args[-1])
+            for policy in ("fixed", "adaptive", "grid"):
+                self.assertEqual(main(["solve", "official/data/case_001.json", "--beta-search", policy]), 0)
+                self.assertEqual(run.call_args.kwargs["beta_search"], policy)
 
     def test_parallel_cli_and_independent_official_cli(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -394,12 +527,14 @@ class RunnerTests(unittest.TestCase):
             config = official.REFERENCE / "data" / "config.txt"
             command = [sys.executable, str(ROOT / "src/solve_problem1.py"), "batch", "--data-dir", str(root),
                        "--config", str(config), "--cores", "2", "--jobs", "2",
-                       "--candidate-jobs", "2", "--recompute-baseline", "--output-root", str(root / "out")]
+                       "--candidate-jobs", "2",
+                       "--recompute-baseline", "--output-root", str(root / "out")]
             process = subprocess.run(command, cwd=official.ROOT, capture_output=True, timeout=60)
             self.assertEqual(process.returncode, 0, (process.stdout, process.stderr))
             report = official.read_json(root / "out" / "summary.json")
             self.assertTrue(report["complete"])
             self.assertEqual(len(report["rows"]), 4)
+            self.assertTrue(all(r["beta_search"] == "adaptive" for r in report["rows"] if r["num_cores"] == 2))
             for name in ("case_a", "case_b"):
                 directory = root / "out" / name / "N2"
                 checked = root / f"{name}_checked.json"
@@ -432,6 +567,9 @@ class RunnerTests(unittest.TestCase):
             legacy = deepcopy(source)
             legacy["algorithm"]["betas"] = [1, 2, 4]
             self.assertFalse(reusable(directory, fingerprint(legacy, 2))[0])
+            for policy in ("fixed", "grid"):
+                source = provenance(path, config, beta_search=policy)
+                self.assertFalse(reusable(directory, fingerprint(source, 2))[0])
             (directory / "plan.json").write_text("{}", encoding="utf-8")
             self.assertFalse(reusable(directory, signature)[0])
 

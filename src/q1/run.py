@@ -48,12 +48,15 @@ def file_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
-def provenance(graph_path: Path, config_path: Path, baseline: dict | None = None) -> dict:
+def provenance(graph_path: Path, config_path: Path, baseline: dict | None = None, *,
+               beta_search: str = "adaptive") -> dict:
     source = {
         "schema_version": 1,
         "algorithm": {"name": "ready_growth_list_allocation", "betas": list(BETAS),
                       "shortlist_size": SHORTLIST_SIZE, "accept_zero_gain": True,
-                      "modes": ["global", "components"]},
+                      "modes": ["global", "components"], "beta_search": beta_search,
+                      "adaptive_rule": "per_mode_strict_makespan_decrease",
+                      "adaptive_failure": "stop_mode_keep_best"},
         "graph_sha256": file_hash(graph_path), "config_sha256": file_hash(config_path),
         "solver_sha256": {p.name: file_hash(p) for p in sorted(Path(__file__).parent.glob("*.py"))},
         "official_sha256": {p.name: file_hash(p) for p in sorted(official.CODE.glob("*.py"))},
@@ -129,14 +132,16 @@ def failure(directory: Path, case: str, cores: int, error: Exception) -> dict:
               "error_type": type(error).__name__, "error": str(error),
               "traceback": traceback.format_exc()}
     if isinstance(error, InitializationError):
-        write_json(directory / "construction.json", {"candidates": error.candidates})
+        write_json(directory / "construction.json", {"candidates": error.candidates,
+                                                     "search": error.search})
     write_json(directory / "failure.json", report)
     print(f"[{case} N{cores}] FAILED: {type(error).__name__}: {error}", flush=True)
     return {k: v for k, v in report.items() if k != "traceback"}
 
 
 def run_case(graph_file: str, config_file: str, output: str, cores: list[int], resume: bool,
-             candidate_jobs: int = 1, baseline: dict | None = None) -> list[dict]:
+             candidate_jobs: int = 2, baseline: dict | None = None, *,
+             beta_search: str = "adaptive") -> list[dict]:
     graph_path, config_path, output_root = Path(graph_file), Path(config_file), Path(output)
     case = graph_path.stem
     case_dir = output_root / case
@@ -151,7 +156,7 @@ def run_case(graph_file: str, config_file: str, output: str, cores: list[int], r
     try:
         settings = official.Settings.read(config_path)
         graph = official.read_json(graph_path)
-        source = provenance(graph_path, config_path, baseline)
+        source = provenance(graph_path, config_path, baseline, beta_search=beta_search)
         index = GraphIndex(graph, settings)
     except Exception as error:
         for n in requested:
@@ -194,9 +199,10 @@ def run_case(graph_file: str, config_file: str, output: str, cores: list[int], r
                     selected = {"mode": "singlecore", "beta": None}
                 else:
                     solved = initialize(graph, n, settings, index=index, progress=progress,
-                                        candidate_jobs=candidate_jobs)
+                                        candidate_jobs=candidate_jobs, beta_search=beta_search)
                     write_json(directory / "construction.json", {
-                        "selected": solved.selected, "candidates": solved.candidates})
+                        "selected": solved.selected, "candidates": solved.candidates,
+                        "search": solved.search})
                     write_json(directory / "plan.json", solved.plan)
                     progress({"event": "serialized_plan_reevaluation"})
                     result = official.evaluate(graph, official.read_json(directory / "plan.json"), settings)
@@ -207,6 +213,10 @@ def run_case(graph_file: str, config_file: str, output: str, cores: list[int], r
                 result["input_plan"] = "plan.json" if n != 1 else None
                 save_evaluation(directory, graph_path, result)
                 row = metrics(case, n, result, selected, perf_counter() - started)
+                if n != 1:
+                    row.update(beta_search=beta_search,
+                               evaluated_candidates=solved.search["evaluated_candidates"],
+                               fallback_used=solved.search["fallback_used"])
                 if baseline is not None:
                     row["baseline_ref"] = baseline["baseline_ref"]
                     row["singlecore_makespan_cycles"] = baseline["makespan_cycles"]
@@ -260,8 +270,9 @@ def summarize(rows: list[dict], cases: list[str], cores: list[int], output: Path
 
 
 def run_cases(graphs: list[Path], config: Path, output: Path,
-              cores: list[int], jobs: int, resume: bool, candidate_jobs: int = 1,
-              baseline_archive: Path | None = official.ROOT / "results" / "problem_1_singlecore") -> int:
+              cores: list[int], jobs: int, resume: bool, candidate_jobs: int = 2,
+              baseline_archive: Path | None = official.ROOT / "results" / "problem_1_singlecore", *,
+              beta_search: str = "adaptive") -> int:
     cases = [p.stem for p in graphs]
     if len(cases) != len(set(cases)):
         raise ValueError("case filenames must have distinct stems")
@@ -284,12 +295,12 @@ def run_cases(graphs: list[Path], config: Path, output: Path,
     if jobs == 1:
         for graph in graphs:
             rows.extend(run_case(str(graph), str(config), str(output), cores, resume, candidate_jobs,
-                                 catalog.get(graph.stem)))
+                                 catalog.get(graph.stem), beta_search=beta_search))
             summarize(rows, cases, cores, output)
     else:
         with ProcessPoolExecutor(max_workers=jobs) as pool:
             futures = {pool.submit(run_case, str(g), str(config), str(output), cores, resume, candidate_jobs,
-                                   catalog.get(g.stem)): g
+                                   catalog.get(g.stem), beta_search=beta_search): g
                        for g in graphs}
             for future in as_completed(futures):
                 try:

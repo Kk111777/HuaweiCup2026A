@@ -1,6 +1,6 @@
 # 问题一初始化：模型、实现与运行
 
-本模块输入原 DAG，输出 `node_to_subgraph` 和 `core_schedules`，通过官方问题一评估器计算总体时间和搬运量。粒度参数固定为 **β=1,2,3,4**；以下完整列出模型公式、实现对应和运行接口。没有第二阶段的瓶颈识别、迁移、合并或局部搜索。
+本模块输入原 DAG，输出 `node_to_subgraph` 和 `core_schedules`，通过官方问题一评估器计算总体时间和搬运量。**默认开启独立自适应 β 组件**：两种初始化从 β=1 开始各自递增，首次官方总体时间不再改善即停，最多试到 β=4，再取已评价的最好方案。可关闭组件以固定 β=1 做消融，或完整枚举 β=1,2,3,4 作对照。以下列出模型公式、实现对应和运行接口。没有第二阶段的瓶颈识别、迁移、合并或局部搜索。
 
 ## 使用
 
@@ -12,8 +12,11 @@
 # 单例：校验并复用仓库已发布的单核基准
 python src/solve_problem1.py solve official/data/case_001.json --cores 2 3 4 5
 
-# 同一例的候选并行；不改变模拟 NPU 核数或评分规则
-python src/solve_problem1.py solve official/data/case_087.json --cores 5 --candidate-jobs 2
+# 关闭自适应组件：两种初始化均固定 beta=1，其他构造和评价规则相同
+python src/solve_problem1.py solve official/data/case_087.json --cores 5 --beta-search fixed --output-root outputs/q1/fixed
+
+# 完整枚举对照；不改变模拟 NPU 核数或评分规则
+python src/solve_problem1.py solve official/data/case_001.json --cores 2 --beta-search grid --output-root outputs/q1/grid
 
 # 选定用例；jobs 是同时处理的用例数
 python src/solve_problem1.py batch --cases case_001 case_086 --cores 2 --jobs 1
@@ -25,9 +28,9 @@ python src/solve_problem1.py batch --cases all --cores 2 3 4 5 --jobs 1 --resume
 python -m unittest discover -s tests -v
 ```
 
-`solve` 默认从计算图所在目录读取 `config.txt`；`batch` 默认读取仓库官方数据目录。两者都支持 `--config`、`--output-root`、`--cores`、`--candidate-jobs` 和 `--resume`；`batch` 另支持 `--data-dir`、`--cases`、`--jobs`。核数限于 2–5，单核基准默认复用 `results/problem_1_singlecore/`。父进程调用 `common.baseline.load_baseline_catalog` 一次，验证整个归档及本次请求的输入、配置、官方程序哈希，再将单条记录传给各用例进程；不重复运行单核或复制历史产物。硬件参数必须从配置读取，不静默使用代码默认值。
+`solve` 默认从计算图所在目录读取 `config.txt`；`batch` 默认读取仓库官方数据目录。两者都支持 `--config`、`--output-root`、`--cores`、`--beta-search`、`--candidate-jobs` 和 `--resume`；`batch` 另支持 `--data-dir`、`--cases`、`--jobs`。核数限于 2–5，单核基准默认复用 `results/problem_1_singlecore/`。父进程调用 `common.baseline.load_baseline_catalog` 一次，验证整个归档及本次请求的输入、配置、官方程序哈希，再将单条记录传给各用例进程；不重复运行单核或复制历史产物。硬件参数必须从配置读取，不静默使用代码默认值。
 
-默认数据与输出路径相对于程序所在仓库定位，显式相对路径相对于调用目录解析。通常先 `cd` 到根目录运行上述命令；也可以从其他工作目录传入 `src/solve_problem1.py` 的绝对路径。模块调用 `python -m q1` 则需将 `src/` 加入 `PYTHONPATH`。默认单进程；按可用 CPU 和内存选择一种主要并行方式：`--jobs` 处理不同用例，`--candidate-jobs` 处理同一例、同一核数的不同候选。两者同时增大会形成乘积级进程数，不宜直接取机器全部线程数。各例的不同核数仍顺序执行。最终方案重读复评保持串行。
+默认数据与输出路径相对于程序所在仓库定位，显式相对路径相对于调用目录解析。通常先 `cd` 到根目录运行上述命令；也可以从其他工作目录传入 `src/solve_problem1.py` 的绝对路径。模块调用 `python -m q1` 则需将 `src/` 加入 `PYTHONPATH`。默认 `--jobs 1 --candidate-jobs 2`：同时处理一个用例，两个工作进程启动两种模式；只有一个计算分量时固定/自适应均串行处理该模式。`--candidate-jobs 1` 可强制串行。`--jobs` 处理不同用例；两层并行同时增大会形成乘积级进程数。各例的不同核数仍顺序执行。最终方案重读复评保持串行。
 
 候选并行采用独立进程，每个进程独立执行原算法和官方评估。候选完成顺序不影响最终按时间、搬运、模式顺序、β 择优；构造记录仍按固定模式和 β 顺序保存。并行数只影响运行方式，在来源记录中保存，不参与算法指纹。`events.jsonl` 增加每 1000 个操作的标注进度，以及核内预分析、核心分配、正式评估阶段记录。
 
@@ -52,16 +55,37 @@ python -m unittest discover -s tests -v
 from q1 import Settings, initialize
 from q1.official import read_json
 
-graph = read_json("official/data/case_001.json")
-settings = Settings.read("official/data/config.txt")
-answer = initialize(graph, num_cores=2, settings=settings, candidate_jobs=1)
-plan = answer.plan
-evaluation = answer.evaluation
-selected = answer.selected
-candidates = answer.candidates
+if __name__ == "__main__":
+    graph = read_json("official/data/case_001.json")
+    settings = Settings.read("official/data/config.txt")
+    answer = initialize(graph, num_cores=2, settings=settings,
+                        candidate_jobs=2, beta_search="adaptive")
+    plan = answer.plan
+    evaluation = answer.evaluation
+    selected = answer.selected
+    candidates = answer.candidates
+    search = answer.search
 ```
 
-`InitializationResult` 返回最终方案、官方完整评价、选中模式/β/候选序号及各候选构造记录。可选 `progress(event)` 回调报告候选进度、阶段与耗时；`candidate_jobs` 默认 1。Python 脚本启用多进程时，应把调用放在 `if __name__ == "__main__":` 保护内，兼容 Windows 的 spawn。调用者若需要文件、复评与完成标记，应使用命令行入口。
+`InitializationResult` 返回最终方案、官方完整评价、选中模式/β/候选序号、各候选构造记录及 `search` 搜索记录。可选 `progress(event)` 回调报告候选进度、阶段与耗时及每种模式的停止原因；`candidate_jobs` 默认 2，`beta_search` 默认 `adaptive`。Python 脚本启用多进程时，应把调用放在 `if __name__ == "__main__":` 保护内，兼容 Windows 的 spawn。调用者若需要文件、复评与完成标记，应使用命令行入口。
+
+## 可开关的自适应粒度组件
+
+每个用例、每种核数独立选参。两种初始化方式为 `global`（全局范围）和 `components`（独立计算分量分组），自适应组件只决定是否继续尝试下一 β，不改变任一候选的构造与评估。
+
+| `--beta-search` | 规则 | 正常候选上限（双模式 / 单模式） |
+|---|---|---:|
+| `adaptive`（默认） | 各模式独立从 β=1、2 开始；官方 Makespan 严格下降才继续，最多 β=4 | 8 / 4 |
+| `fixed` | 关闭组件，两种模式均只运行 β=1，选较好方案；消融时使用 | 2 / 1 |
+| `grid` | 两种模式均完整枚举 β=1,2,3,4，作为对照 | 8 / 4 |
+
+自适应使用快速规则：对模式 $m$，β=b 完整评价成功后，仅当 $b=1$，或 $T_{m,b}<T_{m,b-1}$ 时继续试 b+1；β=4 后结束。时间相等也停止，不因搬运量减少而继续。某模式停止不会停止另一模式，下一 β 无须等待另一模式返回；不会在早停后额外探测 β=4。
+
+最终在所有已成功评价的候选中按 `(makespan, added_copy_bytes, mode_order, beta)` 择优。时间持平而搬运减少的候选仍可成为最终结果，但不会触发继续搜索。任何时候都保留已找到的最好方案，因此正常评价时自适应结果不会劣于本例同核数的双模式固定 β=1 基线。
+
+若一个候选发生明确的官方调度失败，自适应停止该模式并保留其已有成功方案；β=1 失败时，该模式无成功方案。两种模式均未取得成功方案时才运行单操作后备。输入错误、程序异常向外传播。固定和枚举模式也仅将明确的官方调度失败记为候选失败。
+
+这是按实例评价反馈选择参数的启发式组件，不假设时间关于 β 单调或单峰，不能保证找到四种 β 的全枚举最优值。做消融时，对同一批图、核数和配置分别运行 `fixed` 与 `adaptive`，只改变此开关；用不同输出目录保存两组结果。`grid` 可用于核对早停漏掉的收益，不能把候选数减少直接当作实测墙钟加速。
 
 ## 图与静态量：式 (1)—(5)
 
@@ -91,14 +115,14 @@ W_V(S)=\sum_{v\in S,\,pipe(v)=V}c_v.\tag{3}
 \left(\max_{p\in\{M,V\}}(W_p(B_k)+W_p(C)),\ W_M(B_k)+W_V(B_k),\ k\right).\tag{4}
 \]
 
-分组只是候选范围，不绑定核心。只有一个分量时省略第二模式。范围按编号处理；每个模式均独立运行四种粒度：
+分组只是候选范围，不绑定核心。只有一个分量时省略第二模式。范围按编号处理；可选粒度及其限制为：
 
 \[
 \beta\in\{1,2,3,4\},\qquad
 H_\beta=\max\left(1,\left\lceil\frac{\max(W_M(O_c),W_V(O_c))}{\beta N}\right\rceil\right).\tag{5}
 \]
 
-因此每个用例、每个核数最多 8 份候选，均从原图重新构造。
+默认各模式自适应选择 β；每个用例、每个核数最多 8 份候选，均从原图重新构造。`fixed` 模式仅使用 β=1。
 
 ## 就绪生长与费用：式 (6)—(18)
 
@@ -245,7 +269,7 @@ A_k=\begin{cases}0,&\pi_k\text{ 为空},\\
 
 随后对每个候选调用官方 `evaluate_scene_a`，按 `(makespan, added_copy_bytes, mode_order, beta)` 最小选择。正式评价重新执行官方核内与全局流程；没有复制或改写评估器，也没有通过 monkey patch 注入预分析缓存。预分析用完只保留持续时间，避免长期持有扩展图。
 
-只有全部正常候选发生官方调度/模拟失败时，才尝试按计算拓扑序、每个计算操作一个 Task、全排核心 0 的后备方案。后备仍须正式评价；失败返回非零状态。正常候选的程序错误不触发后备。
+只有所选策略实际评价的正常候选全部发生官方调度/模拟失败时，才尝试按计算拓扑序、每个计算操作一个 Task、全排核心 0 的后备方案。后备仍须正式评价；失败返回非零状态。正常候选的程序错误不触发后备。
 
 ## 三项可行性保证及其边界
 
@@ -262,7 +286,7 @@ A_k=\begin{cases}0,&\pi_k\text{ 为空},\\
 ```text
 case_001/N2/
   plan.json            # 可直接交给官方问题一评估器，严格只有两个字段
-  construction.json    # 8/4 份候选、加入序列、修补、核内时长和分核参考量
+  construction.json    # 已评价候选、加入序列、修补、核内时长、分核参考量及搜索停止原因
   result.json          # 官方完整模拟结果
   result.log           # 官方格式简短日志
   trace.json           # 官方 Perfetto Trace
@@ -277,7 +301,9 @@ case_001/N2/
 
 最终提交文件写入后重新读取，完整调用官方评估并比较整个结果，完全一致才写完成标记。JSON 产物先写同目录临时文件再原子替换。失败保存 `failure.json`，没有成功标记；旧结果即使残留，也不能按成功结果续跑。
 
-续跑同时验证内容指纹与关键产物 SHA-256。指纹包括图、配置、自有、复用的公共接口及官方 Python 源码、单核归档清单与结果引用、Python 版本与实现、核数、四种 β、K、模式顺序及零收益规则。β=1,2,4 的旧记录不能复用。绝对目录路径不参与指纹；基线引用使用仓库相对路径，便于迁移；Python 版本改变会保守重算。
+续跑同时验证内容指纹与关键产物 SHA-256。指纹包括图、配置、自有、复用的公共接口及官方 Python 源码、单核归档清单与结果引用、Python 版本与实现、核数、四种 β、搜索策略、停止规则、K、模式顺序及零收益规则。`fixed`、`adaptive`、`grid` 的完成标记不能互用，β=1,2,4 的旧记录也不能复用。绝对目录路径不参与指纹；基线引用使用仓库相对路径，便于迁移；Python 版本改变会保守重算。
+
+`construction.json` 的 `search.modes` 记录每种模式的 `evaluated_betas`、`best_beta`、`best_makespan` 和 `stop_reason`；自适应各候选另有 `search_decision` 记录前一 Makespan、是否严格改善及下一 β。`metrics.json` 和汇总保存 `beta_search`、`evaluated_candidates` 和 `fallback_used`；候选计数不包含单操作后备，后备记录仍保存在候选列表末尾。列表按模式顺序和 β 升序保存，`selected.candidate_index` 对应该紧凑列表。
 
 输出根目录的 `summary.json`、`summary.csv`、`average_speedup.csv` **仅统计本次命令要求的用例和核数**，每完成一个用例更新一次。另一次命令会更新这些汇总文件；需保留不同验收批次时使用不同 `--output-root`。用例目录中的独立结果仍然保留。
 
