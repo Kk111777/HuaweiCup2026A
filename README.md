@@ -14,7 +14,9 @@
 official/                       官方程序、配置及说明；原始图留本地
 src/problem_1_baseline.py        稳定的单核基线运行入口
 src/common/baseline.py          归档校验、基线读取和加速比计算
-src/q1/、q2/、q3/               各问算法（实际加入时创建）
+src/solve_problem1.py           问题一基础版初始化入口
+src/q1/                        问题一切图、Task 排布与官方评估适配
+src/q2/、q3/                    第二、三问算法（实际加入时创建）
 configs/q1/、q2/、q3/           各问搜索参数（实际加入时创建）
 results/problem_1_singlecore/   完整的 100 例单核基线，固定保留
 results/qN/<日期_算法版本>/      正式实验的精简可复核归档
@@ -24,7 +26,7 @@ tests/                         基线、公共接口及各问测试
 notebooks/                     Jupyter Notebook 分析与实验
 ```
 
-当前提供问题一整图单 Task、单核基线及全部 100 例正式结果。程序应使用相对路径或配置指定输入输出位置，避免写死个人电脑路径。
+当前提供问题一整图单 Task、单核基线及全部 100 例正式结果，以及切图与多核排布的基础版初始化程序。程序应使用相对路径或配置指定输入输出位置，避免写死个人电脑路径。
 
 后续开发先阅读[项目结构与基线复用指南](docs/architecture.md)。其中包含可直接运行的基线读取示例、加速比口径、正式结果归档规则，以及各问程序逐步接入的方式。
 
@@ -131,6 +133,27 @@ outputs/problem_1_singlecore/
 ### 已上传的完整结果
 
 [单核 baseline 结果归档](results/problem_1_singlecore/README.md)保存 100 例的 300 份官方产物、汇总和运行记录，附本次上传的 SHA-256 清单和核验记录。日常新实验仍写入被 Git 忽略的 `outputs/`，完成并明确要求上传后才整理为正式结果。
+
+## 问题一：切图与多核排布初始化
+
+实现就绪节点生长、官方核内预分析和多核列表分配。两种候选范围分别执行 `β=1,2,3,4`，每个用例、核数最多评价 8 个候选，按官方总体时间及额外搬运量择优。当前实现覆盖第一阶段初始化。
+
+```powershell
+# 先按上文准备原始计算图；默认复用仓库的已校验单核基准
+python src/solve_problem1.py solve official/data/case_001.json --cores 2 3 4 5
+
+# 两个 CPU 进程并行候选；5 表示模拟 NPU 核数
+python src/solve_problem1.py solve official/data/case_087.json --cores 5 --candidate-jobs 2
+
+# 服务器全量实验入口；本次程序验收未执行全量多核实验
+python src/solve_problem1.py batch --cases all --cores 2 3 4 5 --jobs 1 --resume
+```
+
+默认输出为 `outputs/q1/initialization/`，可用 `--output-root` 为不同实验指定目录。`--jobs` 并行用例，`--candidate-jobs` 并行候选，默认均为 1。最终方案保存后重新读取并调用官方完整评估，一致后才写入完成标记。
+
+单核归档由 `common.baseline` 在父进程统一验证，再传给各用例进程；不重复计算或复制历史结果。输入、配置或官方代码不匹配时明确报错。自定义小图可显式使用 `--recompute-baseline`；算法和测试仅依赖标准库。
+
+详见[算法、公式对应与接口](docs/q1/initialization.md)和[有限验收记录](docs/q1/acceptance.md)。
 
 ## 日常协作
 
