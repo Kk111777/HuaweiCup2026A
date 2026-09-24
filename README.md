@@ -11,16 +11,22 @@
 ## 项目目录
 
 ```text
-official/     官方调度与评估程序、配置及说明
-src/          Python 程序和可复用函数
-notebooks/    Jupyter Notebook 分析与实验
-tests/        实际算法和功能的测试
-docs/         环境与项目说明
-results/      明确归档并提交的正式实验结果
-outputs/      本地新实验输出（Git 忽略）
+official/                       官方程序、配置及说明；原始图留本地
+src/problem_1_baseline.py        稳定的单核基线运行入口
+src/common/baseline.py          归档校验、基线读取和加速比计算
+src/q1/、q2/、q3/               各问算法（实际加入时创建）
+configs/q1/、q2/、q3/           各问搜索参数（实际加入时创建）
+results/problem_1_singlecore/   完整的 100 例单核基线，固定保留
+results/qN/<日期_算法版本>/      正式实验的精简可复核归档
+outputs/qN/<实验编号>/          本地实验、Trace 和中间候选（Git 忽略）
+docs/                          结构约定、环境说明及各问算法文档
+tests/                         基线、公共接口及各问测试
+notebooks/                     Jupyter Notebook 分析与实验
 ```
 
 当前提供问题一整图单 Task、单核基线及全部 100 例正式结果。程序应使用相对路径或配置指定输入输出位置，避免写死个人电脑路径。
+
+后续开发先阅读[项目结构与基线复用指南](docs/architecture.md)。其中包含可直接运行的基线读取示例、加速比口径、正式结果归档规则，以及各问程序逐步接入的方式。
 
 ## 开始使用
 
