@@ -44,8 +44,8 @@
 以下使用迁移后的入口，默认复用已校验单核归档；新输出另设目录。
 
 ```bash
-python src/solve_problem1.py solve official/data/case_001.json --cores 2 3 4 5 --output-root outputs/q1/smoke_001 --resume
-python src/solve_problem1.py solve official/data/case_086.json --cores 2 --output-root outputs/q1/smoke_086 --resume
+python src/solve_problem1.py solve official/data/case_001.json --cores 2 3 4 5 --beta-search grid --output-root outputs/q1/smoke_001 --resume
+python src/solve_problem1.py solve official/data/case_086.json --cores 2 --beta-search grid --output-root outputs/q1/smoke_086 --resume
 
 python official/code/multicore_cut_evaluate_problem_1.py official/data/case_001.json outputs/q1/smoke_001/case_001/N2/plan.json --config official/data/config.txt -o outputs/q1/manual_check/result.json --trace-output outputs/q1/manual_check/trace.json --log-output outputs/q1/manual_check/result.log
 ```
@@ -98,3 +98,29 @@ case_087 使用两个候选工作进程，单核基准不属于此次追加请�
 - 对这四组结果运行 `--resume`，均通过基线、代码指纹及产物哈希验证并跳过重算。
 
 本次新增产物位于协作工作区的 `outputs/q1/upload_acceptance/` 与 `outputs/q1/upload_independent/`，由 Git 忽略。没有重跑 case_087 或全量多核实验；没有将历史大体积 Trace、原图和过程候选作为本次程序提交内容。
+
+## 2026-09-25：固定 β 基线与可选自适应组件
+
+基础算法默认开启自适应组件，两种初始化同时启动、各自独立递增 β，首次官方 Makespan 不再严格下降就停止，上限 β=4。`--beta-search fixed` 关闭组件，两种初始化固定 β=1 后择优。`--beta-search grid` 保留先前完整枚举；上文历史结果均属于完整枚举。本次只修改搜索组织、接口与记录，候选内部的切图、分核、官方评估和公共单核归档保持原样。
+
+Windows / Python 3.13.5 上完成以下验证：
+
+- **74 项测试全部通过，无跳过**，其中 34 项为初始化测试。新检查包括固定 β=1 的消融选项、模式独立推进、时间持平早停、保留最好候选、上限 β=4、失败后备、紧凑候选序号、三种策略串并行一致，以及策略指纹不可互用。
+- 将新控制逻辑接入此前 16 例 × 4 核数的已保存候选指标，回放固定、自适应和全枚举。分别访问 104、261、416 份候选；64 组自适应的访问集合与选择结果均与先前独立回放一致。此项没有重新运行这些候选的模拟器。
+- 新算下面四组用例／核数的固定与自适应版本，共 20 个候选、8 份最终方案。每份方案落盘重读后的完整复评、官方独立 CLI 的完整 JSON、以及历史对应候选的方案和完整结果，均一致。
+- 8 份结果均通过同策略 `--resume` 的指纹和产物校验；固定与自适应不能交叉复用完成标记。单核基准复用已校验的公共归档，没有重新运行单核。
+
+| 用例 | 核数 | 固定 β=1 Makespan | 自适应 Makespan | 自适应选中 β | 固定 / 自适应候选数 |
+|---|---:|---:|---:|---:|---:|
+| case_001 | 2 | 116868 | 116868 | 1 | 2 / 4 |
+| case_001 | 5 | 47502 | 47502 | 1 | 2 / 4 |
+| case_002 | 3 | 244334 | 100899 | 4 | 1 / 4 |
+| case_005 | 2 | 92750 | 92750 | 1 | 1 / 2 |
+
+case_001 覆盖双模式早停，case_002 覆盖持续改善至 β=4，case_005 覆盖 β=2 变差后保留 β=1。后者已保存的 β=4 候选为 85621 cycles，快速规则不会访问它，这说明早停不保证达到全枚举最优。
+
+本次产物保存在 `outputs/q1/adaptive_acceptance/`：`verify.py` 为有限验收驱动，`replay_verification.json` 为历史指标回放核对，`live_verification.json` 为 8 份新算结果及独立复评检查；各策略目录保存方案、完整评价、构造和搜索记录。未运行全量多核实验、case_067 或服务器实验。
+
+发布前将 CLI、Python 求解接口、运行入口和来源记录统一设为默认 `adaptive`，保留显式 `fixed` 消融。最终 **75 项测试全部通过，无跳过**，其中 35 项为初始化测试，新增默认 API 确实递增 β 的检查；双层进程池 CLI 集成测试也不再显式指定搜索策略。
+
+另用不带 `--beta-search` 的原批处理入口复跑 case_001、case_002 的 3 核：前者选中 `components, β=1`，Makespan 为 79182；后者选中 `global, β=4`，Makespan 为 100899。两组各实际评价 4 个候选，最终方案和完整结果均与对应历史候选一致，官方独立 CLI 复评一致，默认参数下续跑校验通过。发布前产物另存于 `outputs/q1/default_adaptive_acceptance/`，保留此前显式策略的验收记录。

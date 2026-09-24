@@ -136,20 +136,23 @@ outputs/problem_1_singlecore/
 
 ## 问题一：切图与多核排布初始化
 
-实现就绪节点生长、官方核内预分析和多核列表分配。两种候选范围分别执行 `β=1,2,3,4`，每个用例、核数最多评价 8 个候选，按官方总体时间及额外搬运量择优。当前实现覆盖第一阶段初始化。
+实现就绪节点生长、官方核内预分析和多核列表分配。默认同时启动全局与分量分组两种初始化，各自从 `β=1` 开始自适应递增，首次官方总体时间不再改善即停，上限为 4，再按总体时间及额外搬运量择优。自适应 β 组件默认开启，可关闭做消融；当前实现覆盖第一阶段初始化。
 
 ```powershell
 # 先按上文准备原始计算图；默认复用仓库的已校验单核基准
 python src/solve_problem1.py solve official/data/case_001.json --cores 2 3 4 5
 
-# 两个 CPU 进程并行候选；5 表示模拟 NPU 核数
-python src/solve_problem1.py solve official/data/case_087.json --cores 5 --candidate-jobs 2
+# 关闭自适应组件做消融：两种初始化均固定 beta=1 后择优
+python src/solve_problem1.py solve official/data/case_087.json --cores 5 --beta-search fixed --output-root outputs/q1/fixed
+
+# 完整枚举对照；省略此选项或使用 adaptive 为默认自适应算法
+python src/solve_problem1.py solve official/data/case_001.json --cores 2 --beta-search grid --output-root outputs/q1/grid
 
 # 服务器全量实验入口；本次程序验收未执行全量多核实验
 python src/solve_problem1.py batch --cases all --cores 2 3 4 5 --jobs 1 --resume
 ```
 
-默认输出为 `outputs/q1/initialization/`，可用 `--output-root` 为不同实验指定目录。`--jobs` 并行用例，`--candidate-jobs` 并行候选，默认均为 1。最终方案保存后重新读取并调用官方完整评估，一致后才写入完成标记。
+默认输出为 `outputs/q1/initialization/`，可用 `--output-root` 为不同实验指定目录。`--jobs` 并行用例，默认 1；`--candidate-jobs` 限制每例的工作进程，默认 2，设为 1 可串行。只有一个计算分量时省略重复模式。自适应与固定 β 使用相同切图、分核和官方评价流程，搜索策略计入续跑指纹。最终方案保存后重新读取并调用官方完整评估，一致后才写入完成标记。
 
 单核归档由 `common.baseline` 在父进程统一验证，再传给各用例进程；不重复计算或复制历史结果。输入、配置或官方代码不匹配时明确报错。自定义小图可显式使用 `--recompute-baseline`；算法和测试仅依赖标准库。
 

@@ -30,8 +30,10 @@ def main(argv=None) -> int:
                               help="校验并复用已发布单核归档（默认）")
         baseline.add_argument("--recompute-baseline", action="store_true",
                               help="显式重新计算单核基准，适用于自定义小图或新配置")
-        command.add_argument("--candidate-jobs", type=int, default=1,
-                             help="同时计算的初始化候选数，默认 1")
+        command.add_argument("--beta-search", choices=("adaptive", "fixed", "grid"), default="adaptive",
+                             help="adaptive: 各模式独立递增早停（默认）；fixed: 关闭组件，双模式固定 beta=1；grid: 全枚举 1–4")
+        command.add_argument("--candidate-jobs", type=int, default=2,
+                             help="初始化工作进程上限，默认 2；fixed/adaptive 最多同时处理两个模式")
     args = parser.parse_args(argv)
     cores = sorted(set(args.cores))
     if args.candidate_jobs < 1:
@@ -59,7 +61,8 @@ def main(argv=None) -> int:
     try:
         return run_cases(graphs, config.resolve(), args.output_root.resolve(), cores, jobs, args.resume,
                          args.candidate_jobs,
-                         None if args.recompute_baseline else args.baseline_archive.resolve())
+                         None if args.recompute_baseline else args.baseline_archive.resolve(),
+                         beta_search=args.beta_search)
     except (OSError, ValueError) as error:
         print(f"[INITIALIZATION ERROR] {error}", file=sys.stderr)
         return 1
