@@ -1,0 +1,421 @@
+[PREPARE] verifying 100-case baseline archive
+[PROGRESS] completed=0/100 elapsed=34s available_memory=37.7GiB
+[PROGRESS] completed=0/100 elapsed=64s available_memory=37.4GiB
+[PROGRESS] completed=0/100 elapsed=94s available_memory=37.1GiB
+[PROGRESS] completed=0/100 elapsed=124s available_memory=36.8GiB
+[DONE 1/100] case_047 success wall=134.36556669999845s
+[PROGRESS] completed=1/100 elapsed=168s available_memory=36.5GiB
+[PROGRESS] completed=1/100 elapsed=198s available_memory=36.2GiB
+[DONE 2/100] case_016 success wall=223.8959808999789s
+[DONE 3/100] case_053 success wall=244.08076959999744s
+[DONE 4/100] case_085 success wall=252.0438002999872s
+[DONE 5/100] case_003 success wall=279.05400020000525s
+[PROGRESS] completed=5/100 elapsed=313s available_memory=36.2GiB
+[DONE 6/100] case_043 success wall=183.45156999997562s
+[PROGRESS] completed=6/100 elapsed=352s available_memory=36.1GiB
+[PROGRESS] completed=6/100 elapsed=382s available_memory=35.5GiB
+[DONE 7/100] case_075 success wall=70.22471169999335s
+[DONE 8/100] case_067 success wall=157.35282100003678s
+[DONE 9/100] case_056 success wall=133.4930940999766s
+[PROGRESS] completed=9/100 elapsed=446s available_memory=35.2GiB
+[DONE 10/100] case_054 success wall=449.11464739998337s
+[PROGRESS] completed=10/100 elapsed=483s available_memory=35.2GiB
+[PROGRESS] completed=10/100 elapsed=513s available_memory=34.9GiB
+[DONE 11/100] case_028 success wall=533.1944082999835s
+[PROGRESS] completed=11/100 elapsed=567s available_memory=34.7GiB
+[DONE 12/100] case_092 success wall=581.1354006000329s
+[PROGRESS] completed=12/100 elapsed=615s available_memory=35.1GiB
+[PROGRESS] completed=12/100 elapsed=645s available_memory=35.2GiB
+[PROGRESS] completed=12/100 elapsed=675s available_memory=35.1GiB
+[DONE 13/100] case_063 success wall=447.3165767000173s
+[DONE 14/100] case_031 success wall=230.39822810003534s
+[PROGRESS] completed=14/100 elapsed=713s available_memory=35.0GiB
+[PROGRESS] completed=14/100 elapsed=743s available_memory=35.2GiB
+[DONE 15/100] case_020 success wall=341.75530760001857s
+[DONE 16/100] case_097 success wall=491.39072840003064s
+[PROGRESS] completed=16/100 elapsed=777s available_memory=35.2GiB
+[DONE 17/100] case_066 success wall=114.76176999998279s
+[PROGRESS] completed=17/100 elapsed=820s available_memory=35.3GiB
+[DONE 18/100] case_068 success wall=74.83806209999602s
+[DONE 19/100] case_038 success wall=413.8833236999926s
+[DONE 20/100] case_024 success wall=44.06289000000106s
+[DONE 21/100] case_039 success wall=300.29130610002903s
+[DONE 22/100] case_095 success wall=159.3032561999862s
+[DONE 23/100] case_009 success wall=100.78700560005382s
+[PROGRESS] completed=23/100 elapsed=878s available_memory=35.4GiB
+[DONE 24/100] case_086 success wall=52.53687640000135s
+[DONE 25/100] case_084 success wall=882.2893707000185s
+[DONE 26/100] case_060 success wall=301.71777660003863s
+[DONE 27/100] case_030 success wall=888.0038426000392s
+[DONE 28/100] case_089 success wall=85.61965609999606s
+[DONE 29/100] case_099 success wall=530.982435999962s
+[DONE 30/100] case_073 success wall=81.59063859999878s
+[DONE 31/100] case_077 success wall=97.5073687999975s
+[DONE 32/100] case_082 success wall=33.54327819996979s
+[DONE 33/100] case_005 success wall=34.629240299982484s
+[DONE 34/100] case_050 success wall=87.73076820001006s
+[DONE 35/100] case_049 success wall=63.066313399991486s
+[DONE 36/100] case_081 success wall=110.60803810000652s
+[DONE 37/100] case_036 success wall=54.34780639997916s
+[DONE 38/100] case_042 success wall=191.26356620003935s
+[DONE 39/100] case_007 success wall=184.86436340003274s
+[DONE 40/100] case_021 success wall=140.60285699996166s
+[DONE 41/100] case_074 success wall=89.81082960002823s
+[DONE 42/100] case_035 success wall=64.13800590002211s
+[DONE 43/100] case_083 success wall=61.69436299998779s
+[DONE 44/100] case_088 success wall=38.71625800000038s
+[DONE 45/100] case_034 success wall=163.0055771000334s
+[DONE 46/100] case_013 success wall=48.91115640004864s
+[DONE 47/100] case_048 success wall=10.73960100003751s
+[DONE 48/100] case_033 success wall=106.19119219999993s
+[DONE 49/100] case_040 success wall=42.13663089997135s
+[DONE 50/100] case_027 success wall=31.963421699998435s
+[DONE 51/100] case_002 success wall=36.41091720003169s
+[DONE 52/100] case_090 success wall=26.895595300011337s
+[DONE 53/100] case_080 success wall=20.02814390003914s
+[DONE 54/100] case_008 success wall=18.19609790004324s
+[DONE 55/100] case_059 success wall=87.32253579999087s
+[DONE 56/100] case_100 success wall=24.447028499969747s
+[DONE 57/100] case_017 success wall=29.808281100005843s
+[DONE 58/100] case_045 success wall=31.850328199972864s
+[DONE 59/100] case_044 success wall=16.530096199945547s
+[DONE 60/100] case_051 success wall=5.812107399979141s
+[DONE 61/100] case_022 success wall=20.992122300027404s
+[DONE 62/100] case_098 success wall=16.943059099954553s
+[DONE 63/100] case_070 success wall=17.80047979997471s
+[DONE 64/100] case_055 success wall=19.357996099977754s
+[DONE 65/100] case_061 success wall=20.130214900011197s
+[DONE 66/100] case_052 success wall=18.797380800009705s
+[DONE 67/100] case_012 success wall=18.6997348999721s
+[DONE 68/100] case_096 success wall=20.11071759997867s
+[DONE 69/100] case_029 success wall=14.532812700024806s
+[DONE 70/100] case_015 success wall=19.41779899998801s
+[DONE 71/100] case_069 success wall=7.938625700015109s
+[DONE 72/100] case_064 success wall=4.695476099965163s
+[DONE 73/100] case_018 success wall=90.69005579996156s
+[DONE 74/100] case_001 success wall=7.079629899992142s
+[DONE 75/100] case_023 success wall=18.587025100016035s
+[DONE 76/100] case_078 success wall=12.535267500032205s
+[DONE 77/100] case_037 success wall=10.355801499972586s
+[DONE 78/100] case_046 success wall=11.769428500032518s
+[DONE 79/100] case_071 success wall=4.368814500048757s
+[DONE 80/100] case_093 success wall=8.409787599986885s
+[DONE 81/100] case_004 success wall=15.250431999971624s
+[DONE 82/100] case_006 success wall=7.797794199956115s
+[DONE 83/100] case_057 success wall=14.172247100039385s
+[DONE 84/100] case_094 success wall=8.918191600008868s
+[DONE 85/100] case_011 success wall=11.418819400016218s
+[DONE 86/100] case_026 success wall=6.717919500020798s
+[DONE 87/100] case_065 success wall=11.760260900016874s
+[DONE 88/100] case_032 success wall=14.40393089997815s
+[DONE 89/100] case_010 success wall=10.154808900028002s
+[DONE 90/100] case_019 success wall=7.425994699995499s
+[PROGRESS] completed=90/100 elapsed=1158s available_memory=35.3GiB
+[PROGRESS] completed=90/100 elapsed=1188s available_memory=35.4GiB
+[PROGRESS] completed=90/100 elapsed=1218s available_memory=35.3GiB
+[PROGRESS] completed=90/100 elapsed=1248s available_memory=35.4GiB
+[PROGRESS] completed=90/100 elapsed=1278s available_memory=35.6GiB
+[PROGRESS] completed=90/100 elapsed=1308s available_memory=35.5GiB
+[PROGRESS] completed=90/100 elapsed=1338s available_memory=35.6GiB
+[PROGRESS] completed=90/100 elapsed=1368s available_memory=35.6GiB
+[PROGRESS] completed=90/100 elapsed=1398s available_memory=35.3GiB
+[PROGRESS] completed=90/100 elapsed=1428s available_memory=35.2GiB
+[PROGRESS] completed=90/100 elapsed=1458s available_memory=35.2GiB
+[PROGRESS] completed=90/100 elapsed=1488s available_memory=35.1GiB
+[PROGRESS] completed=90/100 elapsed=1518s available_memory=35.1GiB
+[PROGRESS] completed=90/100 elapsed=1548s available_memory=35.2GiB
+[PROGRESS] completed=90/100 elapsed=1578s available_memory=35.2GiB
+[PROGRESS] completed=90/100 elapsed=1608s available_memory=35.4GiB
+[PROGRESS] completed=90/100 elapsed=1638s available_memory=35.1GiB
+[PROGRESS] completed=90/100 elapsed=1668s available_memory=35.1GiB
+[PROGRESS] completed=90/100 elapsed=1698s available_memory=35.4GiB
+[PROGRESS] completed=90/100 elapsed=1728s available_memory=35.4GiB
+[PROGRESS] completed=90/100 elapsed=1758s available_memory=35.2GiB
+[PROGRESS] completed=90/100 elapsed=1788s available_memory=35.1GiB
+[DONE 91/100] case_041 success wall=1791.2897527000168s
+[PROGRESS] completed=91/100 elapsed=1825s available_memory=35.2GiB
+[PROGRESS] completed=91/100 elapsed=1855s available_memory=35.1GiB
+[PROGRESS] completed=91/100 elapsed=1885s available_memory=34.8GiB
+[PROGRESS] completed=91/100 elapsed=1915s available_memory=34.9GiB
+[PROGRESS] completed=91/100 elapsed=1945s available_memory=35.1GiB
+[PROGRESS] completed=91/100 elapsed=1975s available_memory=35.1GiB
+[DONE 92/100] case_087 success wall=1993.8126800000318s
+[PROGRESS] completed=92/100 elapsed=2028s available_memory=35.3GiB
+[PROGRESS] completed=92/100 elapsed=2058s available_memory=35.1GiB
+[PROGRESS] completed=92/100 elapsed=2088s available_memory=35.3GiB
+[PROGRESS] completed=92/100 elapsed=2118s available_memory=35.4GiB
+[PROGRESS] completed=92/100 elapsed=2148s available_memory=35.2GiB
+[PROGRESS] completed=92/100 elapsed=2178s available_memory=35.2GiB
+[PROGRESS] completed=92/100 elapsed=2208s available_memory=35.2GiB
+[PROGRESS] completed=92/100 elapsed=2238s available_memory=35.2GiB
+[PROGRESS] completed=92/100 elapsed=2268s available_memory=35.1GiB
+[PROGRESS] completed=92/100 elapsed=2298s available_memory=35.2GiB
+[PROGRESS] completed=92/100 elapsed=2328s available_memory=35.1GiB
+[DONE 93/100] case_058 success wall=2326.893479499966s
+[PROGRESS] completed=93/100 elapsed=2361s available_memory=35.0GiB
+[PROGRESS] completed=93/100 elapsed=2391s available_memory=35.3GiB
+[DONE 94/100] case_079 success wall=2406.975325300009s
+[PROGRESS] completed=94/100 elapsed=2441s available_memory=35.6GiB
+[DONE 95/100] case_062 success wall=2460.7035671000485s
+[PROGRESS] completed=95/100 elapsed=2494s available_memory=36.1GiB
+[PROGRESS] completed=95/100 elapsed=2524s available_memory=36.0GiB
+[PROGRESS] completed=95/100 elapsed=2554s available_memory=35.8GiB
+[PROGRESS] completed=95/100 elapsed=2584s available_memory=35.9GiB
+[PROGRESS] completed=95/100 elapsed=2614s available_memory=35.8GiB
+[PROGRESS] completed=95/100 elapsed=2644s available_memory=35.2GiB
+[PROGRESS] completed=95/100 elapsed=2675s available_memory=35.0GiB
+[PROGRESS] completed=95/100 elapsed=2705s available_memory=35.2GiB
+[PROGRESS] completed=95/100 elapsed=2735s available_memory=35.0GiB
+[PROGRESS] completed=95/100 elapsed=2765s available_memory=35.0GiB
+[PROGRESS] completed=95/100 elapsed=2795s available_memory=35.2GiB
+[PROGRESS] completed=95/100 elapsed=2825s available_memory=35.3GiB
+[PROGRESS] completed=95/100 elapsed=2855s available_memory=35.4GiB
+[PROGRESS] completed=95/100 elapsed=2885s available_memory=35.3GiB
+[PROGRESS] completed=95/100 elapsed=2915s available_memory=35.2GiB
+[PROGRESS] completed=95/100 elapsed=2945s available_memory=35.9GiB
+[PROGRESS] completed=95/100 elapsed=2975s available_memory=35.6GiB
+[PROGRESS] completed=95/100 elapsed=3005s available_memory=35.8GiB
+[PROGRESS] completed=95/100 elapsed=3035s available_memory=35.6GiB
+[PROGRESS] completed=95/100 elapsed=3065s available_memory=35.8GiB
+[PROGRESS] completed=95/100 elapsed=3095s available_memory=35.5GiB
+[PROGRESS] completed=95/100 elapsed=3125s available_memory=35.5GiB
+[PROGRESS] completed=95/100 elapsed=3155s available_memory=35.5GiB
+[PROGRESS] completed=95/100 elapsed=3185s available_memory=35.8GiB
+[DONE 96/100] case_072 success wall=3200.13822100003s
+[PROGRESS] completed=96/100 elapsed=3234s available_memory=36.2GiB
+[PROGRESS] completed=96/100 elapsed=3264s available_memory=35.9GiB
+[PROGRESS] completed=96/100 elapsed=3294s available_memory=35.3GiB
+[PROGRESS] completed=96/100 elapsed=3324s available_memory=34.9GiB
+[PROGRESS] completed=96/100 elapsed=3354s available_memory=35.6GiB
+[PROGRESS] completed=96/100 elapsed=3384s available_memory=35.5GiB
+[PROGRESS] completed=96/100 elapsed=3414s available_memory=36.0GiB
+[PROGRESS] completed=96/100 elapsed=3444s available_memory=36.0GiB
+[PROGRESS] completed=96/100 elapsed=3474s available_memory=35.8GiB
+[PROGRESS] completed=96/100 elapsed=3504s available_memory=35.7GiB
+[PROGRESS] completed=96/100 elapsed=3534s available_memory=35.5GiB
+[PROGRESS] completed=96/100 elapsed=3564s available_memory=35.5GiB
+[PROGRESS] completed=96/100 elapsed=3594s available_memory=35.5GiB
+[DONE 97/100] case_025 success wall=3612.161461299984s
+[PROGRESS] completed=97/100 elapsed=3646s available_memory=36.0GiB
+[PROGRESS] completed=97/100 elapsed=3676s available_memory=36.1GiB
+[PROGRESS] completed=97/100 elapsed=3706s available_memory=36.0GiB
+[PROGRESS] completed=97/100 elapsed=3736s available_memory=36.1GiB
+[PROGRESS] completed=97/100 elapsed=3766s available_memory=36.1GiB
+[PROGRESS] completed=97/100 elapsed=3796s available_memory=36.2GiB
+[PROGRESS] completed=97/100 elapsed=3826s available_memory=36.1GiB
+[PROGRESS] completed=97/100 elapsed=3856s available_memory=36.1GiB
+[PROGRESS] completed=97/100 elapsed=3886s available_memory=36.0GiB
+[PROGRESS] completed=97/100 elapsed=3916s available_memory=35.9GiB
+[PROGRESS] completed=97/100 elapsed=3946s available_memory=35.7GiB
+[PROGRESS] completed=97/100 elapsed=3976s available_memory=35.8GiB
+[PROGRESS] completed=97/100 elapsed=4006s available_memory=36.2GiB
+[PROGRESS] completed=97/100 elapsed=4036s available_memory=36.2GiB
+[PROGRESS] completed=97/100 elapsed=4066s available_memory=36.1GiB
+[PROGRESS] completed=97/100 elapsed=4096s available_memory=36.3GiB
+[PROGRESS] completed=97/100 elapsed=4126s available_memory=36.3GiB
+[PROGRESS] completed=97/100 elapsed=4156s available_memory=36.2GiB
+[PROGRESS] completed=97/100 elapsed=4186s available_memory=36.3GiB
+[PROGRESS] completed=97/100 elapsed=4216s available_memory=35.9GiB
+[PROGRESS] completed=97/100 elapsed=4246s available_memory=35.0GiB
+[PROGRESS] completed=97/100 elapsed=4276s available_memory=34.8GiB
+[PROGRESS] completed=97/100 elapsed=4306s available_memory=34.6GiB
+[PROGRESS] completed=97/100 elapsed=4336s available_memory=34.3GiB
+[PROGRESS] completed=97/100 elapsed=4366s available_memory=34.2GiB
+[PROGRESS] completed=97/100 elapsed=4396s available_memory=34.6GiB
+[PROGRESS] completed=97/100 elapsed=4426s available_memory=34.6GiB
+[PROGRESS] completed=97/100 elapsed=4456s available_memory=34.5GiB
+[PROGRESS] completed=97/100 elapsed=4486s available_memory=34.4GiB
+[PROGRESS] completed=97/100 elapsed=4516s available_memory=34.6GiB
+[PROGRESS] completed=97/100 elapsed=4546s available_memory=34.5GiB
+[PROGRESS] completed=97/100 elapsed=4576s available_memory=34.3GiB
+[PROGRESS] completed=97/100 elapsed=4606s available_memory=33.8GiB
+[PROGRESS] completed=97/100 elapsed=4636s available_memory=33.7GiB
+[PROGRESS] completed=97/100 elapsed=4666s available_memory=33.6GiB
+[PROGRESS] completed=97/100 elapsed=4696s available_memory=33.9GiB
+[PROGRESS] completed=97/100 elapsed=4726s available_memory=34.0GiB
+[PROGRESS] completed=97/100 elapsed=4756s available_memory=33.8GiB
+[PROGRESS] completed=97/100 elapsed=4786s available_memory=33.8GiB
+[PROGRESS] completed=97/100 elapsed=4816s available_memory=34.1GiB
+[PROGRESS] completed=97/100 elapsed=4846s available_memory=34.2GiB
+[PROGRESS] completed=97/100 elapsed=4876s available_memory=34.0GiB
+[PROGRESS] completed=97/100 elapsed=4906s available_memory=34.2GiB
+[PROGRESS] completed=97/100 elapsed=4936s available_memory=34.4GiB
+[PROGRESS] completed=97/100 elapsed=4966s available_memory=34.2GiB
+[PROGRESS] completed=97/100 elapsed=4996s available_memory=34.2GiB
+[PROGRESS] completed=97/100 elapsed=5026s available_memory=34.9GiB
+[PROGRESS] completed=97/100 elapsed=5056s available_memory=34.9GiB
+[PROGRESS] completed=97/100 elapsed=5086s available_memory=34.6GiB
+[DONE 98/100] case_091 success wall=5091.361605199985s
+[PROGRESS] completed=98/100 elapsed=5125s available_memory=35.2GiB
+[PROGRESS] completed=98/100 elapsed=5155s available_memory=35.0GiB
+[PROGRESS] completed=98/100 elapsed=5185s available_memory=35.2GiB
+[PROGRESS] completed=98/100 elapsed=5215s available_memory=34.9GiB
+[PROGRESS] completed=98/100 elapsed=5245s available_memory=35.5GiB
+[PROGRESS] completed=98/100 elapsed=5275s available_memory=36.2GiB
+[PROGRESS] completed=98/100 elapsed=5305s available_memory=36.1GiB
+[PROGRESS] completed=98/100 elapsed=5335s available_memory=36.2GiB
+[PROGRESS] completed=98/100 elapsed=5365s available_memory=36.1GiB
+[PROGRESS] completed=98/100 elapsed=5395s available_memory=36.2GiB
+[PROGRESS] completed=98/100 elapsed=5425s available_memory=36.1GiB
+[PROGRESS] completed=98/100 elapsed=5455s available_memory=36.2GiB
+[PROGRESS] completed=98/100 elapsed=5485s available_memory=36.0GiB
+[PROGRESS] completed=98/100 elapsed=5515s available_memory=36.0GiB
+[PROGRESS] completed=98/100 elapsed=5545s available_memory=36.0GiB
+[PROGRESS] completed=98/100 elapsed=5575s available_memory=36.0GiB
+[DONE 99/100] case_014 success wall=5592.337435900001s
+[PROGRESS] completed=99/100 elapsed=5626s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=5656s available_memory=36.1GiB
+[PROGRESS] completed=99/100 elapsed=5686s available_memory=36.0GiB
+[PROGRESS] completed=99/100 elapsed=5716s available_memory=36.1GiB
+[PROGRESS] completed=99/100 elapsed=5746s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=5776s available_memory=36.1GiB
+[PROGRESS] completed=99/100 elapsed=5806s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=5836s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=5866s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=5896s available_memory=36.5GiB
+[PROGRESS] completed=99/100 elapsed=5926s available_memory=36.4GiB
+[PROGRESS] completed=99/100 elapsed=5956s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=5986s available_memory=35.9GiB
+[PROGRESS] completed=99/100 elapsed=6016s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=6046s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=6076s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=6106s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=6136s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=6166s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=6196s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=6226s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=6256s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=6286s available_memory=37.5GiB
+[PROGRESS] completed=99/100 elapsed=6316s available_memory=37.7GiB
+[PROGRESS] completed=99/100 elapsed=6346s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6376s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6406s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6436s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6466s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6496s available_memory=37.7GiB
+[PROGRESS] completed=99/100 elapsed=6526s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6556s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6586s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6616s available_memory=37.9GiB
+[PROGRESS] completed=99/100 elapsed=6646s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=6676s available_memory=36.0GiB
+[PROGRESS] completed=99/100 elapsed=6706s available_memory=36.0GiB
+[PROGRESS] completed=99/100 elapsed=6736s available_memory=36.1GiB
+[PROGRESS] completed=99/100 elapsed=6766s available_memory=36.2GiB
+[PROGRESS] completed=99/100 elapsed=6796s available_memory=35.9GiB
+[PROGRESS] completed=99/100 elapsed=6826s available_memory=35.9GiB
+[PROGRESS] completed=99/100 elapsed=6856s available_memory=35.7GiB
+[PROGRESS] completed=99/100 elapsed=6887s available_memory=35.5GiB
+[PROGRESS] completed=99/100 elapsed=6917s available_memory=35.3GiB
+[PROGRESS] completed=99/100 elapsed=6947s available_memory=35.1GiB
+[PROGRESS] completed=99/100 elapsed=6977s available_memory=35.4GiB
+[PROGRESS] completed=99/100 elapsed=7007s available_memory=35.5GiB
+[PROGRESS] completed=99/100 elapsed=7037s available_memory=35.5GiB
+[PROGRESS] completed=99/100 elapsed=7067s available_memory=35.8GiB
+[PROGRESS] completed=99/100 elapsed=7097s available_memory=35.1GiB
+[PROGRESS] completed=99/100 elapsed=7127s available_memory=35.2GiB
+[PROGRESS] completed=99/100 elapsed=7157s available_memory=35.3GiB
+[PROGRESS] completed=99/100 elapsed=7187s available_memory=35.3GiB
+[PROGRESS] completed=99/100 elapsed=7217s available_memory=37.9GiB
+[PROGRESS] completed=99/100 elapsed=7247s available_memory=37.8GiB
+[PROGRESS] completed=99/100 elapsed=7277s available_memory=37.9GiB
+[PROGRESS] completed=99/100 elapsed=7307s available_memory=37.7GiB
+[PROGRESS] completed=99/100 elapsed=7337s available_memory=37.7GiB
+[PROGRESS] completed=99/100 elapsed=7367s available_memory=37.7GiB
+[PROGRESS] completed=99/100 elapsed=7397s available_memory=37.9GiB
+[PROGRESS] completed=99/100 elapsed=7427s available_memory=37.6GiB
+[PROGRESS] completed=99/100 elapsed=7457s available_memory=35.8GiB
+[PROGRESS] completed=99/100 elapsed=7487s available_memory=35.5GiB
+[PROGRESS] completed=99/100 elapsed=7517s available_memory=35.2GiB
+[PROGRESS] completed=99/100 elapsed=7547s available_memory=35.0GiB
+[PROGRESS] completed=99/100 elapsed=7577s available_memory=34.8GiB
+[PROGRESS] completed=99/100 elapsed=7607s available_memory=34.6GiB
+[PROGRESS] completed=99/100 elapsed=7637s available_memory=34.7GiB
+[PROGRESS] completed=99/100 elapsed=7667s available_memory=34.6GiB
+[PROGRESS] completed=99/100 elapsed=7697s available_memory=34.7GiB
+[PROGRESS] completed=99/100 elapsed=7727s available_memory=34.8GiB
+[PROGRESS] completed=99/100 elapsed=7757s available_memory=34.8GiB
+[PROGRESS] completed=99/100 elapsed=7787s available_memory=34.6GiB
+[PROGRESS] completed=99/100 elapsed=7817s available_memory=34.7GiB
+[PROGRESS] completed=99/100 elapsed=7847s available_memory=34.4GiB
+[PROGRESS] completed=99/100 elapsed=7877s available_memory=34.4GiB
+[PROGRESS] completed=99/100 elapsed=7907s available_memory=34.7GiB
+[PROGRESS] completed=99/100 elapsed=7937s available_memory=34.9GiB
+[PROGRESS] completed=99/100 elapsed=7967s available_memory=35.0GiB
+[PROGRESS] completed=99/100 elapsed=7997s available_memory=35.7GiB
+[PROGRESS] completed=99/100 elapsed=8027s available_memory=36.1GiB
+[PROGRESS] completed=99/100 elapsed=8057s available_memory=36.6GiB
+[PROGRESS] completed=99/100 elapsed=8087s available_memory=36.6GiB
+[PROGRESS] completed=99/100 elapsed=8117s available_memory=36.4GiB
+[PROGRESS] completed=99/100 elapsed=8147s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=8177s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=8207s available_memory=36.4GiB
+[PROGRESS] completed=99/100 elapsed=8237s available_memory=36.4GiB
+[PROGRESS] completed=99/100 elapsed=8267s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=8297s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=8327s available_memory=36.4GiB
+[PROGRESS] completed=99/100 elapsed=8357s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=8387s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=8417s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=8447s available_memory=36.8GiB
+[PROGRESS] completed=99/100 elapsed=8477s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=8507s available_memory=36.8GiB
+[PROGRESS] completed=99/100 elapsed=8537s available_memory=36.8GiB
+[PROGRESS] completed=99/100 elapsed=8567s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=8597s available_memory=37.4GiB
+[PROGRESS] completed=99/100 elapsed=8627s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=8657s available_memory=37.4GiB
+[PROGRESS] completed=99/100 elapsed=8687s available_memory=37.4GiB
+[PROGRESS] completed=99/100 elapsed=8717s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=8747s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=8777s available_memory=36.3GiB
+[PROGRESS] completed=99/100 elapsed=8807s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=8837s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=8867s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=8897s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=8927s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=8957s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=8987s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=9017s available_memory=36.8GiB
+[PROGRESS] completed=99/100 elapsed=9047s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=9077s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=9107s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9137s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=9167s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=9197s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=9227s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9257s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=9287s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=9318s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=9348s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=9378s available_memory=36.8GiB
+[PROGRESS] completed=99/100 elapsed=9408s available_memory=36.8GiB
+[PROGRESS] completed=99/100 elapsed=9438s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9468s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=9498s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9528s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=9558s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=9588s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=9618s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=9648s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=9678s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=9708s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=9738s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=9768s available_memory=37.3GiB
+[PROGRESS] completed=99/100 elapsed=9798s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9828s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9858s available_memory=36.7GiB
+[PROGRESS] completed=99/100 elapsed=9888s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=9918s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=9948s available_memory=37.1GiB
+[PROGRESS] completed=99/100 elapsed=9978s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=10008s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=10038s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=10068s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=10098s available_memory=37.2GiB
+[PROGRESS] completed=99/100 elapsed=10128s available_memory=37.0GiB
+[PROGRESS] completed=99/100 elapsed=10158s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=10188s available_memory=36.9GiB
+[PROGRESS] completed=99/100 elapsed=10218s available_memory=37.1GiB
+[DONE 100/100] case_076 success wall=10230.566754799976s
+[FINISHED] status=complete elapsed=10239.945s

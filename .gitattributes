@@ -29,3 +29,4 @@
 official/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 src/problem_1_baseline.py -text
 results/problem_1_singlecore/** -text linguist-generated=true whitespace=cr-at-eol
+results/q1_adaptive_100cases_20260925/** -text linguist-generated=true whitespace=cr-at-eol
