@@ -1,10 +1,12 @@
 # 题目一第三版：基座专用优化模型
 
-版本定位：第一版为协作者 TaskGrowth 基座算法（`04634a2`），第二版预留且尚未上传，本文统一版作为第三版发布。“基座专用优化”表示在基座组件之上扩展通用候选构造与搜索，不表示针对特定 case 编号优化，也不表示第二版已经实现或提交。
+版本定位：第一版为协作者 TaskGrowth 基座算法（`04634a2`）；[第二版](stage2.md)为“基座 + 基于严格剪枝的多原则候选方案分层改进策略”；本文为第三版基座专用优化模型。第二版与第三版从同一基座发展，第三版先于第二版上传，不是对第二版三层搜索的继续叠加。“基座专用优化”表示扩展通用候选构造与搜索，不针对特定 case 编号特判。
 
 继承与改进的边界：图校验、COPY 收缩和依赖预处理继续复用基座使用的官方函数；公共 Graph 统一持有图结构，GraphIndex 保留基座生长特征。TaskGrowth 的划分公式与实现直接复用；核内预分析在小图上保留，大图则使用共享近似模型的局部 Task 时长。基座构造与新增结构分块在候选层并列，局部改进统一作用于两者的方案，共用调度内核、评估服务和状态池。具体调用与设计动机见下文，阅读本仓库即可理解，无需依赖对话记录。
 
 更新日期：2026-09-26。本说明已对照当前 `adaptive` 默认实现，包含最新的“近似结果可直接接纳、官方定期校准”规则。对应既有验收运行的代码指纹：`7260a7220dcf6b356bde08e97e6c02cf4e30983f3ad8e87f7e3a1ef06f183818`；完整文件指纹见 [unified_source.json](unified_source.json)。
+
+第二版接入时，本版算法与配置保持原样；顶层 `q1.__main__` 增加第二版子命令分流。第三版的 `source_signature` 会扫描整个 `src/q1`，因此新增第二版文件仍会改变整仓运行指纹。下述既有指纹继续作为 PR #6 的历史证据，不将历史成绩重标为本次接入后的成绩。
 
 本次提交仅清理了 4 个源文件的末尾空行，并由 Git 按仓库约定统一为 LF；算法语义未变。Git 文件版本的代码指纹为 `067998a5a403ae9a31605c15978076a80ca85b9fa5eb9f134a3e93459a543f7f`，见清单中的 `git_export`；顶层指纹、文件哈希与旧验证记录保留为历史运行证据。代码指纹按字节计算，旧成绩不会因此自动视为新指纹下的可复用结果。提交前已运行 92 项测试，91 项通过，1 项因缺少官方附件 ZIP 跳过。
 
@@ -27,7 +29,7 @@
 | [schedule.py](../../src/q1/schedule.py) | 抽取公共核分配内核，并提供 assign_cores | 接收图、划分方案、Task 时长和配置，返回核队列方案及分配记录；显式处理 Task 编号映射，保留基础版平局规则 |
 | [initialize](../../src/q1/solver.py) | 保留为串行基座对照 | 保留 InitializationResult 的 plan、evaluation、selected、candidates、search 字段；candidate_jobs 仅接受 1，生产统一入口不调用该完整求解器 |
 | [run_case / run_cases](../../src/q1/run.py) | 保留参考运行器，候选并行默认改为 1 | 服务于基础算法对照；不同 case 的批量并行与单个求解内部的串行策略分开 |
-| [python -m q1](../../src/q1/__main__.py) | 默认入口切换到统一版 | 新语法为图路径加 --config / --cores / --output；旧 solve、batch 子命令移至 q1.reference_cli，不兼容直接沿用旧命令 |
+| [python -m q1](../../src/q1/__main__.py) | 默认入口切换到统一版 | 新语法为图路径加 --config / --cores / --output；旧 solve、batch 子命令移至 q1.reference_cli；新增 improve / improve-batch 分流到第二版，图路径语法仍进入第三版 |
 | [official.py](../../src/q1/official.py)、[单核基线](../../src/common/baseline.py)、[脚本入口](../../src/solve_problem1.py) | 文件保持基础版实现 | 官方包装与单核语义保留；solve_problem1.py 通过 q1 入口间接进入统一版，文件未改不代表运行行为未变 |
 
 对外提交的方案格式仍只有 `node_to_subgraph` 和 `core_schedules` 两个字段；评分来源、预算和搜索记录写在独立文件中。旧参考入口可用 `python -m q1.reference_cli --help` 查看，不应与统一版成绩混报。
