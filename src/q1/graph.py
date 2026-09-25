@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import heapq
+from .model import Graph
 
 from . import official
 
@@ -25,32 +25,19 @@ class Tensor:
 
 class GraphIndex:
     def __init__(self, graph: dict, settings: official.Settings):
-        official.validate_graph(graph)
-        self.graph = graph
+        self.model = graph if isinstance(graph, Graph) else Graph(graph)
+        self.graph = self.model.raw
+        graph = self.graph
         self.settings = settings
-        all_ops = {op["id"]: op for op in graph["ops"]}
-        self.ops = {v: op for v, op in sorted(all_ops.items())
-                    if op["op"] not in official.EXCLUDED_COPY_TYPES}
+        all_ops = self.model.all_ops
+        self.ops = {v: self.model.ops[v] for v in sorted(self.model.ops)}
         self.ids = tuple(self.ops)
         for v, op in self.ops.items():
             if op["pipe"] not in PIPES:
                 raise ValueError(f"initialization model requires PIPE_M/PIPE_V: op {v}")
-        _, full_succs = official._build_op_adjacency(graph)
-        self.preds, self.succs = official._contract_excluded_copy_nodes(self.ids, full_succs)
-        self.inputs = {v: set() for v in self.ids}
-        self.outputs = {v: set() for v in self.ids}
-        producers = {t["id"]: set() for t in graph["tensors"]}
-        consumers = {t["id"]: set() for t in graph["tensors"]}
-        for edge in graph["edges"]:
-            a, b = edge["source"], edge["target"]
-            if a in all_ops and b in producers:
-                producers[b].add(a)
-                if a in self.ops:
-                    self.outputs[a].add(b)
-            elif a in consumers and b in all_ops:
-                consumers[a].add(b)
-                if b in self.ops:
-                    self.inputs[b].add(a)
+        self.preds, self.succs = self.model.pred, self.model.succ
+        self.inputs, self.outputs = self.model.inputs, self.model.outputs
+        producers, consumers = self.model.producers, self.model.consumers
         self.tensors = {}
         for t in graph["tensors"]:
             tid = t["id"]
@@ -75,44 +62,24 @@ class GraphIndex:
             if any(sizes[p] > settings.capacity[p] for p in sizes):
                 raise ValueError(f"op {v} inputs and outputs exceed capacity: {sizes}")
             self.footprint[v] = sizes
-        indegree = {v: len(self.preds[v]) for v in self.ids}
-        ready = [v for v in self.ids if indegree[v] == 0]
-        heapq.heapify(ready)
-        self.order = []
-        while ready:
-            v = heapq.heappop(ready)
-            self.order.append(v)
-            for u in sorted(self.succs[v]):
-                indegree[u] -= 1
-                if indegree[u] == 0:
-                    heapq.heappush(ready, u)
-        if len(self.order) != len(self.ids):
-            raise ValueError("contracted computation graph is cyclic")
-        self.a, self.b = {}, {}
-        for v in self.order:
-            self.a[v] = self.cycles(v) + max((self.a[u] for u in self.preds[v]), default=0)
-        for v in reversed(self.order):
-            self.b[v] = self.cycles(v) + max((self.b[u] for u in self.succs[v]), default=0)
+        self.order = self.model.order
+        if all(self.cycles(v) == self.model.cost[v] for v in self.ids):
+            self.a, self.b = self.model.forward, self.model.backward
+        else:
+            # Preserve the collaborator's raw-zero heuristic on zero-cycle ops.
+            # The shared official-cost model still clamps them to one cycle.
+            self.a, self.b = {}, {}
+            for v in self.order:
+                self.a[v] = self.cycles(v) + max((self.a[u] for u in self.preds[v]), default=0)
+            for v in reversed(self.order):
+                self.b[v] = self.cycles(v) + max((self.b[u] for u in self.succs[v]), default=0)
         self.tail = {v: max((self.b[u] for u in self.succs[v]), default=0) for v in self.ids}
         self.single_r = {v: max((self.a[u] for u in self.preds[v]), default=0) for v in self.ids}
         self.single_q = {v: sum(self.tensors[t].copy_cycles
                                 for t in self.inputs[v] | self.outputs[v]) for v in self.ids}
         self.single_d = {v: self.cycles(v) + self.single_q[v]
                             + self.pressure(self.footprint[v]) for v in self.ids}
-        self.components = []
-        unseen = set(self.ids)
-        for root in self.ids:
-            if root not in unseen:
-                continue
-            component, pending = set(), [root]
-            unseen.remove(root)
-            while pending:
-                v = pending.pop()
-                component.add(v)
-                neighbors = (self.preds[v] | self.succs[v]) & unseen
-                unseen.difference_update(neighbors)
-                pending.extend(sorted(neighbors, reverse=True))
-            self.components.append(component)
+        self.components = self.model.components
         self.work = self.workload(self.ids)
 
     def cycles(self, v: int) -> int:

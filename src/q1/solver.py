@@ -2,11 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
-from contextlib import redirect_stderr
-import io
-import multiprocessing
-from queue import Empty
 from time import perf_counter
 from typing import Callable
 
@@ -72,7 +67,7 @@ def _evaluate_candidate(index, num_cores, mode, beta, scopes, progress=None):
         tasks, temporary, durations = repair_and_preanalyze(
             index.graph, tasks, num_cores, index.settings, record["repairs"])
         emit({"event": "candidate_phase", "phase": "allocation", "task_count": len(tasks)})
-        plan, allocation = assign_cores(index.graph, temporary, durations, index.settings)
+        plan, allocation = assign_cores(index.model, temporary, durations, index.settings)
         record.update(task_nodes=tasks, local_makespan=durations, allocation=allocation, plan=plan)
         emit({"event": "candidate_phase", "phase": "evaluation"})
         evaluation = official.evaluate(index.graph, plan, index.settings)
@@ -84,32 +79,14 @@ def _evaluate_candidate(index, num_cores, mode, beta, scopes, progress=None):
     return record, plan, evaluation
 
 
-def _candidate_worker_init(index, num_cores, events):
-    global _worker_index, _worker_cores, _worker_scopes, _worker_events
-    _worker_index, _worker_cores, _worker_events = index, num_cores, events
-    _worker_scopes = dict(index.scopes(num_cores))
-
-
-def _candidate_worker(mode, beta):
-    # Windows spawn 下 stderr 不继承父进程的 Python 重定向，故随记录返回诊断。
-    diagnostics = io.StringIO()
-    with redirect_stderr(diagnostics):
-        result = _evaluate_candidate(
-            _worker_index, _worker_cores, mode, beta, _worker_scopes[mode],
-            progress=_worker_events.put if _worker_events is not None else None)
-    if diagnostics.getvalue():
-        result[0]["official_diagnostics"] = diagnostics.getvalue()
-    return result
-
-
 def initialize(graph: dict, num_cores: int, settings: official.Settings, *,
-               index: GraphIndex | None = None, candidate_jobs: int = 2,
+               index: GraphIndex | None = None, candidate_jobs: int = 1,
                beta_search: str = "adaptive",
                progress: Callable[[dict], None] | None = None) -> InitializationResult:
     if type(num_cores) is not int or num_cores not in (2, 3, 4, 5):
         raise ValueError("problem 1 initialization requires 2, 3, 4 or 5 cores")
-    if type(candidate_jobs) is not int or candidate_jobs < 1:
-        raise ValueError("candidate_jobs must be a positive integer")
+    if type(candidate_jobs) is not int or candidate_jobs != 1:
+        raise ValueError("within-case parallelism is disabled; candidate_jobs must be 1")
     if beta_search not in ("fixed", "adaptive", "grid"):
         raise ValueError("beta_search must be fixed, adaptive or grid")
     if index is None:
@@ -177,44 +154,11 @@ def initialize(graph: dict, num_cores: int, settings: official.Settings, *,
 
     initial = (list(range(0, len(specs), len(BETAS))) if beta_search != "grid"
                else list(range(len(specs))))
-    workers = min(candidate_jobs, len(initial))
-    if workers == 1:
-        for position in initial:
-            while position is not None:
-                mode_order, mode, beta = specs[position]
-                position = accept_result(position, _evaluate_candidate(
-                    index, num_cores, mode, beta, modes[mode_order][1], progress))
-    else:
-        context = multiprocessing.get_context("spawn")
-        events = context.Queue() if progress is not None else None
-
-        def drain_events():
-            if events is not None:
-                while True:
-                    try:
-                        progress(events.get_nowait())
-                    except Empty:
-                        break
-
-        try:
-            with ProcessPoolExecutor(max_workers=workers, mp_context=context,
-                                     initializer=_candidate_worker_init,
-                                     initargs=(index, num_cores, events)) as pool:
-                # 自适应先提交两个模式的 beta=1；仅在本模式返回改善后追加下一粒度。
-                pending = {pool.submit(_candidate_worker, specs[p][1], specs[p][2]): p for p in initial}
-                while pending:
-                    done, _ = wait(pending, timeout=0.2, return_when=FIRST_COMPLETED)
-                    drain_events()
-                    for future in done:
-                        position = accept_result(pending.pop(future), future.result())
-                        if position is not None:
-                            _, mode, beta = specs[position]
-                            pending[pool.submit(_candidate_worker, mode, beta)] = position
-            drain_events()
-        finally:
-            if events is not None:
-                events.close()
-                events.join_thread()
+    for position in initial:
+        while position is not None:
+            mode_order, mode, beta = specs[position]
+            position = accept_result(position, _evaluate_candidate(
+                index, num_cores, mode, beta, modes[mode_order][1], progress))
     if best is not None:
         # 未执行的粒度不占候选序号；异步完成顺序不能影响落盘顺序。
         best[3]["candidate_index"] = sum(r is not None for r in records[:best[3]["candidate_index"]])

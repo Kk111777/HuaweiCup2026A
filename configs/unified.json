@@ -1,0 +1,27 @@
+{
+  "description": "V3后支配区域：可展开完整单元、后继亲和打包、多Task联合重构与多起点搜索；官方裁决。",
+  "evaluation": {
+    "mode": "adaptive",
+    "full_cost_fraction": 0.01,
+    "approximate_batch_size": 6,
+    "task_cache_operations": 100000,
+    "plan_cache_entries": 24
+  },
+  "seed": 0,
+  "near_critical_fraction": 0.05,
+  "max_initial_evaluations_per_core": 24,
+  "max_region_candidates": 24,
+  "search_states": 6,
+  "enable_structural": true,
+  "max_structural_candidates": 12,
+  "max_rounds": 64,
+  "no_improvement_rounds": 3,
+  "max_proposals_per_round": 128,
+  "proxy_keep": 24,
+  "official_per_round": 4,
+  "max_cuts_per_task": 8,
+  "memory_merges": 128,
+  "stage_widths": [4, 8, 16, 32],
+  "stage_batches": [1, 2],
+  "memory_soft_factors": {"short": 0.9, "ordinary": 0.8, "complex": 0.7}
+}

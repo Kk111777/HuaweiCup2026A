@@ -140,7 +140,7 @@ def failure(directory: Path, case: str, cores: int, error: Exception) -> dict:
 
 
 def run_case(graph_file: str, config_file: str, output: str, cores: list[int], resume: bool,
-             candidate_jobs: int = 2, baseline: dict | None = None, *,
+             candidate_jobs: int = 1, baseline: dict | None = None, *,
              beta_search: str = "adaptive") -> list[dict]:
     graph_path, config_path, output_root = Path(graph_file), Path(config_file), Path(output)
     case = graph_path.stem
@@ -270,7 +270,7 @@ def summarize(rows: list[dict], cases: list[str], cores: list[int], output: Path
 
 
 def run_cases(graphs: list[Path], config: Path, output: Path,
-              cores: list[int], jobs: int, resume: bool, candidate_jobs: int = 2,
+              cores: list[int], jobs: int, resume: bool, candidate_jobs: int = 1,
               baseline_archive: Path | None = official.ROOT / "results" / "problem_1_singlecore", *,
               beta_search: str = "adaptive") -> int:
     cases = [p.stem for p in graphs]

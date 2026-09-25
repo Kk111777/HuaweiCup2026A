@@ -268,13 +268,13 @@ class GrowthTests(unittest.TestCase):
 
 
 class ScheduleTests(unittest.TestCase):
-    def test_candidate_processes_match_serial_results_and_fixed_order(self):
+    def test_serial_repetition_preserves_results_and_fixed_order(self):
         graph = graph_of(7, [(0, 2), (1, 2), (2, 3), (4, 5)])
         for policy in ("fixed", "adaptive", "grid"):
             with self.subTest(policy=policy):
                 serial = initialize(graph, 3, SETTINGS, candidate_jobs=1, beta_search=policy)
                 events = []
-                parallel = initialize(graph, 3, SETTINGS, candidate_jobs=2,
+                parallel = initialize(graph, 3, SETTINGS, candidate_jobs=1,
                                       beta_search=policy, progress=events.append)
                 self.assertEqual(serial.plan, parallel.plan)
                 self.assertEqual(serial.evaluation, parallel.evaluation)
@@ -470,46 +470,18 @@ class BetaSearchTests(unittest.TestCase):
         self.assertEqual(len(failure.exception.candidates), 3)
         self.assertEqual(failure.exception.search["evaluated_candidates"], 2)
 
-    def test_parallel_modes_start_together_and_advance_without_waiting_for_other_mode(self):
-        from q1 import solver
-        curves = {"global": [100, 110], "components": [140, 130, 120, 90]}
-        calls, submitted = [], []
-        index = GraphIndex(graph_of(2), SETTINGS)
-        evaluate = self.evaluator(curves, calls)
-
-        class Pending:
-            def __init__(self, mode, beta):
-                self.mode, self.beta = mode, beta
-
-            def result(self):
-                return evaluate(index, 2, self.mode, self.beta, None)
-
-        def submit(function, mode, beta):
-            submitted.append((mode, beta))
-            return Pending(mode, beta)
-
-        def finish_components_first(pending, **kwargs):
-            self.assertEqual(submitted[:2], [("global", 1), ("components", 1)])
-            future = min(pending, key=lambda f: (f.mode != "components", f.beta))
-            return {future}, set(pending) - {future}
-
-        with patch.object(solver, "ProcessPoolExecutor") as pool, \
-                patch.object(solver, "wait", side_effect=finish_components_first):
-            pool.return_value.__enter__.return_value.submit.side_effect = submit
-            parallel = initialize(index.graph, 2, SETTINGS, index=index)
-            self.assertEqual(pool.call_args.kwargs["max_workers"], 2)
-        self.assertEqual(calls[:4], [("components", b) for b in (1, 2, 3, 4)])
-        serial, _ = self.solve_curves(curves)
-        self.assertEqual(parallel, serial)
+    def test_parallel_modes_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "parallelism"):
+            initialize(graph_of(2), 2, SETTINGS, candidate_jobs=2)
 
 
 class RunnerTests(unittest.TestCase):
     def test_cli_defaults_to_published_archive(self):
-        from q1.__main__ import main
-        with patch("q1.__main__.run_cases", return_value=0) as run:
+        from q1.reference_cli import main
+        with patch("q1.reference_cli.run_cases", return_value=0) as run:
             self.assertEqual(main(["solve", "official/data/case_001.json", "--cores", "2"]), 0)
             self.assertEqual(run.call_args.args[-1], ROOT / "results/problem_1_singlecore")
-            self.assertEqual(run.call_args.args[-2], 2)
+            self.assertEqual(run.call_args.args[-2], 1)
             self.assertEqual(run.call_args.kwargs["beta_search"], "adaptive")
             self.assertEqual(main(["solve", "official/data/case_001.json", "--cores", "2",
                                    "--recompute-baseline"]), 0)
@@ -525,9 +497,9 @@ class RunnerTests(unittest.TestCase):
                                 ("case_b", graph_of(4, [(0, 1), (1, 2), (1, 3)]))):
                 write_json(root / (name + ".json"), graph)
             config = official.REFERENCE / "data" / "config.txt"
-            command = [sys.executable, str(ROOT / "src/solve_problem1.py"), "batch", "--data-dir", str(root),
+            command = [sys.executable, str(ROOT / "tools/reference_problem1.py"), "batch", "--data-dir", str(root),
                        "--config", str(config), "--cores", "2", "--jobs", "2",
-                       "--candidate-jobs", "2",
+                       "--candidate-jobs", "1",
                        "--recompute-baseline", "--output-root", str(root / "out")]
             process = subprocess.run(command, cwd=official.ROOT, capture_output=True, timeout=60)
             self.assertEqual(process.returncode, 0, (process.stdout, process.stderr))
@@ -655,12 +627,12 @@ class ArchiveRunnerTests(unittest.TestCase):
         self.assertTrue((output / "baseline_failure.json").exists())
         self.assertFalse(official.read_json(output / "summary.json")["complete"])
 
-    def test_archive_cli_from_other_directory_with_nested_process_pools(self):
+    def test_archive_reference_cli_from_other_directory_serial_candidates(self):
         output = self.root / "out"
         process = subprocess.run([
-            sys.executable, str(ROOT / "src/solve_problem1.py"), "batch",
+            sys.executable, str(ROOT / "tools/reference_problem1.py"), "batch",
             "--data-dir", str(self.data), "--config", str(self.config), "--cores", "2",
-            "--baseline-archive", str(self.archive), "--jobs", "2", "--candidate-jobs", "2",
+            "--baseline-archive", str(self.archive), "--jobs", "2", "--candidate-jobs", "1",
             "--output-root", str(output)], cwd=self.root, capture_output=True, timeout=60)
         self.assertEqual(process.returncode, 0, (process.stdout, process.stderr))
         report = official.read_json(output / "summary.json")
