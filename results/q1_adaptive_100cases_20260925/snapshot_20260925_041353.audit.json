@@ -1,0 +1,73 @@
+{
+  "status": "partial_snapshot",
+  "captured_at_utc": "2026-09-24T20:13:53.774398+00:00",
+  "verified_plans": 397,
+  "complete_cases": 99,
+  "expected_cases": 100,
+  "missing": [
+    {
+      "case": "case_076",
+      "num_cores": 3
+    },
+    {
+      "case": "case_076",
+      "num_cores": 4
+    },
+    {
+      "case": "case_076",
+      "num_cores": 5
+    }
+  ],
+  "means": [
+    {
+      "num_cores": 2,
+      "completed_cases": 100,
+      "expected_cases": 100,
+      "mean_speedup_completed": 1.8326854583071357,
+      "common_cases": 99,
+      "mean_speedup_common_cases": 1.8308505922879001,
+      "faster_cases": 94,
+      "equal_cases": 0,
+      "slower_cases": 6
+    },
+    {
+      "num_cores": 3,
+      "completed_cases": 99,
+      "expected_cases": 100,
+      "mean_speedup_completed": 2.4578832786950064,
+      "common_cases": 99,
+      "mean_speedup_common_cases": 2.4578832786950064,
+      "faster_cases": 92,
+      "equal_cases": 0,
+      "slower_cases": 7
+    },
+    {
+      "num_cores": 4,
+      "completed_cases": 99,
+      "expected_cases": 100,
+      "mean_speedup_completed": 2.922418751662855,
+      "common_cases": 99,
+      "mean_speedup_common_cases": 2.922418751662855,
+      "faster_cases": 93,
+      "equal_cases": 0,
+      "slower_cases": 6
+    },
+    {
+      "num_cores": 5,
+      "completed_cases": 99,
+      "expected_cases": 100,
+      "mean_speedup_completed": 3.3218464099317004,
+      "common_cases": 99,
+      "mean_speedup_common_cases": 3.3218464099317004,
+      "faster_cases": 92,
+      "equal_cases": 0,
+      "slower_cases": 7
+    }
+  ],
+  "batch_elapsed_seconds": 5866.056949999998,
+  "snapshot_directory": "D:\\Projects\\HuaweiCup2026A\\collaborators\\Zysishuiyears\\q1-basic-working\\outputs\\q1_100cases_20260925_cpu20\\snapshot_20260925_041353",
+  "zip_path": "D:\\Projects\\HuaweiCup2026A\\collaborators\\Zysishuiyears\\q1-basic-working\\outputs\\q1_100cases_20260925_cpu20\\snapshot_20260925_041353.zip",
+  "zip_sha256": "de81e7b6f5322c9f0a93ab25f348ce06bd87bd78f6d86fb5ba2243c2ba1ab9b1",
+  "zip_bytes": 6577744,
+  "verified": true
+}

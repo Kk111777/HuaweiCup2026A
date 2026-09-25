@@ -1,0 +1,29 @@
+{
+  "status": "complete",
+  "created_at_utc": "2026-09-25T02:37:46.916008+00:00",
+  "source_run": "outputs/q1_100cases_20260925_cpu20",
+  "algorithm_commit": "04634a2400ce9fa0c45084bed06fb4ce72de917d",
+  "complete_cases": 100,
+  "multicore_results": 400,
+  "original_files": 5127,
+  "original_bytes": 4061071271,
+  "case_archives": 100,
+  "case_archive_bytes": 266152890,
+  "excluded_transient_files": [
+    ".run.lock",
+    "__pycache__/package_results.cpython-312.pyc"
+  ],
+  "all_original_bytes_verified": true,
+  "all_zip_members_verified": true,
+  "credential_pattern_scan": "passed",
+  "note": "Historical machine paths are retained as provenance; no credentials were found by the pattern scan.",
+  "upload_validation": {
+    "tests_run": 75,
+    "passed": 74,
+    "skipped": 1,
+    "skip_reason": "Original contest ZIP absent in isolated worktree; ZIP byte comparison only",
+    "full_algorithm_rerun_during_upload": false,
+    "original_full_run_complete": true,
+    "credential_scan_scope": "All original uncompressed text and case ZIP members; historical machine paths retained"
+  }
+}
