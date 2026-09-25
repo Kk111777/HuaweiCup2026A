@@ -1,0 +1,12 @@
+{
+  "search_seconds": 1800,
+  "region_seconds": 120,
+  "region_evaluations": 256,
+  "seeds_per_principle": 8,
+  "partners_per_seed": 8,
+  "max_region_tasks": 3,
+  "max_fragments": 6,
+  "ddr_endpoints": 12,
+  "layer_shares": [0.2, 0.3, 0.5],
+  "pruning": ["partial", "b0", "b1", "ddr"]
+}

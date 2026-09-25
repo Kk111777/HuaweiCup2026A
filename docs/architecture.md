@@ -1,37 +1,49 @@
 # 项目结构与基线复用
 
-程序按问题组织，结果按实验归档。公共工具负责校验和读取基线，各问负责自己的切图、排布、调度和官方评测适配。当前仓库提供完整单核基线、公共接口及第一问初始化算法；后续算法通过新任务分支与 PR 加入。
+程序按问题组织，结果按实验归档。第一问保留三版模型：V1 TaskGrowth 基座；V2“基座 + 基于严格剪枝的多原则候选方案分层改进策略”；V3 基座专用优化模型。V2/V3 是从 V1 派生的两条路线，发布顺序不是算法依赖顺序。总览见 [README 模型谱系](../README.md#第一问模型谱系)。
 
 ## 文件树与职责
 
 ```text
 HuaweiCup2026A/
-├─ official/                         # 原始官方代码、说明及配置
-│  └─ data/                          # config.txt 跟踪；原始 case 图留本地
+├─ official/                         # 官方程序、说明和配置；计算图本地准备
 ├─ src/
-│  ├─ problem_1_baseline.py           # 现有稳定入口，保留原始字节与来源哈希
-│  ├─ common/baseline.py              # 公共基线读取与加速比计算
-│  ├─ q1/                            # 第一问切图、排布、调度、搜索与评估
-│  ├─ q2/                            # 第二问
-│  └─ q3/                            # 第三问
-├─ configs/q1/、q2/、q3/              # 各问的搜索参数
-├─ results/
-│  ├─ problem_1_singlecore/           # 已发布的完整基线，位置和内容固定
-│  └─ q1/、q2/、q3/<日期_算法版本>/    # 各问正式实验归档
-├─ outputs/<问题>/<实验编号>/         # Git 忽略；实验、Trace、日志和候选
-├─ docs/
-│  ├─ architecture.md                # 本指南
-│  ├─ environment.md                 # Python 环境
-│  └─ q1/、q2/、q3/                  # 各问算法与复现说明
-├─ tests/                            # 基线、公共工具及各问测试
-└─ notebooks/                        # 分析与可视化
+│  ├─ problem_1_baseline.py           # 稳定的单核参照入口
+│  ├─ solve_problem1.py               # V2 improve 子命令 / V3 默认图路径入口
+│  ├─ common/baseline.py              # 基线读取、来源校验与加速比
+│  └─ q1/
+│     ├─ graph.py, model.py           # 共享图模型与基座特征索引
+│     ├─ partition.py, solver.py      # V1 构造策略与初始化择优
+│     ├─ schedule.py, allocation.py   # 共享核心分配
+│     ├─ official.py                 # 原版官方程序的薄适配
+│     ├─ reference_cli.py, run.py     # V1 参考入口与公共产物函数
+│     ├─ stage2/                     # V2 五原则诊断、三层搜索与严格剪枝
+│     ├─ unified/                    # V3 统一搜索、预算与评估服务
+│     └─ improvement/                # V3 结构、近似及局部改进策略
+├─ configs/q1/stage2.json             # V2 参数
+├─ configs/unified.json               # V3 既有参数路径
+├─ tools/                            # V1 入口、第三版审计与验证工具
+├─ scripts/                          # 第三版批量实验脚本
+├─ docs/q1/                          # initialization / stage2 / unified
+├─ tests/                            # 公共基础及三版测试
+├─ results/problem_1_singlecore/      # 固定的官方单核归档
+├─ results/q1_adaptive_100cases_20260925/ # V1 完整 400 组合归档
+└─ outputs/                          # 本地实验与中间产物，Git 忽略
 ```
 
-第一问初始化入口为 `src/solve_problem1.py`，实现放在 `src/q1/`：`graph` 建立索引，`partition` 切图，`schedule` 分核排布，`official` 适配官方接口，`solver` 构造并选择完整候选，`run` 负责产物与批处理。算法和接口见 [初始化说明](q1/initialization.md)。尚无代码的目录不提前创建占位实现。
+| 模型 | 显式入口 | 算法说明 |
+|---|---|---|
+| V1 | `python tools/reference_problem1.py solve ...` / `batch ...` | [初始化](q1/initialization.md) |
+| V2 | `python src/solve_problem1.py improve ...` / `improve-batch ...`；或配置 `PYTHONPATH=src` 后 `python -m q1.stage2 ...` | [分层改进](q1/stage2.md) |
+| V3 | `python src/solve_problem1.py graph.json --config ... --cores 4 --output ...` | [统一搜索](q1/unified.md) |
 
-各问参数逐步整理到 `configs/qN/`，算法文档整理到 `docs/qN/`；迁移时同步更新默认路径、说明和测试。现有本地实验目录不为匹配文件树而直接搬动，避免破坏正在使用的保底方案或历史复现记录。
+不复制三个版本的基座或官方代码。V2 使用 V3 已接入的共享 `GraphIndex`，保持自身状态、候选、剪枝与精确接受逻辑；V3 的算法模块与配置在本次接入中保持原样。V1 的当前参考实现按 V3 已有约定仅允许 `candidate_jobs=1`，历史并行版本可从提交 `04634a2` 检出。已有原始 V1 归档可直接供 V2 读取。
 
-`official/` 保持官方布局和字节不变。不同问题的评估器分开调用；将来第二、三问复用单核分子前，必须先核对赛题与评测语义，不能只按相同 case 编号认定适用。
+第二、三问尚无实现，文件树不创建空占位模块。未来各问配置逐步整理到 `configs/qN/`；V3 的现有配置路径保留，避免为了目录外观变更其运行接口。历史实验目录、归档指纹和官方代码不随展示调整搬动。
+
+三版输出分别指定 `outputs/q1_v1`、`outputs/q1_v2`、`outputs/q1_v3` 等目录，不能让不同求解器写入同一实验目录。源码、参数和运行环境均进入各自来源记录；Git 接入后的字节指纹与服务器旧运行包不同，不能把旧产物重新标成新源码产生的结果。
+
+`official/` 保持原始布局和字节不变。不同问题的评估器分开调用；未来第二、三问复用单核分子前，必须核对赛题与评测语义，不能只按同名 case 引用。
 
 ## 基线读取接口
 
@@ -99,7 +111,7 @@ row["baseline_ref"] = baseline["baseline_ref"]
 
 `calculate_speedup` 拒绝非正整数、浮点数、布尔值和缺失值。程序执行秒数用于统计搜索成本，不能替代 cycles；Task 局部耗时也不能替代总 makespan。`--workers` 是电脑上的并行进程数，与模拟 NPU 核数不同。
 
-第一问初始化入口默认从已发布归档批量加载基线，再将单条记录传给各 case 构造流程。多核结果及汇总记录 `baseline_ref`，不复制已发布的单核产物。自定义小图可显式使用 `--recompute-baseline`；默认归档校验失败时直接报错。输入、配置或官方程序改变时，显式运行新的基线实验并以新版本归档，不覆盖现有归档。
+第一问 V1 参考入口与 V2 改进入口默认从已发布归档批量加载基线，再将单条记录传给各 case 构造流程。多核结果及汇总记录 `baseline_ref`，不复制已发布的单核产物。自定义小图可显式使用 `--recompute-baseline`；默认归档校验失败时直接报错。输入、配置或官方程序改变时，显式运行新的基线实验并以新版本归档，不覆盖现有归档。
 
 各核数分别计算逐例加速比的等权算术平均，并报告 `successful_cases / requested_cases`。失败项不填 0，也不能悄悄省略后仍标为完整成绩；不足 100 例时标注“部分结果”，且只比较相同用例集合。记录各例的实际搜索预算与参数，混合预算的实验须明确说明。
 

@@ -1,34 +1,62 @@
-# HuaweiCup2026A
+<h1 align="center">HuaweiCup2026A · 多核任务划分与调度</h1>
+<p align="center">操作—张量 DAG 上的 Task 构造、多原则分层改进与基座专项优化</p>
+<p align="center"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12%2B-blue"> <img alt="Standard library" src="https://img.shields.io/badge/dependencies-standard_library-green"></p>
+<p align="center"><a href="#第一问模型谱系">模型谱系</a> · <a href="#项目目录">目录</a> · <a href="#问题一第二版基于严格剪枝的多原则候选方案分层改进策略">第二版</a> · <a href="#问题一第三版基座专用优化模型">第三版</a> · <a href="#日常协作">协作</a></p>
 
-华为杯 Python 程序协作项目。项目代码通过私有 GitHub 仓库维护，使用任务分支和 Pull Request（PR）共同开发。
+本项目研究华为杯题目中的多核调度：将原始计算图划分为 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；它们共用官方程序和单核参照，各自的搜索与评价规则单独记录。
 
-- 仓库：<https://github.com/Kk111777/HuaweiCup2026A>
-- 仓库所有者：`Kk111777`
-- 协作者：`Zysishuiyears`
-- 默认分支：`main`
-- 基础环境：Python 3.12；单核基线及官方评估程序仅使用标准库。
+私有仓库由 `Kk111777` 与 `Zysishuiyears` 通过任务分支和 PR 协作维护；基础环境为 Python 3.12，程序仅依赖标准库。赛题图是算子调度工作负载，求解过程不实际执行神经网络矩阵运算。
+
+## 第一问模型谱系
+
+| 版本 | 模型与关系 | 代码与命令 |
+|---|---|---|
+| 第一版 V1 | TaskGrowth 基座：双作用域、自适应 β、官方预分析与核心列表分配 | `q1/partition.py`、`solver.py`；`python tools/reference_problem1.py solve ...` |
+| **第二版 V2** | **基座 + 基于严格剪枝的多原则候选方案分层改进策略**：先取得 V1 的最终方案，再按五原则、三层搜索严格改善官方目标 | `q1/stage2/`；`python src/solve_problem1.py improve ...` 或 `improve-batch ...` |
+| 第三版 V3 | 基座专用优化模型：TaskGrowth 构造与结构候选、近似评估、局部改进和多状态搜索整合到统一控制器 | `q1/unified/`、`q1/improvement/`；`python src/solve_problem1.py graph.json --config ... --cores 4 --output ...` |
+
+```mermaid
+flowchart LR
+    O[官方程序与单核参照] --> V1[第一版：TaskGrowth 基座]
+    V1 -->|最终方案作为起点| V2[第二版：多原则候选与严格剪枝分层改进]
+    V1 -->|复用构造组件并整合搜索| V3[第三版：基座专用优化模型]
+```
+
+**模型编号表示方法关系，不按上传顺序编号。** V1 的默认自适应基座在 [`04634a2` / PR #4](https://github.com/Kk111777/HuaweiCup2026A/pull/4) 合入，完整 400 组合结果由 PR #5 归档；V3 在 [`6352e01` / PR #6](https://github.com/Kk111777/HuaweiCup2026A/pull/6) 先行合入，当时为 V2 预留位置。本次补齐 V2。V2 与 V3 是从 V1 发展的两条路线，不构成 V1 → V2 → V3 的逐级叠加，也不把 V2 的三层搜索自动接入 V3。
+
+V2 的候选接受依据是完整官方目标 `(makespan, added_copy_bytes)` 严格字典序改善，最终方案落盘后再次官方复评。V3 保持既有的近似接纳与官方校准规则，输出须区分 `score_source` 并按其说明独立重放。版本编号不代表逐例成绩优劣；三版比较必须使用相同 case 集合、核数与官方评分口径。
 
 ## 项目目录
 
 ```text
-official/                       官方程序、配置及说明；原始图留本地
-src/problem_1_baseline.py        稳定的单核基线运行入口
-src/common/baseline.py          归档校验、基线读取和加速比计算
-src/solve_problem1.py           问题一统一串行求解入口
-src/q1/                        问题一切图、Task 排布与官方评估适配
-src/q2/、q3/                    第二、三问算法（实际加入时创建）
-configs/unified.json            问题一统一搜索参数
-results/problem_1_singlecore/   完整的 100 例单核基线，固定保留
-results/qN/<日期_算法版本>/      正式实验的精简可复核归档
-outputs/qN/<实验编号>/          本地实验、Trace 和中间候选（Git 忽略）
-docs/                          结构约定、环境说明及各问算法文档
-tests/                         基线、公共接口及各问测试
-notebooks/                     Jupyter Notebook 分析与实验
+HuaweiCup2026A/
+├─ src/
+│  ├─ problem_1_baseline.py       # 官方单核参照入口
+│  ├─ solve_problem1.py           # V2 子命令 / V3 默认图路径入口
+│  ├─ common/baseline.py          # 基线归档校验及加速比计算
+│  └─ q1/
+│     ├─ graph.py, model.py       # 共享图模型与基座索引
+│     ├─ partition.py, solver.py # V1 TaskGrowth 构造及初始化择优
+│     ├─ schedule.py, allocation.py, official.py  # 调度与官方适配
+│     ├─ reference_cli.py, run.py # V1 参考运行及公共产物函数
+│     ├─ stage2/                 # V2：诊断、邻域、严格下界、三层搜索
+│     ├─ unified/                # V3：统一构造、预算、评估服务与控制器
+│     └─ improvement/            # V3：结构候选、近似评价与局部改进
+├─ configs/
+│  ├─ q1/stage2.json             # V2 搜索预算、规模及剪枝开关
+│  └─ unified.json               # V3 既有配置路径，保留兼容性
+├─ tools/reference_problem1.py   # V1 的显式命令行入口
+├─ scripts/run_unified_100.ps1   # V3 既有批量实验入口
+├─ official/                    # 原版评估代码、配置；原始图留本地
+├─ docs/q1/                     # initialization / stage2 / unified 三版说明
+├─ tests/                       # 共享基础、V1/V2/V3 回归与边界验证
+├─ results/
+│  ├─ problem_1_singlecore/      # 已发布单核参照，固定保留
+│  └─ q1_adaptive_100cases_20260925/ # V1 完整百例归档
+└─ outputs/                     # 各版本实验目录，Git 忽略
 ```
 
-当前提供问题一整图单 Task、单核基线及全部 100 例正式单核结果，串行基础初始化对照入口，以及共享图模型、调度内核和评估服务的统一构造改进入口。新版本的多核验收成绩以单独的验收报告为准。程序使用相对路径或配置指定输入输出位置。
-
-后续开发先阅读[项目结构与基线复用指南](docs/architecture.md)。其中包含可直接运行的基线读取示例、加速比口径、正式结果归档规则，以及各问程序逐步接入的方式。
+目录沿用已验证的导入和运行路径，共享基座保持一份实现，V2 和 V3 的搜索模块分别归位。不存在的第二、三问模块不提前建空目录。具体接口与实验归档约定见[项目结构说明](docs/architecture.md)。
 
 ## 开始使用
 
@@ -134,19 +162,44 @@ outputs/problem_1_singlecore/
 
 [单核 baseline 结果归档](results/problem_1_singlecore/README.md)保存 100 例的 300 份官方产物、汇总和运行记录，附本次上传的 SHA-256 清单和核验记录。日常新实验仍写入被 Git 忽略的 `outputs/`，完成并明确要求上传后才整理为正式结果。
 
+## 问题一第二版：基于严格剪枝的多原则候选方案分层改进策略
+
+V2 = V1 最终方案 + `q1.stage2`。数据局部性、管道协同、Task 边界时序、DDR 竞争、多核负载五类原则产生候选；依次进行排程改进、切分/合并域搜索、局部联合搜索。结构检查、B0/B1 和 DDR 下界排除不能改善的分支，完整官方评价决定接受；接受后重新诊断并回到第一层。
+
+```text
+initial = V1 的最终方案
+while 预算允许:
+    从当前官方执行结果诊断候选
+    按三层顺序生成候选或局部域，先严格剪枝，再精确评价
+    若发现 (总周期, 额外搬运) 严格字典序改善：接受并回到第一层
+    若本轮未接受改善：结束，记录是否仍有预算截断的域
+落盘后独立调用原版官方入口复评，通过后写 complete.json
+```
+
+```powershell
+# 新图先运行基座，生成四种核数的初值
+python tools/reference_problem1.py solve official/data/case_001.json --cores 2 3 4 5 --output-root outputs/q1_v1
+
+# 单组合：从基座的已验收结果启动第二版
+python src/solve_problem1.py improve official/data/case_001.json --initial-plan outputs/q1_v1/case_001/N2/plan.json --search-config configs/q1/stage2.json --output-root outputs/q1_v2
+
+# 直接读取仓库已有的 V1 百例 ZIP 归档；并发数按实际 CPU/内存配额选择
+python src/solve_problem1.py improve-batch --initial-root results/q1_adaptive_100cases_20260925 --cases all --cores 2 3 4 5 --jobs 8 --search-config configs/q1/stage2.json --output-root outputs/q1_v2 --resume
+```
+
+`src` 在模块搜索路径中时，也可使用 `python -m q1.stage2 improve ...`。保持原 `improve` / `improve-batch` 命令可用；不改变 V3 的图路径语法和默认行为。
+
+默认每组合搜索 1800 秒、每局部域 120 秒及 256 次兼容评价预算；`--jobs` 控制实际 CPU 工作进程，`--cores` 表示模拟 NPU 核数。实现复用只读 Task 模板、分区/B1 结构及精确结果缓存；二级缓存命中仍消耗原预算名额。严格剪枝不等于全图最优保证：原则短名单、规模约束、时间及评价上限仍限制搜索范围。配置变化、源码更新与限时运行的差异都须单独记录。
+
+算法、公式与字段见[第二版说明](docs/q1/stage2.md)，有限测试及性能测量见[验收记录](docs/q1/stage2_acceptance.md)，运行与跨版本继承见[服务器指南](docs/q1/stage2_server.md)。本次发布代码与验证说明，不上传尚在运行的服务器实验、不把实时部分均值当作百例最终成绩。
+
 ## 问题一第三版：基座专用优化模型
 
-问题一模型按以下编号维护；第三版是基于第一版基座的通用优化，不针对某个 case 编号特判。
-
-| 版本 | 定位 | 仓库状态与入口 |
-|---|---|---|
-| 第一版 | 协作者 TaskGrowth 基座算法 | 基础提交 `04634a2`；当前保留 `q1.reference_cli` 和 `initialize` 作串行对照 |
-| 第二版 | 预留版本 | 尚未上传，本次不添加占位算法或接口 |
-| 第三版（当前） | 基座专用优化模型 | `src/solve_problem1.py` / `python -m q1`，详细设计见 [统一版说明](docs/q1/unified.md) |
+第三版保持 PR #6 的实现与默认入口。它直接复用基座构造组件，增加自己的结构候选和统一搜索；其与第二版的关系见上方[模型谱系](#第一问模型谱系)。
 
 第三版复用基座依赖的图校验、COPY 节点收缩和拓扑预处理，将 `GraphIndex` 适配到公共图模型，直接调用保留的 TaskGrowth 子图生长实现。小图继续使用官方核内预分析；大图以近似局部时长降低预分析开销。新增保链、阶段、内存优先和后支配区域等候选分块方法，并通过局部拆分合并、多 Task 区域重构及多状态搜索扩大候选空间。调度内核与评估服务统一，构造及调度的策略差异仍保留。
 
-本工作区将协作者的 Task 生长策略与个人的结构候选、局部改进及区域重构放入同一个搜索控制器，共用图模型、方案校验、调度内核、官方评估服务和预算。没有两个独立求解管线及最终择优汇合点。
+第三版将协作者的 Task 生长策略与个人的结构候选、局部改进及区域重构放入同一个搜索控制器，共用图模型、方案校验、调度内核、官方评估服务和预算。第三版内部没有两个独立求解管线及最终择优汇合点；第二版仍由自己的显式子命令调用。
 
 当前统一入口允许近似改进立即覆盖方案；官方评估在时间充足时按批次或计时间隔校准。来不及核验时保留近似结果，`score_source` 标明来源；离线重放另存真实评分，不改写原始预测值。架构与接口规则见 [统一说明](docs/q1/unified.md)。
 
