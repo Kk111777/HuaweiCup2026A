@@ -14,10 +14,10 @@
 official/                       官方程序、配置及说明；原始图留本地
 src/problem_1_baseline.py        稳定的单核基线运行入口
 src/common/baseline.py          归档校验、基线读取和加速比计算
-src/solve_problem1.py           问题一基础版初始化入口
+src/solve_problem1.py           问题一统一串行求解入口
 src/q1/                        问题一切图、Task 排布与官方评估适配
 src/q2/、q3/                    第二、三问算法（实际加入时创建）
-configs/q1/、q2/、q3/           各问搜索参数（实际加入时创建）
+configs/unified.json            问题一统一搜索参数
 results/problem_1_singlecore/   完整的 100 例单核基线，固定保留
 results/qN/<日期_算法版本>/      正式实验的精简可复核归档
 outputs/qN/<实验编号>/          本地实验、Trace 和中间候选（Git 忽略）
@@ -26,7 +26,7 @@ tests/                         基线、公共接口及各问测试
 notebooks/                     Jupyter Notebook 分析与实验
 ```
 
-当前提供问题一整图单 Task、单核基线及全部 100 例正式结果，以及切图与多核排布的基础版初始化程序。程序应使用相对路径或配置指定输入输出位置，避免写死个人电脑路径。
+当前提供问题一整图单 Task、单核基线及全部 100 例正式单核结果，串行基础初始化对照入口，以及共享图模型、调度内核和评估服务的统一构造改进入口。新版本的多核验收成绩以单独的验收报告为准。程序使用相对路径或配置指定输入输出位置。
 
 后续开发先阅读[项目结构与基线复用指南](docs/architecture.md)。其中包含可直接运行的基线读取示例、加速比口径、正式结果归档规则，以及各问程序逐步接入的方式。
 
@@ -134,29 +134,21 @@ outputs/problem_1_singlecore/
 
 [单核 baseline 结果归档](results/problem_1_singlecore/README.md)保存 100 例的 300 份官方产物、汇总和运行记录，附本次上传的 SHA-256 清单和核验记录。日常新实验仍写入被 Git 忽略的 `outputs/`，完成并明确要求上传后才整理为正式结果。
 
-## 问题一：切图与多核排布初始化
+## 问题一：统一构造与改进
 
-实现就绪节点生长、官方核内预分析和多核列表分配。默认同时启动全局与分量分组两种初始化，各自从 `β=1` 开始自适应递增，首次官方总体时间不再改善即停，上限为 4，再按总体时间及额外搬运量择优。自适应 β 组件默认开启，可关闭做消融；当前实现覆盖第一阶段初始化。
+本工作区将协作者的 Task 生长策略与个人的结构候选、局部改进及区域重构放入同一个搜索控制器，共用图模型、方案校验、调度内核、官方评估服务和预算。没有两个独立求解管线及最终择优汇合点。
+
+当前统一入口允许近似改进立即覆盖方案；官方评估在时间充足时按批次或计时间隔校准。来不及核验时保留近似结果，`score_source` 标明来源；离线重放另存真实评分，不改写原始预测值。架构与接口规则见 [统一说明](docs/q1/unified.md)。
 
 ```powershell
-# 先按上文准备原始计算图；默认复用仓库的已校验单核基准
-python src/solve_problem1.py solve official/data/case_001.json --cores 2 3 4 5
-
-# 关闭自适应组件做消融：两种初始化均固定 beta=1 后择优
-python src/solve_problem1.py solve official/data/case_087.json --cores 5 --beta-search fixed --output-root outputs/q1/fixed
-
-# 完整枚举对照；省略此选项或使用 adaptive 为默认自适应算法
-python src/solve_problem1.py solve official/data/case_001.json --cores 2 --beta-search grid --output-root outputs/q1/grid
-
-# 服务器全量实验入口；本次程序验收未执行全量多核实验
-python src/solve_problem1.py batch --cases all --cores 2 3 4 5 --jobs 1 --resume
+python src/solve_problem1.py path/to/new_graph.json --config official/data/config.txt --cores 4 --output outputs/new_graph_N4
 ```
 
-默认输出为 `outputs/q1/initialization/`，可用 `--output-root` 为不同实验指定目录。`--jobs` 并行用例，默认 1；`--candidate-jobs` 限制每例的工作进程，默认 2，设为 1 可串行。只有一个计算分量时省略重复模式。自适应与固定 β 使用相同切图、分核和官方评价流程，搜索策略计入续跑指纹。最终方案保存后重新读取并调用官方完整评估，一致后才写入完成标记。
+输入可为任意名称的合法新图。默认现场计算官方单核基线，并计入每个目标核数的 600 秒目标预算；保留有条件延至 900 秒、已启动工作最多至 1200 秒的项目保护机制。单个求解串行运行。本地批量测试才允许不同 case 并发，以及显式、校验过的单核归档复用。
 
-单核归档由 `common.baseline` 在父进程统一验证，再传给各用例进程；不重复计算或复制历史结果。输入、配置或官方代码不匹配时明确报错。自定义小图可显式使用 `--recompute-baseline`；算法和测试仅依赖标准库。
+详见[彩色分层架构、模块归属、调用与时间口径](docs/q1/unified.md)。新成绩与逐例耗时写入新实验目录；旧版两管线择优的成绩不代表本版本。
 
-详见[算法、公式对应与接口](docs/q1/initialization.md)和[有限验收记录](docs/q1/acceptance.md)。
+原 `initialize` 保留为串行基座对照 API。旧命令行移到 `tools/reference_problem1.py` / `q1.reference_cli`，其中候选并发被禁止。历史公式说明见 [初始化算法](docs/q1/initialization.md)，其中旧入口和并发说明以本页与统一架构文档为准。
 
 ## 日常协作
 
