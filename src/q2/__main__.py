@@ -20,7 +20,7 @@ def main(argv=None):
         if name != 'verify':
             p.add_argument('--algorithm-config', type=Path, default=ROOT/'configs/q2/baseline.json')
             p.add_argument('--beta-search', choices=POLICIES,
-                           help='adaptive: 官方周期严格下降才继续（默认）；fixed: 仅 β=1；grid: 全枚举')
+                           help='adaptive: 官方周期持平或下降继续、严格增加停止（2.0默认）；fixed: 仅 β=1；grid: 全枚举')
             p.add_argument('--resume', action='store_true')
             p.add_argument('--wall-seconds', type=float)
             p.add_argument('--verification-reserve', type=float)

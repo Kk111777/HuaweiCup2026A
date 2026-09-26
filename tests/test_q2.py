@@ -182,7 +182,7 @@ class ConstructionTests(unittest.TestCase):
         v = min(s.ready); commit(g, s, try_place(g, s, v, 0), seed=True, limit=1)
         before = copy.deepcopy(s.__dict__); close(s)
         for k in before:
-            if k not in ('current', 'current_core', 'subgraph_work', 'limit'): self.assertEqual(before[k], getattr(s, k))
+            if k not in ('current', 'current_core', 'subgraph_work', 'limit', 'close_records'): self.assertEqual(before[k], getattr(s, k))
 
     def test_unsupported_and_empty(self):
         raw = dict(ops=[], tensors=[], edges=[]); g = Graph(raw, SETTINGS)
@@ -288,7 +288,7 @@ class WindowTests(unittest.TestCase):
 class PipelineTests(unittest.TestCase):
     def options(self):
         from q2.pipeline import load_options
-        o = load_options(); o['runtime'].update(wall_budget_seconds=30, final_verification_reserve_seconds=5)
+        o = load_options(ROOT/'configs/q2/legacy_1_1.json'); o['runtime'].update(wall_budget_seconds=30, final_verification_reserve_seconds=5)
         return o
 
     def test_official_acceptance_rules(self):

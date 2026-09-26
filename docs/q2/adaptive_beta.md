@@ -1,6 +1,10 @@
 # Q2 自适应 β：与 Q1 的衔接、消融及验证
 
-版本：`Q2-Baseline-AdaptiveBeta-1.1`。默认配置位于 [`configs/q2/baseline.json`](../../configs/q2/baseline.json)，入口为 `src/solve_problem2.py`，Python 3.12、标准库。
+> 历史文档：本文描述1.0/1.1。默认入口现为[Q2 2.0组件修复版](repair.md)；旧版对照须显式选择 `configs/q2/legacy_1_1.json`。
+
+> **1.1存在已知算法问题，已归档。** 本文“严格下降才继续”属于历史规则；2.0默认“持平继续、严格增时停止”。原始源码见[旧版归档](../../archive/q2/baseline_1_1_known_issues/README.md)。
+
+版本：`Q2-Baseline-AdaptiveBeta-1.1`。默认配置位于 [`configs/q2/legacy_1_1.json`](../../configs/q2/legacy_1_1.json)，入口为 `src/solve_problem2.py`，Python 3.12、标准库。
 
 ## 1. 为什么改变初始化
 

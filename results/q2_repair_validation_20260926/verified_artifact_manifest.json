@@ -1,0 +1,818 @@
+[
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_001/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "0e89f0d5a096255cbbc789a28b1121c0799fcc4e50c0478a1f0ac51f69eb0cb8",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "927700bcf1eb144ce60f2ac9cead980ba856a85f8c51516460c2414531789356",
+      "result.json": "0c4c1cea1653a68edbf5fbcd832954e7e74e616b0fcdc97516ae796bf9c03feb",
+      "trace.json": "5827c784a4b686271c2caf362396262d3ad036ddf35bae650dab7ffecd551b33",
+      "result.log": "a256642dbab6f5fb36f3c0bef82f599501a502eae091c05bb3721321d7fad107",
+      "run.json": "1f248f1af9ba410af96a8542f3a760be2c79aad13bc7412bb91fcc4c5d0eaaa3",
+      "provenance.json": "291ba11a45268222522d984228e309dbc80a01edda666a5bf2d2aaa63fd65476",
+      "windows.jsonl": "45ddcf6ca30c1355422c71231ac58230c1e8c0fe3918e052625751239328d96b",
+      "baseline_plan.json": "927700bcf1eb144ce60f2ac9cead980ba856a85f8c51516460c2414531789356",
+      "baseline_result.json": "0c4c1cea1653a68edbf5fbcd832954e7e74e616b0fcdc97516ae796bf9c03feb"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_001/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "7acd689d92ca3098d51fcaba3740c63eaae7cf6fb5d6288e62192c67bfed74ae",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "6b50cd0473fdebb03a03d158b3d3a299249a753f7a65eb527d592d61903b7452",
+      "result.json": "a59cf26f35c077f40b1cea918ee09c21cc785d80445a703771221bb775461773",
+      "trace.json": "af902b3eba48f150488390e127ebaff64b89b86949f62c0199c55a57083ae475",
+      "result.log": "49471d68b66ab7f1a12fe7fd1a5a96a165dea10f5e212a8420c0c08b824a3459",
+      "run.json": "4369e89e0ba3e8935c967538a4c5dbb9f5a2312a51c0595fd9b5a62031cf869c",
+      "provenance.json": "c1a74bd7b39ba45bdae9be84a2a8e731f84eb0492f8b2e77ac5d2913eeaa557b",
+      "windows.jsonl": "8546fdbbd9ad80824b511fa17a91d9dcf558b9c39d05c6555a5b66d6d0dcae63",
+      "baseline_plan.json": "6b50cd0473fdebb03a03d158b3d3a299249a753f7a65eb527d592d61903b7452",
+      "baseline_result.json": "a59cf26f35c077f40b1cea918ee09c21cc785d80445a703771221bb775461773"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_001/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "46d1ceab7c10bee095646b53441f83d70bf94f7a9e35430cfe7eb3998f4c2c6f",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "71df3b95e8d67dba798c7f3840ba2c9754c73820b4ee4abc0dc8c791deca76e6",
+      "result.json": "f2b515275996bd286c62e048b80264b77eb9824f8e542b25fc5fe424c9b19932",
+      "trace.json": "a8598ab841cfcfca1f1761770fa58755fe078974372896d50dd3c95b02fea778",
+      "result.log": "66a2f89a45984616a5428fd87a2732868845fc24e044d69e74e163b2feb0fa37",
+      "run.json": "c1615e0f6705e25c1f0246f017165a539355e91e9faf910fa3316e5c7f3ec042",
+      "provenance.json": "8b3450de000f67a261373ac997a17e995e01ca43917e51a9fb383e1f20ba7dce",
+      "windows.jsonl": "81417dfc8a2d84f9dbde5ada3c4314e1a92e397720008bceca472b3616dc5323",
+      "baseline_plan.json": "71df3b95e8d67dba798c7f3840ba2c9754c73820b4ee4abc0dc8c791deca76e6",
+      "baseline_result.json": "f2b515275996bd286c62e048b80264b77eb9824f8e542b25fc5fe424c9b19932"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_001/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "8608b6c8f9f2dfab8e05d1fb5780d5dc28242967a38f8f36d0b36ac4772388e9",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "d753ad6898af09a0f91134becf28fcc6152fc3bd4fc930bee7bb4f43620cde81",
+      "result.json": "532457f9b2aca4d83b0724c57f58a57cee800f2f39e7468fa7df83d109180d57",
+      "trace.json": "1f1a7a538058469b308766276b3b813ad72ad0843be59ac0f46ee25805f72564",
+      "result.log": "d218c74e30283253824e7f1384458cd99b83ff35e7b5c92a79001930e1fb4c6f",
+      "run.json": "5f2aad295ca030724e91f1a29ca59e6abff088ff50ce6db19f2bdfa40e85b18a",
+      "provenance.json": "44b24dce4f3d2f32f88c37d0fe1a3f2e7a363c2f7f71a428338bf2d9d3fd6688",
+      "windows.jsonl": "d9cade88b3cad8938bb033135dc4f87f4555b2185e264c140445a543f3eabedc",
+      "baseline_plan.json": "d753ad6898af09a0f91134becf28fcc6152fc3bd4fc930bee7bb4f43620cde81",
+      "baseline_result.json": "532457f9b2aca4d83b0724c57f58a57cee800f2f39e7468fa7df83d109180d57"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_002/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "4c1ffdaa255a807ebc4e155c2433bfeb898e1929dbe422561efaa902ba22791c",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "f0c5c59fa8fd83b2c3aeff94e7b8c22a589312c253bdc17c0bff02bb50653308",
+      "result.json": "ab7c9b86e53858f2ac300e096ef2a9067955cfb9db4fc201be13478ffc424d56",
+      "trace.json": "9d1e1bd39a23f057f770e11f8d99b509e0fc129d71de298ebcdf57a8a127d9c2",
+      "result.log": "d75170ea2079119d38e7fa962d993a4d7f2c852fbbcc86588c980860aa28b4f5",
+      "run.json": "efcaa3cfba546db85d6b6ee081ae661069fc1b27af57f77c8753c6080bdaa686",
+      "provenance.json": "2e93c507333ee83b22db4baf71bfffdd4b07feca080ca93281b1378a79e28fca",
+      "windows.jsonl": "5f74fd315292fa85698c0216619a29b355f18eb16f938c0d5eea3d08f5d6dc2d",
+      "baseline_plan.json": "f0c5c59fa8fd83b2c3aeff94e7b8c22a589312c253bdc17c0bff02bb50653308",
+      "baseline_result.json": "ab7c9b86e53858f2ac300e096ef2a9067955cfb9db4fc201be13478ffc424d56"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_002/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "55461ddffec0a68b55f163e783cc5967378f0ab8d3a5121e83b5badb38c0e581",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "07fade1cbb181d1988ea61444f299d9305ab4dbb07e4313f6dbdba66d288502d",
+      "result.json": "11cf8a67b2094d4c94a319001e0c491aca91d16751dbf8bc97ff436ebda336a4",
+      "trace.json": "49c9e20926bed3749bcfaaf69cde617727593028d2796f02eff70702f02e4bc1",
+      "result.log": "5976af8373100a3f833eb61b5a856732270c0719fe8dd8ef1e65023809bda1f7",
+      "run.json": "a7311513d377c7070f95409eab3cfeb682249e17b0d91a1fbe5fe8fba8bc64a7",
+      "provenance.json": "57fcdf57f4a11587d1484751d0372c2ae524fb8ed7870985169f96805637cb74",
+      "windows.jsonl": "ade2a632f95ee41281f38e19d5ab1f00cebf16eb92a78238f5f9ce1e20bec04b",
+      "baseline_plan.json": "07fade1cbb181d1988ea61444f299d9305ab4dbb07e4313f6dbdba66d288502d",
+      "baseline_result.json": "11cf8a67b2094d4c94a319001e0c491aca91d16751dbf8bc97ff436ebda336a4"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_002/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "ae56221550fb350d7e2a7bb769e840c4079b6d44ec755072b9085fc957621efe",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "7f81f6bc70f48a80c392e479dea20e7aa4344b4097701e7e999824e5d39a9515",
+      "result.json": "92b5c3ca01bb46619b2260d87b0ee86330c7ec615a5d37ef6f9deb0c90ba8782",
+      "trace.json": "fdfa0ff63be123f0475668fe2b444444e17e2766836d1c24f59855eb256c78a3",
+      "result.log": "9d33132c6370a582815c9df493f52724301f8c1049be45d5bb847fa0b42b6424",
+      "run.json": "457120a7c8a6802bd0caed881477e1f3c9153c5797e370e7cf15aacc3cd9a8d1",
+      "provenance.json": "a368cbe5aed2150cae01d138bf35168b8209f75e1e1c8ade97f386acf6aba42e",
+      "windows.jsonl": "2dd65156834a4f62e8ecdc992ccd85dfa22a174349adacac35f20eec49f3ec5d",
+      "baseline_plan.json": "035db00fce50bc2b53cbcad723da0e76c6da70a4bc08d40dfd793ae2e34af370",
+      "baseline_result.json": "e8c9401c37fc08179f28d1782a336cc4e460aa654b61a1bb800d4665597cf5cf"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_002/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "e3ce5600b6e2ec6b96f5da04791b51e1d1bc15c444670cf50fcb34ff20ee3d53",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "ccc78f9a19f6006b9b243786c48c9839683edb120d983a4bd282b816eb0fa539",
+      "result.json": "7277c426e89045fe9ac0fdd41788bf4d25483feb99edc102f643917b4450fb9d",
+      "trace.json": "fdcdf17c51f0dadacd2f633a0078a9e12d8036c065feedcd19ec10b8cd81fba9",
+      "result.log": "919a00fa66c2cc1636403dc7668d7b9be8db27a0555e33c60f450238fd2698e7",
+      "run.json": "adb566a7824810e73bab5e78dc9a39e10fd04d68b73341bf94981b34b24483f2",
+      "provenance.json": "92a7ccec12a7e887bde6146f46f5a0e3e8bc285b4444f027aa5813d55ba2a100",
+      "windows.jsonl": "c38cd908f93749ce7492f957561c00c6f9c056f5ac65b257414d6524ad98f842",
+      "baseline_plan.json": "ccc78f9a19f6006b9b243786c48c9839683edb120d983a4bd282b816eb0fa539",
+      "baseline_result.json": "7277c426e89045fe9ac0fdd41788bf4d25483feb99edc102f643917b4450fb9d"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_003/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "7cb5a3efdbc7a14cf0ed4cc1c301b190e6d5a6b7a62d093fdea40c686cf439f4",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "adb28aefd2a9d51afb1a8247e32db1ef60b84c0a29e0e342a49a8bfc941cc8d9",
+      "result.json": "c5f992a23c92e226236171ad2fb8e9dd1c46ea3e10b890071f394f2c887c8ce7",
+      "trace.json": "405e9251c5f1b5382565dbe76977435ebb3fac8192c76a86e25bbda7b79a5a2d",
+      "result.log": "d45f68ccee7a1ce2fa82be93a1cc690a6bbe667d46c8f37eb80416cd6ffa88a6",
+      "run.json": "c1bbd65d05b560e279675123f4ae3ee50587f56fed256d2820088a53347b7182",
+      "provenance.json": "1b66a3a6224dd4ae12c0ea59798abdefdfb8b6144e019328f0c5a914c5d9be86",
+      "windows.jsonl": "fcc26857e6a4254f2482a829799c282f282ef830dceaf8595ccb6537f2b48d89",
+      "baseline_plan.json": "adb28aefd2a9d51afb1a8247e32db1ef60b84c0a29e0e342a49a8bfc941cc8d9",
+      "baseline_result.json": "c5f992a23c92e226236171ad2fb8e9dd1c46ea3e10b890071f394f2c887c8ce7"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_003/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "070db52673c884035e6f1b3cf1cf74049394d6a333763c56831d22a3009d2992",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "03b964b56f1ae10f1840e4dc5430ba2e44ec461fed9c7fb1e468ccf61a8f6008",
+      "result.json": "f908026213b165b78a05a2e515518015e9e4c6cd381615d9ee3411b33e4c1612",
+      "trace.json": "05f103ed424e1ba95e2807d590160ab58b8b3c0eeb95d89c47e799f41d6c4118",
+      "result.log": "423742d66b943b31f46f32b237b3b5aee037aa3c98818cedac0e6aa873dc8f05",
+      "run.json": "b22eb1f6e8a3a82a6bf23d505b0b822bd3d796cc6d9be2bdae0f76727d05fd24",
+      "provenance.json": "b31cc7f240086f46438e17c1a260946e5b5d8cd12b979fa17a4c4ee210fe5153",
+      "windows.jsonl": "10ebf5efd251d32505a04c636e2b7cd76e8414fd733814635533b802ef9ca812",
+      "baseline_plan.json": "03b964b56f1ae10f1840e4dc5430ba2e44ec461fed9c7fb1e468ccf61a8f6008",
+      "baseline_result.json": "f908026213b165b78a05a2e515518015e9e4c6cd381615d9ee3411b33e4c1612"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_003/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "5a4c26415497cd83594d54c4ff9a1635f1f288f23b084494c3e01f960e4f1c78",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "4e49c9a4e7697ccc6f20986a09e9a73d08d42bc8ef005aaf3e368d9b6d34678c",
+      "result.json": "0d3f4d26b182eeb927002e204c851651de0fa844ed6490e008ab6d6859006d89",
+      "trace.json": "87d87211edf2cdab22120bac5aa2e44549349528410efe657c6328796b88fff5",
+      "result.log": "5ba3bf15747a987e17e4db67ec6b565a6e5c7eca6133aa075f295added8e6984",
+      "run.json": "edf165378e953fb80c76cbcdc64c421920b3f703defc0fea30b0ca30b089267c",
+      "provenance.json": "8fae0a4e781078895997a07583c1bd5889025acd9f77c59735696144face9024",
+      "windows.jsonl": "6cb6976d153cd1bbf034ef0618b4f5e48d17214673c276fc2d7b8c372376f099",
+      "baseline_plan.json": "4e49c9a4e7697ccc6f20986a09e9a73d08d42bc8ef005aaf3e368d9b6d34678c",
+      "baseline_result.json": "0d3f4d26b182eeb927002e204c851651de0fa844ed6490e008ab6d6859006d89"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_003/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "53741f76b662b5bb35cdd3d235ecf42c30c1269355c0b74ebb1a7cba70c873ea",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "418cf4b2e3c4c38d5c4b353706e9c8a4f5817f596212d38fc93de00488ae58f5",
+      "result.json": "45431a750a4a8b06856969438e03921aa2ac277a7c62da7d147c124c18bf647b",
+      "trace.json": "f4741c5b4b952f1e8c4e5176eb40bab808a8f08651273a2d071cd309c05d6005",
+      "result.log": "fff734d61fe2bfa1ff64b346a1db247a4699ffc2d20e8ac3c64841b275b2024d",
+      "run.json": "0f7e309a37c21c7ffcfb0554779a98e1b7f071a4d1cabb60db614d54ad5c6f01",
+      "provenance.json": "89baec9c544cb45d463227fde65f03914a1da7729da3aa51567141632c543cfe",
+      "windows.jsonl": "e3f18948fd0fe2231e0b60e01c7dca213bfcdda5161c26ec61614d9ad2c07142",
+      "baseline_plan.json": "418cf4b2e3c4c38d5c4b353706e9c8a4f5817f596212d38fc93de00488ae58f5",
+      "baseline_result.json": "45431a750a4a8b06856969438e03921aa2ac277a7c62da7d147c124c18bf647b"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_048/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "5b4cecda71a58846487109e7fe55bf21ff0728ca28dc5457c8a5f22265b5ff13",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "123124a8745d7567a8bf43e1f42351932b1dfae6acc6e48efe0bbec2814b8cdc",
+      "result.json": "63bc7b50cd6319cea15883fe28cf5b5a94f4250559e067ac749972155100f26d",
+      "trace.json": "6358109cb819814fa788c61d440dcc6a7ca909affa508db670a2a3e9381fa396",
+      "result.log": "33d24956670234510bf14650932d9d1bf8ba88a6492464b4931ad32583f1face",
+      "run.json": "1fab5a62b4da8b14fd3655185323f63cd1b65f878a782420242703333a59ecc9",
+      "provenance.json": "9996af3a6a21a4878267f1b4933688d84606887f76b3428c37b58c983a9ba147",
+      "windows.jsonl": "ea0fc81b7d7ab5d8bae92b4e89752f0c579874e4d29a20f1b7129f09d5b952ee",
+      "baseline_plan.json": "123124a8745d7567a8bf43e1f42351932b1dfae6acc6e48efe0bbec2814b8cdc",
+      "baseline_result.json": "63bc7b50cd6319cea15883fe28cf5b5a94f4250559e067ac749972155100f26d"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_048/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "99972a39ef17b5f40dd8d6b04e7d41691e3465ae9bf831ea1777a5ec6df9ff5a",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "b061c8690dc233cc699237afb9c6861f45e3feb032ae79b8fbfc634bfd421d8c",
+      "result.json": "2e8953cc4aad7c8a93481903efd5bc7c751e61b1c40f4602b806e3082b4214b8",
+      "trace.json": "d747b450b235c03a1a150502d63f59a979e893ca01c1bc0d04c44c68bed72321",
+      "result.log": "4c1e54cd7077c732cc19a07248b14286942c8de811be480fa53bdea3d7fd99cf",
+      "run.json": "3c517e8036e84e054e1b7f64e05d4fdba7f209774bc13d77e175414e2941b9a6",
+      "provenance.json": "aaf69f29fcd4ddc1985dba72dde1e41abf60771ca6b03cbacf260732f971c0c2",
+      "windows.jsonl": "4c08bfa42d49d1095abd2dd50bb7098e6ec1c0607b690cebb14cdd66ea0623e0",
+      "baseline_plan.json": "b061c8690dc233cc699237afb9c6861f45e3feb032ae79b8fbfc634bfd421d8c",
+      "baseline_result.json": "2e8953cc4aad7c8a93481903efd5bc7c751e61b1c40f4602b806e3082b4214b8"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_048/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "f3b16ea47b091b85b184647ee144d7a4784ebb5bf622cbdd0fce51031abedc49",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "bb5bbb246a08d6a3bec523573be0992784de673314c7b7a7eda828c67881e809",
+      "result.json": "7500c22c6d83cc70e847aaac326a14bc6a643e4f9ffb6f8d556d636cc6a30ba8",
+      "trace.json": "5f10feb81bf2e46f829eb87080d5bf57c41784aec636afa8c342fd60dfdc6212",
+      "result.log": "692b7bfbf12a896d6a04f945298d250a6242f4c06acc7f6d7d799067f66bd728",
+      "run.json": "1a934ff51b793dc382fe5398f24b21428d61de43a69352f28412315ce53b3bcc",
+      "provenance.json": "598e49bbd04707715f145cc9982a564bff6ae5d43918b615386010ac03fbe9aa",
+      "windows.jsonl": "a4559db728f9c3a552652941ae3ab97f3f371fb8aaad33e44f0db72d54b03641",
+      "baseline_plan.json": "bb5bbb246a08d6a3bec523573be0992784de673314c7b7a7eda828c67881e809",
+      "baseline_result.json": "7500c22c6d83cc70e847aaac326a14bc6a643e4f9ffb6f8d556d636cc6a30ba8"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_048/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "67bf7bee937b78551d0709b2a1db3f862d04648341cad47f36f8868b67ffd55c",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "f7ffa5b4884863ee48431bff1ff8d220b7f8f30529b7de936cd8b6ff97c63bb5",
+      "result.json": "c47d0ab108698773d806fc74b38eaf35d9954af8d39aa7553c22d6cc6febb62e",
+      "trace.json": "378a7b58aa851713515280c130b9ac5e4b78da28a288b6dbd55222ed6eb9a31a",
+      "result.log": "7a29284940f9adb61d5f3652cc829ed9c385f8af66cef9f5721f208238be8dbd",
+      "run.json": "ad64970d2ab6d51ef48b6c5164b8fc20122b35937c38bafdaa52bbd75facd31a",
+      "provenance.json": "b427c79fc5d47402182d395fc785fa604cc7716120aa30aa2f8d62fb8bbe0c2c",
+      "windows.jsonl": "f1a545468437ff5dc32bc59a5849cb2dc3dad3ac4ceacadb49fe373102ff510d",
+      "baseline_plan.json": "f7ffa5b4884863ee48431bff1ff8d220b7f8f30529b7de936cd8b6ff97c63bb5",
+      "baseline_result.json": "c47d0ab108698773d806fc74b38eaf35d9954af8d39aa7553c22d6cc6febb62e"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_059/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "2f225372799630fe6be4f8b3d49dff45986f8b5e372a37beaf238f33b5266ac8",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "deaa1f0fee25235f9f50916ece571b15acc0655a4fbc064bf5c83fb623e7c7fe",
+      "result.json": "2ae8feba56685e32b4198ee8ff8630c99e7e5a1cca57ccff49ffb884d6e59379",
+      "trace.json": "af3a7652508f93d9b60e233c68e3cf6856f6ef838ea84691e6b1b1ecbf3f8d1a",
+      "result.log": "0b22ca4eb5ae8c58235642883147706df749e3c84368296d8a106a21f2f11d60",
+      "run.json": "498f53c65c63b5ad66fbf769ef865c1cbbd1fcb2c0e5cc430a36ac4b6dec58fa",
+      "provenance.json": "71965a41f4348fdccf425fb4b25b7b9b0bd21ddfce5d6b56f00fb1aab06c5575",
+      "windows.jsonl": "6bb111dcd696b17fa9e3d0e002ef1b81b085e74994cccca8b6d344c9703f180e",
+      "baseline_plan.json": "3f628ac0ce7a0034aec3db569365119c4fd585edca09ba8f69581dcaccc49ea3",
+      "baseline_result.json": "4e3ee164b58ee0bad6bcb9ff598360fa6f14e2ecaad9953fb2789f593e990d68"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_059/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "52fd5971e62f04557aad3551b355977ab37d2e1bdf6b74e096580569388db62f",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "aff4e9d0e37bb54f192eeba1254931d757184423044bda109a2c5576b36899a7",
+      "result.json": "981c55eeb2098139d12679f2a5919b7e1036a0ee89a4b5615abc995db1b81648",
+      "trace.json": "e842911d0c880163761e25c2bf8e08801745ac091a1d820c36110560cb0cc8da",
+      "result.log": "6dae884fb19dca5106593ce9bb74cc234f8502c818312081df0bf87512209afe",
+      "run.json": "d51c9246d686d2f5de2478d6abd8b296a04930eefedd9ddf67cb099942e443ec",
+      "provenance.json": "085b6972c941f8f90b7346ccb31ab402739d2ef2b9256ae8d584c1fd64e8a9ad",
+      "windows.jsonl": "f0e0f76a32328c8c59295b229730fa46f326b655130d9dcca91aeb93f54a9a91",
+      "baseline_plan.json": "aff4e9d0e37bb54f192eeba1254931d757184423044bda109a2c5576b36899a7",
+      "baseline_result.json": "981c55eeb2098139d12679f2a5919b7e1036a0ee89a4b5615abc995db1b81648"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_059/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "1f1f9b316a4e53d4fd19a8b839f2a35359f0150676b70330d5743a9d351b8127",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "a2ed0285ecf9a65805e9eb873f3254c8e45fe72aec38a9b3dc5727821032defe",
+      "result.json": "b9e5a809f2a52c341472d7b9b89c2545cb056f67bb5b9e9b07dd7fbe01144c4d",
+      "trace.json": "74de21913d2a327ef7dd76416406a1f3bfd188ca3a1dd7d7496be02fe3f08f85",
+      "result.log": "fd499f31422a72bfc05b61c0776c6805914fabbf47fe47f3c47700ef3b228d5b",
+      "run.json": "bb6d664445e24b274ea637fbd6d704ab0ae37bbdeab869686d01a5f7d6676733",
+      "provenance.json": "3d47bdcffade36bbebc411a98726b32af153d83fe22cdac6e5c2bddacfc06eec",
+      "windows.jsonl": "cd44282307818dc82604a6e7cba9c893b814f38dbb6599958eff75be5402dd91",
+      "baseline_plan.json": "a2ed0285ecf9a65805e9eb873f3254c8e45fe72aec38a9b3dc5727821032defe",
+      "baseline_result.json": "b9e5a809f2a52c341472d7b9b89c2545cb056f67bb5b9e9b07dd7fbe01144c4d"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_059/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "b287465e250fd1d70f3ca295801aed6b4dc40c9642261956e8754b076b9d9bc6",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "cc281ce319b996591dc43a8adcd868508f3c37f75c5f5390f7b25869019068cc",
+      "result.json": "2e725086875ddc7184c76188e35ce5f3045a749368b6e4060d3d8f76d5ce729c",
+      "trace.json": "382c691f379a2cf371f528c5e23f050fa2c54e82c0cbee7c705010a88a1b95bd",
+      "result.log": "314da344ea21b5124eb2f7a864c12e605ef2c1337f72e4504d8dbb8ba44df5e3",
+      "run.json": "90790c438b146f69853fce94cc4a422b8e2108e1949b5d8f1743ffc9b0296aac",
+      "provenance.json": "a01bc0c5189352475281ac35eb51668626564544a16b85919e2c9bd708ec94b0",
+      "windows.jsonl": "094c24a19181a1014f69da71ab585cf500bb7bbaf4e848a9500e4c32d69e7fcf",
+      "baseline_plan.json": "e1ee8b6c0ad944f0c79015cb95c01804e61465b7078929dc240b6a6419b81808",
+      "baseline_result.json": "235973fac0129a0b5560526f2bab84cec61542c0e9e07995f94712431a1d801b"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_064/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "1d615e2d111f2316caa9c38ca8fb5fe66d7bb8b9e3cbfce182b8c8dc2591cbb8",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "fced1a343121caf5d5299cd6b598fc029a0b7d10c00b308d4bfd30fb44621ad2",
+      "result.json": "edb018120cab23bcf4ff77d0bb4e3ba76a5579312c163980a7f420679e56a9f1",
+      "trace.json": "d7cf1fb11f83767f3a908b8b26ff3cf6808bb8c5b8604cf3cedde9a84786ed87",
+      "result.log": "61bf8198552fa79d769b206a162a9fafa97adb532b70d056f2f43c518ebefc9f",
+      "run.json": "7a31287f95a9d61505dcf6d5e673dafff9ebcbf11a676b3f9faedd99b06fd5ca",
+      "provenance.json": "8b0d368e7a3d80cb7908fa847f8ca4160704b93cab3c6abbcf52ec1863a2491a",
+      "windows.jsonl": "bd523fc71d3f57f248644f53bd1f39d510faa23028ab5000e4967bbf887068e3",
+      "baseline_plan.json": "fced1a343121caf5d5299cd6b598fc029a0b7d10c00b308d4bfd30fb44621ad2",
+      "baseline_result.json": "edb018120cab23bcf4ff77d0bb4e3ba76a5579312c163980a7f420679e56a9f1"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_064/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "186d25133f68578a60df513b25aa595c4004ce33510374476e2c7176441b8563",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "6f73f431b881754fc7b507c1ae9cc87ef83bb079427bb4ac84ed78c812d76b72",
+      "result.json": "11e251877e38c32b557f1f5ed5875589ae586f47db0375d96c44fa90f55aae1c",
+      "trace.json": "358a597dae9c1ff2ac720a4ef48549d18b4319c7af771d417317b40539ac11bd",
+      "result.log": "e3624a015fb8e4072d8272f0a47401201eaffbd217ca1f071da80ac8f0d418af",
+      "run.json": "5fdd169d7beffa0e8276ec9db7b29edcad3513f626eca394464764dda6c429fd",
+      "provenance.json": "f26e0654506de3106c22e9f5df213d27ece8050910a5907ba4396807aed0e313",
+      "windows.jsonl": "918f9546f5d095145f64563892f0059bd91e52b8e49afad815a07c686b53b9f2",
+      "baseline_plan.json": "6f73f431b881754fc7b507c1ae9cc87ef83bb079427bb4ac84ed78c812d76b72",
+      "baseline_result.json": "11e251877e38c32b557f1f5ed5875589ae586f47db0375d96c44fa90f55aae1c"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_064/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "065fa9b203506bad68bd82b8a76789a40a80b933cc762fc92968f05168e55104",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "98c6ce8dcd05030052fc2a299fe0888b858f87bea2ec9024aa31ef8f040efb88",
+      "result.json": "abde17d50092d2bdbd0aa6f67faf351f1fb6caa5baa1bbda67c4aa0b3ed731cc",
+      "trace.json": "8b602c4c3e69d8f811332ab2b3f2e41b58d1fdc8d9f9b17d8baee0d39fb3f441",
+      "result.log": "809e237e40b2d067d743151bfda4c6d9fa95b390c12df7ebfb54e6ecd0bf9947",
+      "run.json": "c2704dbffa3fefb51141e805b87a69fec29fe54a938c3442ec12296472b02002",
+      "provenance.json": "6c31dbc20e4fe14d5c82610a2c1084ced10a24467a5f83d0891171df9f82c98c",
+      "windows.jsonl": "893cfe73ad0567f8ec32721a70f868398906eab6a19befd6561d832d66e33461",
+      "baseline_plan.json": "98c6ce8dcd05030052fc2a299fe0888b858f87bea2ec9024aa31ef8f040efb88",
+      "baseline_result.json": "abde17d50092d2bdbd0aa6f67faf351f1fb6caa5baa1bbda67c4aa0b3ed731cc"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_064/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "0538e572932e14d4e0b2c9e26bdfaad30564f48b316108cad9d8ff2041dc93a5",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "aec30637b4ca93e8332b29e2c0b7e5eb7b562c454e0f5b451dcc72b65a7e81de",
+      "result.json": "9dd09ac049411599b0975c7cf56312b3ebd9d45de5a51e77ed6119d9d572d11f",
+      "trace.json": "37b1d20009ea52335be719354e93c6af4220d8dd69234122db604e6d13f42cf8",
+      "result.log": "20ede30078c411164ac1451aeb292b02c9653ee5c7df33fa1d712248cca44af3",
+      "run.json": "5be57f2eb2cc45950503aed49cddb20ee1e4d4318000dc70defaccd4960f75ca",
+      "provenance.json": "3f118cce2478d193b1c46faaa55738f88133ec351d0080f8819bc80350ca204e",
+      "windows.jsonl": "309ceae815254305ffb77d85492ff86c4ca7f729fbdc9a7ee5f411aa47113591",
+      "baseline_plan.json": "aec30637b4ca93e8332b29e2c0b7e5eb7b562c454e0f5b451dcc72b65a7e81de",
+      "baseline_result.json": "9dd09ac049411599b0975c7cf56312b3ebd9d45de5a51e77ed6119d9d572d11f"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_067/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "e8c087da6579b899f80794ae66c387f69cbe2f491365ddd8fc8ded402cf51f82",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "db0e16c908a4ada2dbf77abbb185d787e05094f1a6b6d5f7ca96256a190c269e",
+      "result.json": "00ea10f0cbeb6619be2b6a90bffb89319f57df15a2e9e52adb93c7efc25121f1",
+      "trace.json": "c79426bf166a826a2bf3123409abc06d6547076013f3756917a81643f0718039",
+      "result.log": "71acce117ca20825edd3dd90f517a4b8c58687f6e1f0607a9e77d56821e201cb",
+      "run.json": "644fd8c7053d964a746fd7930344be42392837c6c407201b31354ac0278a9acb",
+      "provenance.json": "e877abe85035a232da6b2adfdc9ec6d5fbe811e1fe8b62a8ddd0e1b615ce180c",
+      "windows.jsonl": "9ad0b37ea64045ef08320d321069e3c97665219141ebbcc9de3f72b0bff0d914",
+      "baseline_plan.json": "db0e16c908a4ada2dbf77abbb185d787e05094f1a6b6d5f7ca96256a190c269e",
+      "baseline_result.json": "00ea10f0cbeb6619be2b6a90bffb89319f57df15a2e9e52adb93c7efc25121f1"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_067/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "07042a08eab7471e96d2543952e93783950dd90c1df841d7bdbb45231ad47287",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "f960cf89d62bee61ec481edd4bcd66a47058f04e4cc883e5a7217fd064e940d6",
+      "result.json": "3d17993c7308637612d57e2396539fe1ac132c2058e14ebe48cb9f5a7ea27519",
+      "trace.json": "756529e9dff3aad3fa0354744c8835f175eaf72ffd2ccff76caafc77dc6aeaca",
+      "result.log": "16556a03a98ef00cb9452fb9234c33c03fdc14a48a6f0687e4daeaf421cf0314",
+      "run.json": "7146b5ff8295c955a340d5f48e151cb0ac5a0b779587135627ff3fccb5e3ed9e",
+      "provenance.json": "62eccfd3c23896e67454658a99b31c88d2b2cafd5668a20e5e75bf6766f8f930",
+      "windows.jsonl": "6335824b06f4c64de57eef6cbe08d35437a72a177156162bd47064cf41a53249",
+      "baseline_plan.json": "f960cf89d62bee61ec481edd4bcd66a47058f04e4cc883e5a7217fd064e940d6",
+      "baseline_result.json": "3d17993c7308637612d57e2396539fe1ac132c2058e14ebe48cb9f5a7ea27519"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_067/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "bcedcfd3fb324dafd6ae985e523796709f293663e2d974193deb543f8354c737",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "4f02d96e84839833c90d9252e690ff78ff14c8199dc3d56036369a830daec343",
+      "result.json": "dced04ed8c828fb2254a2e407a536ab4239d686017606da965d6c83932f5641a",
+      "trace.json": "bdf09a15ca69b5621053149da515e9b1f395b94a5237b3af0d74812b538de6f5",
+      "result.log": "5236b74a4319902ac7d411280a048b479b890e743b87c082ad8067b86f0ba4c3",
+      "run.json": "3f76888fc14140798d181e6be04cb42be356eaebe8e6cac7f073adda75ac3b11",
+      "provenance.json": "0cc29097cba31128bb28c9f56ec01cf1c1af24417d956b71bc332953c092b65c",
+      "windows.jsonl": "db986fa6e9386b976db0cf2136b8d296d8e08b70daf0d2ff37addfaf57906d37",
+      "baseline_plan.json": "4f02d96e84839833c90d9252e690ff78ff14c8199dc3d56036369a830daec343",
+      "baseline_result.json": "dced04ed8c828fb2254a2e407a536ab4239d686017606da965d6c83932f5641a"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_067/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "2f926fd939976edd127127c9fa9c8cef8229b457454f19d1b4ce2dc4569e849f",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "e3d3b7a32d48fdf7f8f79c1d8e70bee08f51e4a8dbf9c82e0f4aebdedcd31322",
+      "result.json": "b1de50f1af5a5ef0078e0d0e977d295d3afe32a525182eb3375636b05890a063",
+      "trace.json": "7f7d5351b81fbc62b085540c9ca4bd3d0ff87cb366631c6661f4e9c1976f93d5",
+      "result.log": "006d478a40ae135ceaf870035023e3c1a430d2df01239498e030a949f33b196c",
+      "run.json": "8254bd23752dd665a7cc9b03e299feed716829d64f72fe33f1db87cdd0fcd956",
+      "provenance.json": "0a29fb32d2e8c022dc9f91e8857ac15a5fc2605b4e7839d1b758b2df587d1460",
+      "windows.jsonl": "1bc45a766beee0b14edcaaea879aa76be1659d2e07271b6ef14f79f4d89f0dba",
+      "baseline_plan.json": "e88aeb46719f3dca902c5684087525f95a53f44893ed812870855b66ee7af9bd",
+      "baseline_result.json": "a3d98950399448e6b24288b62b1be5095ffba9be0aa0a834736f6f5c92de6abb"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_086/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "dcc739d5ee2de12f06fe5f33679786a1ce2d5b082d90d8e0d67a4cbdda7299b1",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "bb6f7bfbc86d7152848341067e5a794beabfd282c117b26a65122807ec123fdf",
+      "result.json": "125725e0f6cc09f337bd6c9096a0c606df699ad1669969a6c3eb33ddeeef4920",
+      "trace.json": "b1f12c54d8c503069aa280740a4fe4a977f444b7b53823d0e1fdd7a00a771346",
+      "result.log": "7e1af00f1b2a9a488ee12601ab6513ce8efd9129ac4a39ede69e06300ae708f8",
+      "run.json": "4360d559c7856f1028ace95f29ad82dfdc9625cec1e7f3351e8f8cfd6e63b081",
+      "provenance.json": "db21b39445211182f8ef4d550f508e2d02b282080550da892d7e53f15ed92795",
+      "windows.jsonl": "87426cb8c1ec0028a5c3d89c23b85a832d86828b226e0406851eacb81c98054a",
+      "baseline_plan.json": "4df50ff29bd2e5df25c98c5f460f98245ea0911fa5765644216f41100de69225",
+      "baseline_result.json": "3571855e191f245851efcd40c7d7514f9730733182b819e6c718d6de009b6642"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_086/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "4a18f961dde7c35b3632ccbe9d78f9c097e42290ccf7afb4a954d97c24a10957",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "5f6c1090ded8ffb962874cc92ddc2de6a7a695f8d8e60cb4e1812bd42942255d",
+      "result.json": "57b9cde5da3df878b7d10b59c7391d66487c6bf3b4f7172b006a085747987c14",
+      "trace.json": "895c42c7e38d842dc90c79a5058461cb92b6fbb78d64e15bd9b352e78c315287",
+      "result.log": "0d700e4e9b5edc57e2f729f7c10c73114db9a559d5a204977ec9ffefdf2ade90",
+      "run.json": "f0d64af9e48add9f80c34d2feb8f7666fc3e0303414eb800cbfc67ab8189153a",
+      "provenance.json": "146ec91540c933e7a9dae1d41abdcca7af0951d059e2c33b1ec64a0ad04de03a",
+      "windows.jsonl": "28d2fe790d37a76c60e4b09d5e5a1a809afe69becb454531758d9acedb1c8796",
+      "baseline_plan.json": "9101fe5f42ce77f51e2673bd837f4f0eaa0bbc5e30c8bce4a00cdc27e510e158",
+      "baseline_result.json": "06986c9bee20c92269c5b7dc6b2a059929fc3bf59e954c97f2eb05faa2308169"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_086/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "d8536d22af0cf5bf4cf1886bedada24a59793e3b418bd7e43926c8f55ea76c34",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "a09c2a1e483068769a943ccf4fcad3af4f901056b4de2e9d55eac8d33f9b37a7",
+      "result.json": "dbf40296edf77f6256cf35ceab0c3a1feb769c01ac259d58c8b2edd319f308c9",
+      "trace.json": "5e204ec2a79f4738ce3406608dcc067a6caa05da329ddc80ee700f026dff6891",
+      "result.log": "418a2e2661d95b4957862ab87a69caa4094b318da117db1b06bc27ec1001a5ff",
+      "run.json": "9e023eeb73fa11fcfb305bb7de8d6ffa778e68f2cb08a674de0309003270b8f5",
+      "provenance.json": "eefadcf04e56de50760f47ee87ed36426198627a7a0d5959af2c662fe03fb9cd",
+      "windows.jsonl": "311bc3c345169148c98c0ac89c0d39ec0c6a71ea6adf8e80f50be10b6725c88e",
+      "baseline_plan.json": "a09c2a1e483068769a943ccf4fcad3af4f901056b4de2e9d55eac8d33f9b37a7",
+      "baseline_result.json": "dbf40296edf77f6256cf35ceab0c3a1feb769c01ac259d58c8b2edd319f308c9"
+    }
+  },
+  {
+    "profile": "legacy",
+    "path": "outputs/q2-repair-acceptance/legacy/case_086/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "b74540755090e25cad3cc1bb8581fd87ef50306b373157eb8f5a1a2b75e3462d",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "1613f7284cdb798c010d2b91c5e172e0b65b7dddf1d955ad6de4d962c3fc37e9",
+      "result.json": "a619609812e7a59761fc901e61c2818722bcac2832bf846863c6ae9c7c19ee16",
+      "trace.json": "1db92bf3f8459afea6b6d9396b42e0c6b3fab64e0b4102642494129414a90b96",
+      "result.log": "b2c07f4961ac76e377572741f0c48ffbfac4819fc7e3103cf7c4c23a0a995bd4",
+      "run.json": "d9bf13ab7fffd63cccd69aa5d50f83acde27ac6c85f7f92f5841a7ab25dc7175",
+      "provenance.json": "49647a45f4b4049b6fa538a638e2b5f684ffef000fb6ece19ec29687ce8f0610",
+      "windows.jsonl": "25b3756ae4bf1865dda9ae62ebe6a1f41876455c9a67cfd5f6d54d7c27525fcb",
+      "baseline_plan.json": "1613f7284cdb798c010d2b91c5e172e0b65b7dddf1d955ad6de4d962c3fc37e9",
+      "baseline_result.json": "a619609812e7a59761fc901e61c2818722bcac2832bf846863c6ae9c7c19ee16"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_001/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "8f05a3533a1f4cbf7d5e55fa732631d3d7040de67cc448dcd48e2b07aa6fa36c",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "3c9b35910e34566be14690dec13167999d9fb4065144a95471d5cf229f4268b6",
+      "result.json": "3fcb2d3f8f237af5494d88b8fcf3dd44325c2cb9f6a15deae0c6b2166618f339",
+      "trace.json": "bc414fb2846a608307e8f947d7eb5d69cc79c12bb85e46255273b0ed41babc74",
+      "result.log": "a256642dbab6f5fb36f3c0bef82f599501a502eae091c05bb3721321d7fad107",
+      "run.json": "9428a537681d52a42e5df6b5451aa971d92659d56ed6b6b8c87137a66473d98f",
+      "provenance.json": "348f59230478d750d928cb36eb55cdba7355996633fd10105ddcb74e4773c661",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "3c9b35910e34566be14690dec13167999d9fb4065144a95471d5cf229f4268b6",
+      "baseline_result.json": "3fcb2d3f8f237af5494d88b8fcf3dd44325c2cb9f6a15deae0c6b2166618f339",
+      "baseline_state.json": "b373f3db3c39e1fec6c1f60726d46a84e2b6aa2fac2abde695c95695a1a77e74",
+      "beta_state.json": "32776666211ae3e7c531d051007a4ce9594fca33099f29477d7af6f3ae412410"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_001/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "2653d5675dd9ac1f3b60e094081f07e7f989a94400ef61a289573a89f2b82a72",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "01b6e8e0fc2f3b4febb86ad1dd6f411ea143573c153b7ed9069cbf334ad47a7f",
+      "result.json": "6e008a95c1779d3f8341f52032e3559354af05d4a9cd88a9d59304f395527615",
+      "trace.json": "5781f47a240410ad75c56a231b66f3d3bafabce98b894579ad3bba810fbde464",
+      "result.log": "49471d68b66ab7f1a12fe7fd1a5a96a165dea10f5e212a8420c0c08b824a3459",
+      "run.json": "bb7a10e2766259d841d96b7519c27b707625b57fe9ae6e82fca9718551f22a7d",
+      "provenance.json": "aad5383250be65b67491c4810479e2c123ec4a3d137de27b2e638cb60517d98b",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "01b6e8e0fc2f3b4febb86ad1dd6f411ea143573c153b7ed9069cbf334ad47a7f",
+      "baseline_result.json": "6e008a95c1779d3f8341f52032e3559354af05d4a9cd88a9d59304f395527615",
+      "baseline_state.json": "8ab3991f0037ff7c7469fec96197b2076756f5dca5b8547e5be56f6aa2110894",
+      "beta_state.json": "62da1d644c89e6aa75969d2fb9dea4d63989f5e9d77e38f41b04826eb8222200"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_001/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "1a13c93f3da8ec8c55ab5c5fb5c6ca08891656cc845fda03f3d676bacec4f242",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "362864ae7accf08894a18dd5ecf03a09a69af89b4c45dcaa294d3772dc5502d9",
+      "result.json": "d8d2595675738918af66b0a89892d8f098cf13e7a6cefc8db42332eb47fecd59",
+      "trace.json": "dcab24c28740a220a7f477448df133e3f64586c5f15d0e73264413e064bc76c2",
+      "result.log": "66a2f89a45984616a5428fd87a2732868845fc24e044d69e74e163b2feb0fa37",
+      "run.json": "93f842cbe21c9e2b234399c78d836dad8a388127a08fba245606d696bc07abb8",
+      "provenance.json": "0962315a903a89aa44e44a86c542e81431fb8aad316612d71da562d892d8e259",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "362864ae7accf08894a18dd5ecf03a09a69af89b4c45dcaa294d3772dc5502d9",
+      "baseline_result.json": "d8d2595675738918af66b0a89892d8f098cf13e7a6cefc8db42332eb47fecd59",
+      "baseline_state.json": "606567a61dd12ba68a58aedbc6040bdf16ff4cbf79593ccd81bbefe1db1a05db",
+      "beta_state.json": "254dc6bc85d40147f55a907519af0497b0ea5e9c752d6f03581415c3df0bdfba"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_001/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "be913f1a4507942aa6f2963d17ee686bff48407144cc5da2163d466ad06b64a0",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "f2d58fd48cf2b9e1c066de6e12dd6b73010e32170cbad0558160957f06dcdd63",
+      "result.json": "dd7f683300e708d6516c60b120467f45cffdf99bf055bc2ba364d429eabbb9ba",
+      "trace.json": "06109d5a087aebd3b5545ba6ed66d4add9a91e3fc2e9e088f9cde6b002bf3fe5",
+      "result.log": "d218c74e30283253824e7f1384458cd99b83ff35e7b5c92a79001930e1fb4c6f",
+      "run.json": "378e6a46bb320991b4f7e65096b753a2303e1628da489d3ca7d93546a22a7406",
+      "provenance.json": "fbc972df794b4e909ba26061fd70c4d202b0d89cf8d216ddfcac8527ae1b6b10",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "f2d58fd48cf2b9e1c066de6e12dd6b73010e32170cbad0558160957f06dcdd63",
+      "baseline_result.json": "dd7f683300e708d6516c60b120467f45cffdf99bf055bc2ba364d429eabbb9ba",
+      "baseline_state.json": "fabbf8714c3fa2874633aada2a9dd6765193acef28f43ff95202bb68bc46c82b",
+      "beta_state.json": "3cae886fc59959cbe094820162b108ef34f5ae6a9fb0191af67db05f046d6b51"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_002/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "1c3e25eb24aa28fe1cc6131d801a1e123ff8a6315cabab2709e0002aba6493c0",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "7d195d68056448a6e8e0e57430f8eb7b8ed379687e3e3b6c9ad0329a5bbc06fb",
+      "result.json": "bf74bf03f4db0834dcbe0a2fc3a19df273c88bcafd67754ddf943e4869b640a0",
+      "trace.json": "7dc46c2e3ef59cf63a0795e74421ff4596016e12276b06c490610a088112c910",
+      "result.log": "5d7f4ed19083cb7cd5d807de6974d570c50a867e81e4c896bff95c8b1f9de914",
+      "run.json": "5ca94f9ca64a5f6a6ce12041337b65d4ad24edf47fd28e9b67eced461aa7dad5",
+      "provenance.json": "a26d40bde91758bd91415b40e37fad980940bab581bdb0fb19d15192b6d6ced3",
+      "windows.jsonl": "0122162d17ac1fc347b8152043b9e4dd2a7fae123d1c47f820c742e758aa8117",
+      "baseline_plan.json": "7d195d68056448a6e8e0e57430f8eb7b8ed379687e3e3b6c9ad0329a5bbc06fb",
+      "baseline_result.json": "bf74bf03f4db0834dcbe0a2fc3a19df273c88bcafd67754ddf943e4869b640a0",
+      "baseline_state.json": "c5438130319b6add4239a90bbda32cd3853ee82aee35d31458a4a4a12abf3d38",
+      "beta_state.json": "203183bf84bf4ef9764623f1060eb1aa293c38d3d1b5e3d6d6dc32490970f301"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_002/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "5f0eb500fedea9e4a67f1ca1598ab9fac435e6d194828f4b7c4a09337605bd30",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "caa0e87819752246cdf5ad5acbc63cc0fab673ee24a7344e824627f961c6eaf2",
+      "result.json": "9df54a22ecd1fefa2ff43a9189b7e6cc421054da2cc0fe355abd80ab9fd46767",
+      "trace.json": "102c494d6c790af1a35e5f435f6d36da6b901ea6cb4259dfc710df1cad97045a",
+      "result.log": "57b5cbeb2fde8caefd73fa62d2349521c52ebd89b85a973566653f456a51fde0",
+      "run.json": "909ed2bcd75beba30160e544b2c57c2192ed7f3600ce569f6da89699047ab8d8",
+      "provenance.json": "f0b3aeb600bb5620eb6e7b3041f8713c5b3886f42b8ed18b1b85184d223d7c9c",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "caa0e87819752246cdf5ad5acbc63cc0fab673ee24a7344e824627f961c6eaf2",
+      "baseline_result.json": "9df54a22ecd1fefa2ff43a9189b7e6cc421054da2cc0fe355abd80ab9fd46767",
+      "baseline_state.json": "471715031b61a3a75d0a9563149e8c0674f5643bb784a09698dcd6bc72e90623",
+      "beta_state.json": "c3887a4a7b8f90d87270cbb3d727760c4c84aeacfbe56af360681902db47e42a"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_002/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "90693403f8dfe60495d6e691365d8f85a0b2a61414cce3f561b81a62249408a9",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "95540d310167d22dca0a67284b23629f11bfa140d049b8cfa6ba319f6516cad0",
+      "result.json": "993132dd4aa6f97dd3169e4b2cacc163b4eaf19684186982592cb70ad64e6d51",
+      "trace.json": "425aab894464e53901c9792bf8e685bb865d1cdcaaf7b0876a74186d1ffe1b1a",
+      "result.log": "9684ed2371cc9aa79bb0749ea7e0496f0bb2b1e86cf136504d3a4f6f4a653318",
+      "run.json": "2edeb714502ceea9101d99a450ef3ff05e6e5809233c0518931ec2d3ba27957d",
+      "provenance.json": "afff5525ab3b32ddee49d214c3fe4413d5337e4e54a990ab062d2fefe1a5d72c",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "95540d310167d22dca0a67284b23629f11bfa140d049b8cfa6ba319f6516cad0",
+      "baseline_result.json": "993132dd4aa6f97dd3169e4b2cacc163b4eaf19684186982592cb70ad64e6d51",
+      "baseline_state.json": "1a973aba73bde81cc89126a323dd4ce7ca2c017eeaaa3f4a4bb97f52fc7edf7d",
+      "beta_state.json": "d4611252b0d9954a822c815fd4d9af65e1dc0cdfe1bf80caec09c751cc5b953b"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_002/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "1e8158d0f4b1d1aaba34be3f316ee9a895b919fe48636658ed9cf94fb4f4a9cb",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "15374701bec021e29dff652a99c52a3c39a8726878998aa8339d80d34b9c13df",
+      "result.json": "dfff317544b32d8bab1f0c6af024a15d23792041d94384a2defdfa5e5bd65776",
+      "trace.json": "494e3f4858ec17cfd871df8c504999efa1bf90e3ffa25aee8d957ecfed8478dd",
+      "result.log": "a92113c5348b4942539e7da2a355d099fdca691a65c355258c0203bca981431f",
+      "run.json": "f4bb41adc5b05f1b8328323ccbf8bb1ce920be4a420ad55fd9ba7af329f0071e",
+      "provenance.json": "7830b694855ba254df507456786e69414d992efd490bc0bc5c168ac248bc83fe",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "15374701bec021e29dff652a99c52a3c39a8726878998aa8339d80d34b9c13df",
+      "baseline_result.json": "dfff317544b32d8bab1f0c6af024a15d23792041d94384a2defdfa5e5bd65776",
+      "baseline_state.json": "73ef61f7dee2b7d706085075a9750f1bda11af6784fba1bdbf836a98e59f6823",
+      "beta_state.json": "6199a0d80d9c6a19d78dabeec4049147f138f67af63c4077687d2d43f90796ab"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_003/N2",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "d43babf271af2de2b1612edad668d38b1b047e53d701fc4790857ae2047efd27",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "ce12e22e159dfc383b2c967d225fa1173fdcffc540b3a32ce87c58c5cc3a9f71",
+      "result.json": "e01c6e834ab7beece2a94f115c593f3a1475144fb1b95b7c3a8e0d1015a53c5f",
+      "trace.json": "1907d331ca707429df84bf09959d897aa902a061c67cb2f3001d1b1979c90332",
+      "result.log": "fa5064589e20abdc731f7176cc13314e3626be59fb1469fad5cf03d87acc78fd",
+      "run.json": "9ad90b4c1c9444c478235f3156cefdc9179a5ab2f2cc8abf798a8eccce751881",
+      "provenance.json": "76bc0d64adc89e1a49cc1d022aad7782f443963d552c3a7484f42bd181768883",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "ce12e22e159dfc383b2c967d225fa1173fdcffc540b3a32ce87c58c5cc3a9f71",
+      "baseline_result.json": "e01c6e834ab7beece2a94f115c593f3a1475144fb1b95b7c3a8e0d1015a53c5f",
+      "baseline_state.json": "0e28c62c39eb8edc5a13badd1790442bd9dd5f2fccce696977e24f43f6cda1a5",
+      "beta_state.json": "acf0e0cc04063d417eba5ea7ddfd8ee8a6385614334b682ce87ee99d64718779"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_003/N3",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "068f5f207ed1045d3e5a4501a5541849f6b28e663974cba19eee7808623825e0",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "825591a9cda64932f5e2ea5c5f8b4587c4a4498d796998b6ea9881b2b355d4db",
+      "result.json": "c67676035bb1286cd48ac5658d5bc060d6591db206e1de02964be9fb1cc76817",
+      "trace.json": "ad6d99bc72e761ac3406f87d202ca5e0167fb72652aedaac8d8c4a96957ad42c",
+      "result.log": "7652a074d1ee15403a17ef7ae846aabff75ad9051546297f79ce408414a6ece3",
+      "run.json": "4efcd5d0e981195bee06797001a30639d3df30d01f5961e8b0cd1eea2c82c9f5",
+      "provenance.json": "b4ff71dbc955403a707e9561560d241ccbe6f7bf5015386c181b3c4fa944867f",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "825591a9cda64932f5e2ea5c5f8b4587c4a4498d796998b6ea9881b2b355d4db",
+      "baseline_result.json": "c67676035bb1286cd48ac5658d5bc060d6591db206e1de02964be9fb1cc76817",
+      "baseline_state.json": "1c7036831da86f75505528794149d2ee09afbbc566a88135b8f7e199582a8899",
+      "beta_state.json": "6b6ca496363c555b7a63c1e93202d8407e57d99479567c4b52838651db72dac9"
+    }
+  },
+  {
+    "profile": "repair",
+    "path": "outputs/q2-repair-acceptance/repair/case_003/N4",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "3d53a21eba04098bfcbd9f8a9a521431eb2b274c1b27428782aa99b7ce50ca5a",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "0bbae9d6cb7975d4c8f40344064b479b327c53b869a9d45b3378c1abd498a103",
+      "result.json": "c4c6e8fca9c47dd38ad0005c3ced7bfdb94e301454c083f53adb0d1dd60212fb",
+      "trace.json": "9fe3f09c096d50a59e82a3e3be8190aefa8994e47b8a0a4d8fdf771d567c831a",
+      "result.log": "1f227172562c922a5ac04e3d70d4cdd6662b10ae77ba5a29976af9d2f3ab680e",
+      "run.json": "3846585b6ae5d356bedd728f8fd933e5551da088ce35c1374518243b6ff72218",
+      "provenance.json": "20c6a75fd1f4aa7b51c4f62a9ed615e35a2aa138e498e2c8be808a4f43f7c64c",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "0bbae9d6cb7975d4c8f40344064b479b327c53b869a9d45b3378c1abd498a103",
+      "baseline_result.json": "c4c6e8fca9c47dd38ad0005c3ced7bfdb94e301454c083f53adb0d1dd60212fb",
+      "baseline_state.json": "2b1d85d295f9203b474d3b03901e7d80f2d24336799cfddece3b9a09018a043a",
+      "beta_state.json": "522e6be2eb22a21269271d2c07e1a48d1d1d834309334977d0176770259ee95f"
+    }
+  },
+  {
+    "profile": "beta_probe",
+    "path": "outputs/q2-repair-beta-probe/case_086/N5",
+    "status": "SUCCESS_VERIFIED",
+    "fingerprint": "0d33e4bee7df2af698db8634ea32a5b72905075f0fe0443140cfdb1e5bc994a6",
+    "official_replay_verified": true,
+    "artifacts_sha256": {
+      "plan.json": "f9f660fc8f3e8b8a7859e670a7ac0eb9f9640ef6657207b4c08f6b70b3b53b34",
+      "result.json": "59d648c125ba58b8870d2d27500878713db937286d0c78b46c7740cfd0a30cb5",
+      "trace.json": "460dced184172f5a255d77c7bf88d051c7fb63600c6c916e8692406b61bd10df",
+      "result.log": "db673d1c28a189aab46c93f893a8ba09f2ebf48473ee874c429ff43ff4ecf4bc",
+      "run.json": "7f6e7a66a0d6a8f22c36d28a51aba0372d78da4eb775cc7ffdccc61a06b69fb5",
+      "provenance.json": "35accff3ddbee33f198001113c6490f96b6da69e29b2db73130c755526f57b4c",
+      "windows.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline_plan.json": "f9f660fc8f3e8b8a7859e670a7ac0eb9f9640ef6657207b4c08f6b70b3b53b34",
+      "baseline_result.json": "59d648c125ba58b8870d2d27500878713db937286d0c78b46c7740cfd0a30cb5",
+      "baseline_state.json": "20cabeba560e4c39cddf7b77d91303d0990f1866faf125ee4c3c125b75e9233c",
+      "beta_state.json": "ea07b8dd0151de88e2a34d278196ec0822d2c0afd4dce5209fd51c2081104e79"
+    }
+  }
+]

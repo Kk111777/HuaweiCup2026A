@@ -1,0 +1,20 @@
+{
+  "status": "ARCHIVED_KNOWN_ISSUES",
+  "algorithm_version": "Q2-Baseline-AdaptiveBeta-1.1",
+  "source_commit": "dac7d0df2eb6b9d64f2a395bd1289c76678aca96",
+  "git_tag": "archive/q2-baseline-1.1-known-issues",
+  "archive": "source_dac7d0d.zip",
+  "sha256": "c9bbc0963627cc05977640423fd5567efa68370ebbd23be9fc561a0c023777c2",
+  "files": 115,
+  "archive_bytes": 570577,
+  "verification": {
+    "zip_crc": true,
+    "every_file_identical_to_source_commit": true
+  },
+  "excluded": [
+    "large raw input DAGs",
+    "single-core result archive",
+    "generated simulation results"
+  ],
+  "replacement": "Q2-Repair-2.0"
+}
