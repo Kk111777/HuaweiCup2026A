@@ -1,6 +1,7 @@
 {
-  "algorithm_version": "Q2-Baseline-Handoff-1.0",
+  "algorithm_version": "Q2-Baseline-AdaptiveBeta-1.1",
   "construction": {
+    "beta_search": "adaptive",
     "scope_modes": [
       "global",
       "component_grouped"
@@ -13,15 +14,13 @@
     ],
     "shortlist_k": 8,
     "accept_zero_core_advantage": true,
-    "deduplicate_equivalent_execution_inputs": true,
-    "baseline_selection": "first_officially_valid_after_cheap_ranking",
-    "cheap_rank_fields": [
-      "proxy_J",
-      "base_copy_bytes",
-      "profile_peak_scaled",
+    "reuse_identical_plan_evaluations": true,
+    "baseline_selection": "best_official_objective",
+    "official_rank_fields": [
+      "makespan",
+      "added_copy_bytes",
       "mode_order",
-      "beta",
-      "plan_signature"
+      "beta"
     ]
   },
   "enhancement": {
