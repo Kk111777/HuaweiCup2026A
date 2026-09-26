@@ -1,0 +1,9 @@
+{
+  "sampling_seed": 20260927,
+  "strata": 4,
+  "cases_per_stratum": 5,
+  "expected_population": 100,
+  "cores": [2, 5],
+  "betas": [1, 2, 3, 4],
+  "official_timeout_seconds": null
+}
