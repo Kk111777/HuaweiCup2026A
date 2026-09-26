@@ -1,0 +1,16 @@
+{
+  "seconds": 600.0,
+  "q2_seconds": 600.0,
+  "verification_reserve": 60.0,
+  "evaluation_timeout": 120.0,
+  "max_candidates": 240,
+  "batch_size": 4,
+  "diagnostic_seeds": 8,
+  "window_width": 8,
+  "max_windows": 8,
+  "migration_targets": 3,
+  "joint_blocks": 4,
+  "joint_candidates": 24,
+  "cache_bytes": 67108864,
+  "use_bounds": true
+}
