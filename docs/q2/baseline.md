@@ -1,6 +1,6 @@
 # 问题二新基座：实现、运行与有限验收
 
-> 历史文档：本文描述1.0/1.1。默认入口现为[Q2 2.0组件修复版](repair.md)；旧版对照须显式选择 `configs/q2/legacy_1_1.json`。
+> 历史文档：本文描述1.0/1.1。默认入口现为[Q2 2.1接口版](interfaces.md)，延续[2.0修复算法](repair.md)；旧版对照须显式选择 `configs/q2/legacy_1_1.json`。
 
 > **1.1存在已知算法问题，已归档，不建议用于新实验默认基座。** 原始代码及问题清单见[旧版归档](../../archive/q2/baseline_1_1_known_issues/README.md)。
 

@@ -41,15 +41,15 @@ HuaweiCup2026A/
 | V1 | `python tools/reference_problem1.py solve ...` / `batch ...` | [初始化](q1/initialization.md) |
 | V2 | `python src/solve_problem1.py improve ...` / `improve-batch ...`；或配置 `PYTHONPATH=src` 后 `python -m q1.stage2 ...` | [分层改进](q1/stage2.md) |
 | V3 | `python src/solve_problem1.py graph.json --config ... --cores 4 --output ...` | [统一搜索](q1/unified.md) |
-| Q2 新基座 | `python src/solve_problem2.py solve ...` / `batch ...` / `verify ...` | [组件修复与验收](q2/repair.md) |
+| Q2 新基座 | `python src/solve_problem2.py solve ...` / `batch ...` / `verify ...` | [状态与评价接口](q2/interfaces.md)、[算法修复](q2/repair.md) |
 
 不复制三个版本的基座或官方代码。V2 使用 V3 已接入的共享 `GraphIndex`，保持自身状态、候选、剪枝与精确接受逻辑；V3 的算法模块与配置在本次接入中保持原样。V1 的当前参考实现按 V3 已有约定仅允许 `candidate_jobs=1`，历史并行版本可从提交 `04634a2` 检出。已有原始 V1 归档可直接供 V2 读取。
 
 第二问由 `q2/` 独立实现，配置位于 `configs/q2/`；第三问尚无实现。V3 的现有配置路径保留，避免为了目录外观变更其运行接口。历史实验目录、归档指纹和官方代码不随展示调整搬动。
 
-第二问的官方语义与模块复用依据见早期[工程准备与源码审计](q2/engineering.md)，已实现接口与实际验证见[Q2 实现与验收](q2/baseline.md)。Q2 不调用 Q1 的 Task 划分、核心分配和 Task 等待模型；复用 `common.baseline`、输出锁，以及从 `q1.run` 原样抽出的四个产物工具函数。`q1.run` 保留兼容导入，并将新公共文件纳入来源哈希，因此旧源码产物不能冒充本次源码的续跑结果。
+第二问的官方语义与模块复用依据见早期[工程准备与源码审计](q2/engineering.md)，当前接口见[Q2 2.1](q2/interfaces.md)，验证见[有限测试报告](q2/interfaces_validation.md)。Q2 不调用 Q1 的 Task 划分、核心分配和 Task 等待模型；复用 `common.baseline`、输出锁，以及从 `q1.run` 原样抽出的四个产物工具函数。`q1.run` 保留兼容导入，并将新公共文件纳入来源哈希，因此旧源码产物不能冒充本次源码的续跑结果。
 
-Q2 2.0 默认按构造／范围／编码独立维护 β 流，官方时间持平继续、严格增加停止；组件接口、真实顺序、容量修复及显式1.1对照见[Q2 2.0](q2/repair.md)。Q1实现和历史归档保持原样。
+Q2 2.1 保留2.0按构造／范围／编码独立维护的 β 流，官方时间持平继续、严格增加停止；真实顺序、容量修复及显式1.1对照见[算法设计](q2/repair.md)。状态独立于构造来源，近似搜索快照与正式发布分离；本轮没有近似模型或Q2公共优化后端。Q1实现和历史归档保持原样。
 
 三版输出分别指定 `outputs/q1_v1`、`outputs/q1_v2`、`outputs/q1_v3` 等目录，不能让不同求解器写入同一实验目录。源码、参数和运行环境均进入各自来源记录；Git 接入后的字节指纹与服务器旧运行包不同，不能把旧产物重新标成新源码产生的结果。
 

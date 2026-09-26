@@ -1,5 +1,5 @@
 {
-  "algorithm_version": "Q2-Repair-2.0",
+  "algorithm_version": "Q2-Repair-2.1",
   "construction": {
     "beta_search": "adaptive",
     "scope_modes": [

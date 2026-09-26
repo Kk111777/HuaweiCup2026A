@@ -21,9 +21,10 @@ from problem_1_baseline import output_lock
 from .official import ROOT, Settings, Q2Error, read_json, file_hash, digest, signature, objective, normalized
 from .graph import Graph
 from .construct import construct, BudgetExpired
-from .beta import BetaSearch, POLICIES
+from .beta import POLICIES
+from .legacy.beta import LegacyBetaSearch as BetaSearch
 from .memory import profile
-from .window import Window, choose_window, solve_window, apply_order
+from .legacy.window import Window, choose_window, solve_window, apply_order
 
 
 def load_options(path=None):
@@ -36,7 +37,7 @@ def validate_options(options, defaults=None):
     if options.get('algorithm_version') == 'Q2-Baseline-AdaptiveBeta-1.1':
         defaults = read_json(ROOT/'configs/q2/legacy_1_1.json')
     elif defaults is None: defaults = read_json(ROOT/'configs/q2/baseline.json')
-    repair = options.get('algorithm_version') == 'Q2-Repair-2.0'
+    repair = options.get('algorithm_version') == 'Q2-Repair-2.1'
     if set(options) != set(defaults): raise Q2Error('INPUT_INVALID', 'algorithm config fields differ')
     for group in ('construction', 'enhancement', 'runtime', 'validation'):
         if set(options[group]) != set(defaults[group]): raise Q2Error('INPUT_INVALID', f'{group}: unknown/missing options')
@@ -134,7 +135,7 @@ def peak_rss(process=None):
 
 
 def identity(graph, cores, settings, options, baseline):
-    paths = sorted((ROOT/'src/q2').glob('*.py'))+sorted((ROOT/'src/common').glob('*.py'))
+    paths = sorted((ROOT/'src/q2').rglob('*.py'))+sorted((ROOT/'src/common').glob('*.py'))
     paths += [ROOT/'src/problem_1_baseline.py', ROOT/'src/solve_problem2.py', ROOT/'configs/q2/official_sha256.json']
     return dict(problem=2, scene='B', schema_version=1, case=graph.stem, num_cores=cores,
                 graph_sha256=file_hash(graph), config_sha256=file_hash(settings.config),
@@ -152,7 +153,8 @@ def reusable(directory, expected):
         if not required <= hashes.keys(): return False
         if any(Path(n).name != n or '/' in n or '\\' in n or file_hash(directory/n) != h for n, h in hashes.items()): return False
         run = read_json(directory/'run.json'); provenance = read_json(directory/'provenance.json')
-        return run['status'] == 'SUCCESS_VERIFIED' and digest(provenance['identity']) == expected
+        return (run['status'] == 'SUCCESS_VERIFIED' and run.get('fingerprint') == expected
+                and provenance.get('fingerprint') == expected and digest(provenance['identity']) == expected)
     except (OSError, ValueError, KeyError, TypeError): return False
 
 
@@ -223,7 +225,7 @@ def select_final(baseline, enhanced):
 
 
 def load_baseline_result(directory):
-    """Load a published, hash-verified Q2 2.0 snapshot for a future optimizer."""
+    """Load a published 2.1 snapshot; import 2.0 explicitly via snapshots.import_baseline_v2."""
     from .contracts import BaselineResult
     directory = Path(directory)
     complete = read_json(directory/'complete.json')
@@ -263,7 +265,7 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
     try:
         started = time.monotonic(); raw = read_json(graph_path); g = Graph(raw, settings)
         stages['graph_seconds'] = time.monotonic()-started
-        repaired = options['algorithm_version'] == 'Q2-Repair-2.0'
+        repaired = options['algorithm_version'] == 'Q2-Repair-2.1'
         if repaired:
             from .candidates import search_baseline
             outcome = search_baseline(g, graph_path, cores, options, attempt, budget, calls,
@@ -471,7 +473,7 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
         if repaired:
             from .candidates import export_baseline_result
             from dataclasses import asdict
-            snapshot = export_baseline_result(g, outcome['candidate'], verified, candidates, report['search'])
+            snapshot = export_baseline_result(g, outcome['candidate'], verified, candidates, report['search'], outcome['preparation'])
             write_json(attempt/'baseline_state.json', asdict(snapshot))
             names += ['baseline_state.json', 'beta_state.json']
         write_json(attempt/'complete.json', dict(status='SUCCESS_VERIFIED', fingerprint=fp, official_replay_verified=True,

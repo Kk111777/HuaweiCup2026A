@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-26",
+  "python": "3.12.14",
+  "algorithm": "Q2-Repair-2.1",
+  "base_commit": "11501c5137d949514724baed3f6d0d3bd9e38896",
+  "branch": "fix/Zysishuiyears/q2-component-interfaces",
+  "scope": "component_regression_and_three_small_graphs_only",
+  "full_batch_run": false,
+  "ablation_run": false,
+  "committed": false,
+  "tests": {
+    "command": "python -m unittest discover -s tests",
+    "environment": {
+      "PYTHONUTF8": "1"
+    },
+    "total": 260,
+    "passed": 258,
+    "skipped": 2,
+    "seconds": 33.321,
+    "log_path": "outputs/q2-interfaces-final-tests.log",
+    "log_sha256": "0ddf9a9f10183d81bf59f7006fa17af25332bf4d59d0b6791368ecbf4bb2ae95",
+    "skip_reasons": [
+      "missing original official attachment ZIP",
+      "missing frozen historical pre-refactor equivalence archive"
+    ]
+  },
+  "comparison_sha256": "b1e19bab2f05da4275aa91f6b33b031f376218022cf37f3b5c6a09aaab288c65",
+  "source_sha256": {
+    "src/q2/__init__.py": "6d66ec0bf1afe84bfcc1f85cbff8fd243ae218b4d0af53bccf4dd1b218fdbf92",
+    "src/q2/__main__.py": "f3e74b891125147746a3566b5b4e3511c218d0bdd8399c2ecd0ff3cc18527d52",
+    "src/q2/affinity.py": "c6d429797cf8c4d2fda289e60c0d560a72e633a80db1364f59625172521150f1",
+    "src/q2/beta.py": "07840a8ba9767894bdcb2011f12bce1ec99eaa511fe642adb9e42a1b6f5ba126",
+    "src/q2/candidates.py": "9fa28edef78658a3272bf3161841134a90351d14f608c6d1528e98540ac8b8bb",
+    "src/q2/capacity.py": "32b927246567942cd477356fe90038b29fa38a95a1e9d82e2729d370dddd6bf0",
+    "src/q2/construct.py": "dd414b70337f69d5ceabedd088b77ebb8533b7a82bd70c346d9408ae8285858f",
+    "src/q2/contracts.py": "e1c8c97b5f763572d78aa26aed2f7980fc744c8dca7cd7a18fb2755ac9fac249",
+    "src/q2/encoding.py": "77596ab96af52f65a4d418a1434a62bed589094a0ebb36b57d5ebdda4596a8b5",
+    "src/q2/evaluation.py": "d845e102cb9197b9aa3db328d5a5ddfbb3f07af242bab7aece258d1f2f6d839b",
+    "src/q2/graph.py": "499141bb76f616d9e633c4005e806f5683f674bd4fc73a1331e20885a48df5b3",
+    "src/q2/legacy/__init__.py": "f554a9da496f03bd3ee623a2e93e67c357523263dc4cadfe5c6f2258c45af6bc",
+    "src/q2/legacy/beta.py": "9d790738c00bc8d3700f4ab08827c38ad10c49c739415d64babd3c6e239046a0",
+    "src/q2/legacy/window.py": "91d9229bb2e0884d26b4358ab8afae45e5b7c2169e8d2e5884793a47ed7f3d85",
+    "src/q2/memory.py": "f4fb7a7dd01dabaa94056dbaef601b3c7d7b9bd68070e6f16ae29a938bb98433",
+    "src/q2/official.py": "511384cfdcc292ea01fa5d57200956212cd2f757bd7290b060e62bfed7da5367",
+    "src/q2/pipeline.py": "479138754a9b7255af342061ca2daac138a92c7dd5d9f80db57ef0e4ec6b8dd9",
+    "src/q2/prefix.py": "646176855858885d202a414bc4544f16fe1ba59394d5dbecdc247a8f7eda01c0",
+    "src/q2/preparation.py": "361b4be585b0032eaa904fc21c7658c6626c0381b340aef081f1e1f7f8900dad",
+    "src/q2/snapshots.py": "6e8da165e54dfb98dea5fba2df004dbcbef1a851fca90d27c96a7ef054408a4e",
+    "src/q2/state.py": "9561db47cc9eac1b6b338601f7feca9b2965c39a0698c266bd0e8d708f271d22",
+    "src/q2/window.py": "2108bae9dd401b9bd6f7fb96883c3266addacab7b481c7aaabee5392c5148a98",
+    "configs/q2/ablation_affinity.json": "ddd421f20c63150f856a32e7d39e2645fa048d721286bb68f293487f504438ee",
+    "configs/q2/ablation_beta.json": "cc08edd9cc3a239d4da44f1570fb3e18664d8601eb93568fdaa622b44cc15c8a",
+    "configs/q2/ablation_capacity.json": "721968058e2f782fe64c26bc7a1fb1f476368a5815c50bae2de90c66be5615b9",
+    "configs/q2/ablation_order.json": "4602ca9d716f40bd34a25d1295575f211ab9145a1d843f8a79c3b7d2762a67a5",
+    "configs/q2/baseline.json": "db4325fd41f51fddd921241add8578f52dcc41f601e1918c6d21332eff07366f",
+    "configs/q2/legacy_1_1.json": "cd78a32bd63a29c1fc15a4f959acecfa6a8d57e6a5f927c8f2033ecf9fdf9ba2",
+    "configs/q2/official_sha256.json": "681656e9fe2d025cb43c2a75842fce0990a1091d143c52380256447642d09566",
+    "tests/test_q2_interfaces.py": "2e454fbaf04b30a4b0c6891f25ff735dbb594153d7887f44f605d07b70870da8",
+    "tests/fixtures/q2_interfaces/v20_behavior.json": "61305e373e5de12438246f634f525af617d3774e38adfa0cfab06f97dd590595",
+    "tests/fixtures/q2_interfaces/v20_minimal_publication.zip": "c6c7d85390fcf3bb843c7e2155af3eac08a61f6fcea195191334c1c2f8c5ffa3"
+  },
+  "source_sha256_scope": "local worktree bytes; Git may normalize line endings",
+  "post_validation_normalizations": [
+    {
+      "path": "src/q2/legacy/beta.py",
+      "change": "remove redundant trailing blank lines; identical Python AST",
+      "validated_sha256": "2dd4ddc0da83ee8411feca8a0587dd6dfc0a8d200dc1975455f55b0a18a79aed",
+      "normalized_sha256": "9d790738c00bc8d3700f4ab08827c38ad10c49c739415d64babd3c6e239046a0"
+    }
+  ]
+}
