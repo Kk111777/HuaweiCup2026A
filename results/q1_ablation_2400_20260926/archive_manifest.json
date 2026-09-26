@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "experiment_id": "q1_ablation_100cases_20260925_cpu20",
+  "publication_scope": "2400-row detail data archive; solver and per-result plans remain in the original local experiment package",
+  "coverage": {
+    "cases": 100,
+    "simulated_cores": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "variants": [
+      "full",
+      "no_structure",
+      "no_communication",
+      "no_cache",
+      "no_adaptive_beta",
+      "no_smart_core"
+    ],
+    "rows": 2400,
+    "rows_per_core": 600,
+    "rows_per_core_variant": 100
+  },
+  "validation": {
+    "official_replay_verified": 2400,
+    "historical_full_matches": 400,
+    "smart_core_exact_pairs": 400,
+    "sources_unchanged": true,
+    "csv_json_cells_equal": true,
+    "unique_case_core_variant_keys": 2400,
+    "speedup_copy_and_paired_timing_checks": true
+  },
+  "source_provenance": {
+    "experiment_manifest_sha256": "86ee0501c93575d3d4fa9e89af7e653ac95073f07d7bfdb8958515a6048308c2",
+    "source_snapshot_sha256": "970868a5bcb989b2fef20b3a43e5d9641858be9b25bf3bb4c1a64cbac1e8ddeb",
+    "local_delivery_manifest_sha256": "6575a6f7b44f046e26f127a80e04cdce5bd34e8ea8a596977b8c45492850c634",
+    "finalized_at_utc": "2026-09-25T21:27:27.270027+00:00"
+  },
+  "files": {
+    "details.csv": {
+      "sha256": "76ab7c077070aed567fefa9482dbb95f81ac554a07ab298ebb1d99e44cfac5de",
+      "bytes": 980941,
+      "rows": 2400
+    },
+    "details.json": {
+      "sha256": "7c4c51c132bb97c84b6aea597a246175033e47366fd88a3651c78a662e2b7146",
+      "bytes": 3279526,
+      "rows": 2400
+    }
+  }
+}

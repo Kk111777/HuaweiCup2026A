@@ -30,3 +30,7 @@ official/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 src/problem_1_baseline.py -text
 results/problem_1_singlecore/** -text linguist-generated=true whitespace=cr-at-eol
 results/q1_adaptive_100cases_20260925/** -text linguist-generated=true whitespace=cr-at-eol
+
+# Preserve exact ablation detail exports and their published SHA-256.
+results/q1_ablation_2400_20260926/details.csv -text linguist-generated=true whitespace=cr-at-eol
+results/q1_ablation_2400_20260926/details.json -text linguist-generated=true whitespace=cr-at-eol
