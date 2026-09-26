@@ -1,0 +1,68 @@
+{
+  "case_count": 100,
+  "result_count": 400,
+  "coverage_complete": true,
+  "by_cores": {
+    "2": {
+      "rows": 100,
+      "official_count": 90,
+      "approximate_count": 10,
+      "official_mean_speedup": 2.100263572329466,
+      "approximate_mean_speedup": 2.0195890328200172,
+      "reported_mixed_mean_speedup": 2.092196118378521,
+      "mean_wall_seconds": 123.56568679098156
+    },
+    "3": {
+      "rows": 100,
+      "official_count": 87,
+      "approximate_count": 13,
+      "official_mean_speedup": 2.934006439387917,
+      "approximate_mean_speedup": 2.976901926034288,
+      "reported_mixed_mean_speedup": 2.939582852651945,
+      "mean_wall_seconds": 128.26647947701042
+    },
+    "4": {
+      "rows": 100,
+      "official_count": 90,
+      "approximate_count": 10,
+      "official_mean_speedup": 3.676803678505925,
+      "approximate_mean_speedup": 3.7814108685725105,
+      "reported_mixed_mean_speedup": 3.687264397512583,
+      "mean_wall_seconds": 132.32469487100607
+    },
+    "5": {
+      "rows": 100,
+      "official_count": 90,
+      "approximate_count": 10,
+      "official_mean_speedup": 4.2744791434726075,
+      "approximate_mean_speedup": 4.514320408802941,
+      "reported_mixed_mean_speedup": 4.298463270005641,
+      "mean_wall_seconds": 128.02524760699364
+    }
+  },
+  "batch_wall_seconds": 8678.505671499996,
+  "mean_case_wall_seconds": 513.7488175740023,
+  "cases_over_600s": [
+    "case_014",
+    "case_018",
+    "case_025",
+    "case_040",
+    "case_041",
+    "case_058",
+    "case_062",
+    "case_063",
+    "case_072",
+    "case_082",
+    "case_083",
+    "case_087",
+    "case_088",
+    "case_091",
+    "case_092"
+  ],
+  "cases_over_900s": [],
+  "hard_timeout_cases": [],
+  "failed_or_timed_out": [],
+  "errors": [],
+  "independent_official_replay": false,
+  "note": "Approximate and official results are labelled separately. Mixed means include predictions. The archived singlecore baseline is reporting-only. No plots or additional official replay were run."
+}

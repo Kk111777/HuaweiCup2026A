@@ -1,0 +1,32 @@
+{
+  "problem": "q1",
+  "source_commit": "93be2aa",
+  "merged_release_commit": "74714709ad70659638554ca7959e5463fc773457",
+  "source_signature": "56d675be6d62c065a5679e1708c79cc61ed74b37ada5fd3ea94dbe281ab1de71",
+  "run_directory": "q1_unified_100cases_pcores6_20260926",
+  "workers": 6,
+  "performance_logical_cpus": [
+    0,
+    1,
+    10,
+    11,
+    12,
+    13,
+    22,
+    23
+  ],
+  "per_case_target_seconds": 600,
+  "per_case_extension_seconds": 900,
+  "per_case_guard_seconds": 1200,
+  "baseline_archive": "results/problem_1_singlecore",
+  "baseline_policy": "reporting_only",
+  "baseline_config_sha256": "dcd10de54b23f8366428fb24e828812b1da9549e6eae4a3c3f38604fe5ae77b9",
+  "final_scoring_included_in_algorithm_time": false,
+  "expected_cases": 100,
+  "expected_results": 400,
+  "verified_results": 400,
+  "frozen_files_rehashed": 1604,
+  "archived_result_files": 3200,
+  "excluded": "Intermediate search/checkpoint/construction files, logs and the cancelled 8-worker experiment remain local.",
+  "signature_scope_note": "The historical source signature covers all src modules, including Q2. The exact historical source is in solver_source.zip; current main has unrelated Q2 changes."
+}
