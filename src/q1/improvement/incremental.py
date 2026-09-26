@@ -7,7 +7,7 @@ import time
 
 from .schedule import validate_plan, fixed_queue_state
 from .shared import plan_digest
-from .approximation import task_profile, simulate_plan
+from .approximation import task_profile, simulate_plan, original_copy_bytes
 
 
 class IncrementalEvaluator:
@@ -23,7 +23,7 @@ class IncrementalEvaluator:
         self.cached_operations = 0
         self.stats = Counter()
         self.calibration = OrderedDict()
-        self.original_copy_bytes = 0
+        self.original_copy_bytes = original_copy_bytes(graph)
 
     def _profile(self, block):
         if block in self.tasks:
@@ -121,7 +121,11 @@ class IncrementalEvaluator:
         """核验后学习残差；未调用此方法前的预测不会使用该候选的官方结果。"""
         if result.get('evaluation_source') == 'approximate':
             raise ValueError('approximate scores must not train their own calibration')
-        self.original_copy_bytes = result.get('data_movement_bytes',{}).get('original_copy_bytes',self.original_copy_bytes)
+        movement = result.get('data_movement_bytes', {})
+        reported_original = movement.get('original_graph_copy_bytes',
+            movement.get('original_copy_bytes', self.original_copy_bytes))
+        if reported_original != self.original_copy_bytes:
+            raise ValueError('official COPY traffic does not match the current input graph')
         digest = plan_digest(plan)
         if digest not in self.plans:
             self.estimate(plan)
@@ -157,11 +161,12 @@ class IncrementalEvaluator:
         for t,v,end in trace['operation_ends']:
             timelines[core[t]]['ops'].append(dict(task_id=t,op_id=v,end=scaled(end)))
         scheduled = sum(p['boundary_bytes'] for p in profiles.values())
-        added = max(0,scheduled-self.original_copy_bytes)
+        added = scheduled-self.original_copy_bytes
         return dict(scene='A',evaluation_source='approximate',makespan=estimated,
             approximation=detail,approximate_timeline=True,
             num_cores=len(timelines),per_core_timeline=timelines,step3_by_task=step3,
-            data_movement_bytes=dict(original_copy_bytes=self.original_copy_bytes,
+            data_movement_bytes=dict(original_graph_copy_bytes=self.original_copy_bytes,
+                original_copy_bytes=self.original_copy_bytes,
                 scheduled_copy_bytes=scheduled,added_copy_bytes=added,partition_added_copy_bytes=added,
                 spill_added_copy_bytes=None),
             movement_note='Boundary traffic estimate; Spill bytes unmodelled, not measured zero.')

@@ -1,0 +1,550 @@
+{
+  "status": "passed",
+  "reviewed_pr": 11,
+  "initial_publication_commit": "7bcfbc09bd63986c6a85b32b72d124453b3846a6",
+  "base_main_commit": "dac7d0df2eb6b9d64f2a395bd1289c76678aca96",
+  "source_signature": "56d675be6d62c065a5679e1708c79cc61ed74b37ada5fd3ea94dbe281ab1de71",
+  "python_version": "3.12.14",
+  "tests": {
+    "run": 205,
+    "passed": 204,
+    "skipped": 1,
+    "skip_reason": "original attachment ZIP absent"
+  },
+  "test_log_sha256": "c8f281fcadb36f6bf082e0e2fa9e1a8fab1781aee72584e114ad26adca515460",
+  "official_mode_differential": {
+    "passed": true,
+    "coverage": {
+      "solves": 8,
+      "official_records": 56,
+      "approximate_records": 0,
+      "approximate_acceptances": 0,
+      "calibration_events": 28,
+      "proposal_batches": 16,
+      "scheduled_proposals": 276,
+      "shared_case_solves": 4,
+      "final_sources": [
+        "official"
+      ]
+    },
+    "summary_sha256": "88c577a1f94db773d82569827883feae837c6ff55ce302aa2b390cd4f9fefafc",
+    "note": "Fixed-work official mode only. Adaptive decisions can change after correcting added-copy bytes."
+  },
+  "smoke": {
+    "cases": [
+      1,
+      6,
+      14,
+      56
+    ],
+    "cores": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "local_workers": 4,
+    "target_seconds_per_case": 30,
+    "extension_seconds_per_case": 45,
+    "protection_seconds_per_case": 60,
+    "source_signature": "56d675be6d62c065a5679e1708c79cc61ed74b37ada5fd3ea94dbe281ab1de71",
+    "independent_replays": 16,
+    "case_times": [
+      {
+        "case": "case_001",
+        "wall_seconds": 29.039701099973172,
+        "target_seconds": 30.0,
+        "baseline_seconds": 0.0,
+        "budget_scope": "case_all_cores",
+        "extended": false,
+        "exceeded_target": false,
+        "exceeded_extension": false,
+        "hard_timeout": false
+      },
+      {
+        "case": "case_006",
+        "wall_seconds": 32.9748451000778,
+        "target_seconds": 30.0,
+        "baseline_seconds": 0.0,
+        "budget_scope": "case_all_cores",
+        "extended": true,
+        "exceeded_target": true,
+        "exceeded_extension": false,
+        "hard_timeout": false
+      },
+      {
+        "case": "case_014",
+        "wall_seconds": 35.020042999996804,
+        "target_seconds": 30.0,
+        "baseline_seconds": 0.0,
+        "budget_scope": "case_all_cores",
+        "extended": false,
+        "exceeded_target": true,
+        "exceeded_extension": false,
+        "hard_timeout": false
+      },
+      {
+        "case": "case_056",
+        "wall_seconds": 27.991255200002342,
+        "target_seconds": 30.0,
+        "baseline_seconds": 0.0,
+        "budget_scope": "case_all_cores",
+        "extended": false,
+        "exceeded_target": false,
+        "exceeded_extension": false,
+        "hard_timeout": false
+      }
+    ],
+    "plans": [
+      {
+        "case": 1,
+        "cores": 2,
+        "official_makespan": 116868,
+        "solver_score_source": "official",
+        "solver_makespan": 116868,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1640704,
+          "added_copy_bytes": 1152,
+          "partition_added_copy_bytes": 1152,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "original_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1640704,
+          "added_copy_bytes": 1152,
+          "partition_added_copy_bytes": 1152,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "05f0aea3886e8ac4881e2c28a5f63e17df5741d43efdf9b38f7c5f8ae01dae31",
+        "official_result_sha256": "534ff319e2e8e7f2fca9013f6f276ca45972737de227dd819c5cc06276a12b9f"
+      },
+      {
+        "case": 1,
+        "cores": 3,
+        "official_makespan": 78545,
+        "solver_score_source": "official",
+        "solver_makespan": 78545,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1641856,
+          "added_copy_bytes": 2304,
+          "partition_added_copy_bytes": 2304,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "original_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1641856,
+          "added_copy_bytes": 2304,
+          "partition_added_copy_bytes": 2304,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "8adff9ddced78d40936dbed25ae57e3f9a2f76dc0f1cbdf8ce0e0ed5802ed294",
+        "official_result_sha256": "379cf03200067ba53964df756411d16f350168b9485a135ed9d0eed6df51a8be"
+      },
+      {
+        "case": 1,
+        "cores": 4,
+        "official_makespan": 58984,
+        "solver_score_source": "official",
+        "solver_makespan": 58984,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1643008,
+          "added_copy_bytes": 3456,
+          "partition_added_copy_bytes": 3456,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "original_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1643008,
+          "added_copy_bytes": 3456,
+          "partition_added_copy_bytes": 3456,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "da3b598c44e004ec4a0b1bc8cac40dad19665e0cf071afd56fbcd3a1241d07ba",
+        "official_result_sha256": "ce3a809c0340fcbb9020c7f076aba4f3257dc81abcb0082c073f15a818512db4"
+      },
+      {
+        "case": 1,
+        "cores": 5,
+        "official_makespan": 47502,
+        "solver_score_source": "official",
+        "solver_makespan": 47502,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1644160,
+          "added_copy_bytes": 4608,
+          "partition_added_copy_bytes": 4608,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 1639552,
+          "original_copy_bytes": 1639552,
+          "scheduled_copy_bytes": 1644160,
+          "added_copy_bytes": 4608,
+          "partition_added_copy_bytes": 4608,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "720a6349c19d628e3d9f093c64cc2e09b20f415ae274288706f9f8b756d5ac3b",
+        "official_result_sha256": "16ea7a39f743adc488173b2e45b0bd4ed73d46e266f61c9f6674d784b90409e8"
+      },
+      {
+        "case": 6,
+        "cores": 2,
+        "official_makespan": 40612,
+        "solver_score_source": "official",
+        "solver_makespan": 40612,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "scheduled_copy_bytes": 1212182,
+          "added_copy_bytes": 668834,
+          "partition_added_copy_bytes": 668834,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "original_copy_bytes": 543348,
+          "scheduled_copy_bytes": 1212182,
+          "added_copy_bytes": 668834,
+          "partition_added_copy_bytes": 668834,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "07b730f6d477f3b05223b60fbdecdaa5c79c23e795d658d59a180188f98571ad",
+        "official_result_sha256": "ff89230d4dcdebdefea0baf866f5999f75cc8101fb861b22a6ff58e6b31a9fe9"
+      },
+      {
+        "case": 6,
+        "cores": 3,
+        "official_makespan": 31152,
+        "solver_score_source": "official",
+        "solver_makespan": 31152,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "scheduled_copy_bytes": 614408,
+          "added_copy_bytes": 71060,
+          "partition_added_copy_bytes": 71060,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "original_copy_bytes": 543348,
+          "scheduled_copy_bytes": 614408,
+          "added_copy_bytes": 71060,
+          "partition_added_copy_bytes": 71060,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "05469b97299ec85ec0d3325093983df0aa3388230df7690df5fb3ef0801b3413",
+        "official_result_sha256": "f54331ba9c279c68515db00427defd11f15d40bd2b7d43cc870aa0276fba3260"
+      },
+      {
+        "case": 6,
+        "cores": 4,
+        "official_makespan": 25469,
+        "solver_score_source": "approximate",
+        "solver_makespan": 25469,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "scheduled_copy_bytes": 844138,
+          "added_copy_bytes": 300790,
+          "partition_added_copy_bytes": 300790,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "original_copy_bytes": 543348,
+          "scheduled_copy_bytes": 844138,
+          "added_copy_bytes": 300790,
+          "partition_added_copy_bytes": 300790,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "17d0a87b44e6a7257389aa69365b7eb87bba0ac4db53e98f937136cba7caab5c",
+        "official_result_sha256": "4bcf17fe7f29c0a682946d93dc6e4d5cbe29517ff2e4bc48771d45f33f73d3aa"
+      },
+      {
+        "case": 6,
+        "cores": 5,
+        "official_makespan": 21374,
+        "solver_score_source": "official",
+        "solver_makespan": 21374,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "scheduled_copy_bytes": 814940,
+          "added_copy_bytes": 271592,
+          "partition_added_copy_bytes": 271592,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 543348,
+          "original_copy_bytes": 543348,
+          "scheduled_copy_bytes": 814940,
+          "added_copy_bytes": 271592,
+          "partition_added_copy_bytes": 271592,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "bc967081c84fe06709c9ffec0d400a888b6316d307f281d66861c23c95989501",
+        "official_result_sha256": "381b379597b62dbc638b9512bfcf112bca1b6080b087f9ef10ef0a162d345f55"
+      },
+      {
+        "case": 14,
+        "cores": 2,
+        "official_makespan": 8819276,
+        "solver_score_source": "approximate",
+        "solver_makespan": 8817591,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "original_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "15308e7af8c7c26dc435ee8bb6f2085b8aa167668190ebe4db65281b63bb90a2",
+        "official_result_sha256": "50231b0a0582161b8e9b510e075c98fad4cd1e0231b104e81ab257de6dd39c6e"
+      },
+      {
+        "case": 14,
+        "cores": 3,
+        "official_makespan": 5929825,
+        "solver_score_source": "approximate",
+        "solver_makespan": 5930080,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "original_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "106c71cfdab3138e206156ed4260924acef3eed11f783125c420a3d77eb99f89",
+        "official_result_sha256": "656012443dfd92958d2a1ed103e31b9293b2c7e1d15b5e11176eb8615437ae4a"
+      },
+      {
+        "case": 14,
+        "cores": 4,
+        "official_makespan": 4496025,
+        "solver_score_source": "approximate",
+        "solver_makespan": 4498037,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "original_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "fc59911eba36e2d11d434f7af6007961097c3766f2fdd0ce529fa930923f5dc6",
+        "official_result_sha256": "d06e3f53d77df8e822f6a3cc3c657ea4cd04aab9e22dd44a05c6393c3a60c0df"
+      },
+      {
+        "case": 14,
+        "cores": 5,
+        "official_makespan": 3671463,
+        "solver_score_source": "approximate",
+        "solver_makespan": 3672310,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 9932740,
+          "original_copy_bytes": 9932740,
+          "scheduled_copy_bytes": 163195516,
+          "added_copy_bytes": 153262776,
+          "partition_added_copy_bytes": 153262776,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "781c8beaa27f019ac9f7e6b68eed5935b96349b146725d673ead14332dc4e668",
+        "official_result_sha256": "9e47baab2b968b36fc593f3246e538ba7f649aea4d4093aabb709570dcc512ce"
+      },
+      {
+        "case": 56,
+        "cores": 2,
+        "official_makespan": 268986,
+        "solver_score_source": "official",
+        "solver_makespan": 268986,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "original_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "12dcf572b88550b34dfd5fecdd41ac5c488e1d38fcafbb9e0ea2c09198eace20",
+        "official_result_sha256": "812a87dfd266fea8db2431dc2935197d08a2e331f61b5a1d33e381c54814aeb6"
+      },
+      {
+        "case": 56,
+        "cores": 3,
+        "official_makespan": 269004,
+        "solver_score_source": "official",
+        "solver_makespan": 269004,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "original_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "cb6594d2b1a96cb80f2c913bd7ddb5a5f2e225decb6566ec46034119b352a92f",
+        "official_result_sha256": "fd8396110f7a8e81eafba9e54b07b715f81f7f8ae578be393a252f03d52d6fac"
+      },
+      {
+        "case": 56,
+        "cores": 4,
+        "official_makespan": 269022,
+        "solver_score_source": "official",
+        "solver_makespan": 269022,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "original_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "9a30bfa5e9b7bac45af53696b31efac9f0a400c82a70afcbeffaf696addd088b",
+        "official_result_sha256": "8f50da0667fd7c0727382274bb9a38ae599b1c1cd5be601bb2e1e4999fb28bb0"
+      },
+      {
+        "case": 56,
+        "cores": 5,
+        "official_makespan": 269040,
+        "solver_score_source": "official",
+        "solver_makespan": 269040,
+        "official_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": 0
+        },
+        "uncalibrated_prediction_movement_bytes": {
+          "original_graph_copy_bytes": 221600,
+          "original_copy_bytes": 221600,
+          "scheduled_copy_bytes": 1007956,
+          "added_copy_bytes": 786356,
+          "partition_added_copy_bytes": 786356,
+          "spill_added_copy_bytes": null
+        },
+        "independent_replay": true,
+        "partition_movement_matches": true,
+        "plan_sha256": "15984762db01dfe904e9ca62f1702564cc3b70c4faeae3406cb81bac28cb44bd",
+        "official_result_sha256": "9d9f0756056ecf995f1cfdf0f96f6851b202110b382308a355b8c7adb72e738b"
+      }
+    ]
+  },
+  "copy_fix_reproduction": {
+    "case": 1,
+    "cores": 5,
+    "plan_sha256": "720a6349c19d628e3d9f093c64cc2e09b20f415ae274288706f9f8b756d5ac3b",
+    "prior_observed_added_copy_bytes": 1644160,
+    "corrected_added_copy_bytes": 4608,
+    "original_graph_copy_bytes": 1639552,
+    "official_added_copy_bytes": 4608,
+    "note": "Same saved plan. Prior reproduction used commit 7bcfbc0; corrected prediction needs no official calibration."
+  },
+  "protected_paths_unchanged_vs_main": [
+    "official/code",
+    "official/data/config.txt",
+    "src/q2",
+    "src/q1/stage2",
+    "src/q1/partition.py",
+    "src/q1/solver.py",
+    "src/q1/schedule.py",
+    "src/q1/allocation.py",
+    "src/q1/graph.py",
+    "src/q1/model.py"
+  ],
+  "report": {
+    "passed": true,
+    "report_sha256": "8a93a68d274c10f6fd51f005803b57e9718f47020a80a1bb8f4ab4baf68b59e9",
+    "timing_csv_sha256": "3b7b4eff4fca11ddc48ac5b90e9e9f6e8b4574d8195dda51bae807d50f2fefb7",
+    "note": "Generated from the verified 4-case run; aggregate clocks come from case root summaries."
+  },
+  "limits": [
+    "Not a new 100-case or 600-second performance benchmark.",
+    "Spill and memory reuse remain approximate; memory feasibility requires official replay.",
+    "Q3 interface position exists; no Q3 backend is registered."
+  ]
+}
