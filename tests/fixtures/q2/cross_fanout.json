@@ -1,0 +1,146 @@
+{
+  "ops": [
+    {
+      "id": 2,
+      "op": "COPY_IN",
+      "pipe": "PIPE_MTE2",
+      "cycles": 1
+    },
+    {
+      "id": 4,
+      "op": "ADD",
+      "pipe": "PIPE_V",
+      "cycles": 4
+    },
+    {
+      "id": 6,
+      "op": "COPY_OUT",
+      "pipe": "PIPE_MTE3",
+      "cycles": 1
+    },
+    {
+      "id": 8,
+      "op": "ADD",
+      "pipe": "PIPE_V",
+      "cycles": 4
+    },
+    {
+      "id": 10,
+      "op": "COPY_OUT",
+      "pipe": "PIPE_MTE3",
+      "cycles": 1
+    },
+    {
+      "id": 12,
+      "op": "ADD",
+      "pipe": "PIPE_V",
+      "cycles": 4
+    },
+    {
+      "id": 14,
+      "op": "COPY_OUT",
+      "pipe": "PIPE_MTE3",
+      "cycles": 1
+    }
+  ],
+  "tensors": [
+    {
+      "id": 1,
+      "size": 16,
+      "pos": "DDR"
+    },
+    {
+      "id": 3,
+      "size": 16,
+      "pos": "UB"
+    },
+    {
+      "id": 5,
+      "size": 16,
+      "pos": "UB"
+    },
+    {
+      "id": 7,
+      "size": 16,
+      "pos": "DDR"
+    },
+    {
+      "id": 9,
+      "size": 16,
+      "pos": "UB"
+    },
+    {
+      "id": 11,
+      "size": 16,
+      "pos": "DDR"
+    },
+    {
+      "id": 13,
+      "size": 16,
+      "pos": "UB"
+    },
+    {
+      "id": 15,
+      "size": 16,
+      "pos": "DDR"
+    }
+  ],
+  "edges": [
+    {
+      "source": 1,
+      "target": 2
+    },
+    {
+      "source": 2,
+      "target": 3
+    },
+    {
+      "source": 3,
+      "target": 4
+    },
+    {
+      "source": 4,
+      "target": 5
+    },
+    {
+      "source": 5,
+      "target": 6
+    },
+    {
+      "source": 6,
+      "target": 7
+    },
+    {
+      "source": 5,
+      "target": 8
+    },
+    {
+      "source": 8,
+      "target": 9
+    },
+    {
+      "source": 9,
+      "target": 10
+    },
+    {
+      "source": 10,
+      "target": 11
+    },
+    {
+      "source": 5,
+      "target": 12
+    },
+    {
+      "source": 12,
+      "target": 13
+    },
+    {
+      "source": 13,
+      "target": 14
+    },
+    {
+      "source": 14,
+      "target": 15
+    }
+  ]
+}

@@ -10,22 +10,27 @@ HuaweiCup2026A/
 ├─ src/
 │  ├─ problem_1_baseline.py           # 稳定的单核参照入口
 │  ├─ solve_problem1.py               # V2 improve 子命令 / V3 默认图路径入口
+│  ├─ solve_problem2.py               # Q2 solve / batch / verify
 │  ├─ common/baseline.py              # 基线读取、来源校验与加速比
+│  ├─ common/artifacts.py             # 无问题语义的原子产物写入与哈希
+│  ├─ q2/                            # Scene B 增量构造、内存证书、窗口 DP、完整复核
 │  └─ q1/
 │     ├─ graph.py, model.py           # 共享图模型与基座特征索引
 │     ├─ partition.py, solver.py      # V1 构造策略与初始化择优
 │     ├─ schedule.py, allocation.py   # 共享核心分配
 │     ├─ official.py                 # 原版官方程序的薄适配
-│     ├─ reference_cli.py, run.py     # V1 参考入口与公共产物函数
+│     ├─ reference_cli.py, run.py     # V1 参考入口及公共产物函数兼容导出
 │     ├─ stage2/                     # V2 五原则诊断、三层搜索与严格剪枝
 │     ├─ unified/                    # V3 统一搜索、预算与评估服务
 │     └─ improvement/                # V3 结构、近似及局部改进策略
 ├─ configs/q1/stage2.json             # V2 参数
+├─ configs/q2/                       # Q2 参数及官方版本指纹
 ├─ configs/unified.json               # V3 既有参数路径
-├─ tools/                            # V1 入口、第三版审计与验证工具
+├─ tools/                            # V1 入口、第三版审计、Q2 试放微基准
 ├─ scripts/                          # 第三版批量实验脚本
 ├─ docs/q1/                          # initialization / stage2 / unified
-├─ tests/                            # 公共基础及三版测试
+├─ docs/q2/                          # 工程审计、设计原稿、实现验收
+├─ tests/                            # 公共基础、Q1 三版及 Q2 测试
 ├─ results/problem_1_singlecore/      # 固定的官方单核归档
 ├─ results/q1_adaptive_100cases_20260925/ # V1 完整 400 组合归档
 └─ outputs/                          # 本地实验与中间产物，Git 忽略
@@ -36,14 +41,17 @@ HuaweiCup2026A/
 | V1 | `python tools/reference_problem1.py solve ...` / `batch ...` | [初始化](q1/initialization.md) |
 | V2 | `python src/solve_problem1.py improve ...` / `improve-batch ...`；或配置 `PYTHONPATH=src` 后 `python -m q1.stage2 ...` | [分层改进](q1/stage2.md) |
 | V3 | `python src/solve_problem1.py graph.json --config ... --cores 4 --output ...` | [统一搜索](q1/unified.md) |
+| Q2 新基座 | `python src/solve_problem2.py solve ...` / `batch ...` / `verify ...` | [实现与验收](q2/baseline.md) |
 
 不复制三个版本的基座或官方代码。V2 使用 V3 已接入的共享 `GraphIndex`，保持自身状态、候选、剪枝与精确接受逻辑；V3 的算法模块与配置在本次接入中保持原样。V1 的当前参考实现按 V3 已有约定仅允许 `candidate_jobs=1`，历史并行版本可从提交 `04634a2` 检出。已有原始 V1 归档可直接供 V2 读取。
 
-第二、三问尚无实现，文件树不创建空占位模块。未来各问配置逐步整理到 `configs/qN/`；V3 的现有配置路径保留，避免为了目录外观变更其运行接口。历史实验目录、归档指纹和官方代码不随展示调整搬动。
+第二问由 `q2/` 独立实现，配置位于 `configs/q2/`；第三问尚无实现。V3 的现有配置路径保留，避免为了目录外观变更其运行接口。历史实验目录、归档指纹和官方代码不随展示调整搬动。
+
+第二问的官方语义与模块复用依据见早期[工程准备与源码审计](q2/engineering.md)，已实现接口与实际验证见[Q2 实现与验收](q2/baseline.md)。Q2 不调用 Q1 的 Task 划分、核心分配和 Task 等待模型；复用 `common.baseline`、输出锁，以及从 `q1.run` 原样抽出的四个产物工具函数。`q1.run` 保留兼容导入，并将新公共文件纳入来源哈希，因此旧源码产物不能冒充本次源码的续跑结果。
 
 三版输出分别指定 `outputs/q1_v1`、`outputs/q1_v2`、`outputs/q1_v3` 等目录，不能让不同求解器写入同一实验目录。源码、参数和运行环境均进入各自来源记录；Git 接入后的字节指纹与服务器旧运行包不同，不能把旧产物重新标成新源码产生的结果。
 
-`official/` 保持原始布局和字节不变。不同问题的评估器分开调用；未来第二、三问复用单核分子前，必须核对赛题与评测语义，不能只按同名 case 引用。
+`official/` 保持原始布局和字节不变。不同问题的评估器分开调用；第二问已核对固定单核分子的题面与源码口径，默认经 `common.baseline` 校验后只读复用，不能以 Q2 的 N=1 优化结果替换。第三问接入时仍须单独核对语义。
 
 ## 基线读取接口
 
