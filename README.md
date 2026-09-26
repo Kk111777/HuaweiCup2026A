@@ -3,7 +3,7 @@
 <p align="center"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12%2B-blue"> <img alt="Standard library" src="https://img.shields.io/badge/dependencies-standard_library-green"></p>
 <p align="center"><a href="#第一问模型谱系">模型谱系</a> · <a href="#项目目录">目录</a> · <a href="#问题一第二版基于严格剪枝的多原则候选方案分层改进策略">第二版</a> · <a href="#问题一第三版基于宏观结构感知的候选扩展与联合优化算法">第三版</a> · <a href="docs/q2/repair.md">问题二新基座</a> · <a href="#日常协作">协作</a></p>
 
-本项目研究华为杯题目中的多核调度：划分原始计算图的子图、按场景组织 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；第二问实现了联动生长与窗口缓存排序的新基座。各自的搜索与评价规则单独记录。
+本项目研究华为杯题目中的多核调度：划分原始计算图的子图、按场景组织 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；第二问保留修复新基座，并新增[基座优化模型](docs/q2/OPTIMIZED_MODEL.md)。各自的搜索与评价规则单独记录。
 
 私有仓库由 `Kk111777` 与 `Zysishuiyears` 通过任务分支和 PR 协作维护；基础环境为 Python 3.12，程序仅依赖标准库。赛题图是算子调度工作负载，求解过程不实际执行神经网络矩阵运算。
 
@@ -36,6 +36,7 @@ HuaweiCup2026A/
 │  ├─ problem_1_baseline.py       # 官方单核参照入口
 │  ├─ solve_problem1.py           # V2 子命令 / V3 默认图路径入口
 │  ├─ solve_problem2.py           # Q2 solve / batch / verify
+│  ├─ solve_problem2_optimized.py # Q2 优化 solve / batch / replay
 │  ├─ common/baseline.py          # 基线归档校验及加速比计算
 │  ├─ common/artifacts.py         # 原子写入、JSON 和 SHA-256
 │  ├─ scheduling/                # V3 公共编排、四组问题接口、预算与评估服务
@@ -228,7 +229,7 @@ python src/solve_problem1.py path/to/new_graph.json --config official/data/confi
 
 ## 问题二：联动生长与精确窗口缓存排序新基座
 
-> `main` 使用2.1接口版本，作为后续第三版基座优化算法的开发基础。已有基座实验继续使用固定标签 [q2-baseline-2.0](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-baseline-2.0)；该标签保留2.0完整源码和配置，无需为接口升级重跑2.1实验。
+> 基座保留2.1接口版本；优化模型使用独立入口 `solve_problem2_optimized.py`。已有基座实验继续使用固定标签 [q2-baseline-2.0](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-baseline-2.0)；该标签保留2.0完整源码和配置，无需为接口升级重跑2.1实验。
 
 Q2 2.1 延续2.0修复版的联动生长、顺序保真编码与整分量同核候选，补齐当前状态、合法性、评分和搜索快照接口，并复用重复展开及执行等价的精确成绩。默认 adaptive β 持平或下降时继续、严格增时停止，各构造／编码流独立反馈。缓存增强仅在实际 spill 时触发，精确寻找固定窗口内容量可行且扰动最小的排列；基座命令按官方 `(makespan, added_copy_bytes)` 选择，最终文件独立复评后发布。
 
@@ -243,7 +244,19 @@ python src/solve_problem2.py solve official/data/case_001.json --cores 2 --beta-
 python src/solve_problem2.py batch --data-dir official/data --cases case_001 case_067 case_086 --cores 2 5 --workers 1 --wall-seconds 90 --verification-reserve 15 --output-dir outputs/q2_smoke
 ```
 
-默认预算为每 case/N 600 秒，初始预留 60 秒复核；加速比使用已归档的固定单核分子。当前版本为 `Q2-Repair-2.1`，见[接口与兼容说明](docs/q2/interfaces.md)、[本轮有限验证](docs/q2/interfaces_validation.md)。算法说明及历史实验仍见[2.0修复设计](docs/q2/repair.md)、[2.0有限验收](docs/q2/repair_validation.md)。1.1 对照通过 `--algorithm-config configs/q2/legacy_1_1.json` 运行。本轮只运行组件、回归及小图对照，没有执行消融或100×4全量实验，没有实现近似模型或后续优化主循环。
+基座默认预算为每 case/N 600 秒，初始预留 60 秒复核；加速比使用已归档的固定单核分子。基座接口版本为 `Q2-Repair-2.1`，见[接口与兼容说明](docs/q2/interfaces.md)、[2.1有限验证](docs/q2/interfaces_validation.md)。算法说明及历史实验仍见[2.0修复设计](docs/q2/repair.md)、[2.0有限验收](docs/q2/repair_validation.md)。1.1 对照通过 `--algorithm-config configs/q2/legacy_1_1.json` 运行。
+
+### 问题二 v3：基座优化模型
+
+`Q2-Optimized-3.0`（v3）复用当前状态与基座组件，实现粗/细两级事件模型、重排、重新分核、执行反馈迁核、块调整和容量修复的统一搜索。默认完成当次基座保底，并以精确成绩确认接受的改进；全部请求核数共用一张图的 600/900/1200 秒分级预算。
+
+v3 与 v2.1 并存：v2.1 保留 `src/solve_problem2.py`、原 `src/q2` 基座模块及 `configs/q2/baseline.json`；v3 位于 `src/q2/optimized/`，使用独立入口与配置。固定版本分别为 [q2-baseline-2.1](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-baseline-2.1) 与 [q2-optimized-3.0](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-optimized-3.0)。工程编号 v3 对应问题二的第二个数学模型，见[版本与兼容说明](docs/q2/VERSIONS.md)。
+
+```bash
+python src/solve_problem2_optimized.py solve official/data/case_004.json --cores 2 3 4 5 --output outputs/q2-optimized/case_004
+```
+
+见[数学与流程说明](docs/q2/OPTIMIZED_MODEL.md)、[接口和运行命令](docs/q2/OPTIMIZED_INTERFACES.md)、[四组有限验收及 Q1v3 对照](docs/q2/OPTIMIZED_ACCEPTANCE.md)。本轮只做组件回归和四组有限试跑，没有运行100×4或消融，也没有全量优于 Q1v3 的结论。
 
 **原Q2 1.1新基座存在已知算法问题，现已归档。** 原始完整源码、固定提交和问题说明保存在[旧版归档](archive/q2/baseline_1_1_known_issues/README.md)，不删除历史代码；后续问题二实验默认使用2.1接口版，算法延续2.0修复新基座。
 

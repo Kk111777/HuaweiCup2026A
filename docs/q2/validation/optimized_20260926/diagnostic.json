@@ -1,0 +1,414 @@
+[
+  {
+    "case": "004",
+    "cores": 2,
+    "components": 111,
+    "computations": 777,
+    "loads": [
+      [
+        192228,
+        23760
+      ],
+      [
+        193386,
+        24192
+      ]
+    ],
+    "lower_bounds": [
+      193386,
+      194135
+    ],
+    "selected": [
+      [
+        "candidate",
+        "COARSE",
+        {
+          "batch": 16
+        }
+      ],
+      [
+        "candidate",
+        "EXECUTION_VALID",
+        null
+      ]
+    ],
+    "batches": [
+      {
+        "event": "batch_end",
+        "cores": 2,
+        "batch": 1,
+        "case_elapsed_seconds": 18.558507700043265,
+        "parent_signature": "a6f5b3b3047454241722da5d935b443ffff7454370438f22ac794aeb9b383894",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 60,
+        "valid_refined": 12,
+        "selected_signature": "b542da863b4b35352f2137af56c2ff726b513a1f1457dc91ce52abf435fdce10",
+        "score": {
+          "state_signature": "b542da863b4b35352f2137af56c2ff726b513a1f1457dc91ce52abf435fdce10",
+          "plan_digest": "66682c3e13078563f4806a03095b80a285d47b8035fbe248248165ff708fcad5",
+          "execution_digest": "9d7807fd8af39a4be81b4758de17c30ba75de49ad570cffe84ec469324424f92",
+          "environment_digest": "aab7410cf9ba08946ccb24722a3d96a75438420d5ac72bb227627b8a9f96311b",
+          "makespan": 194802,
+          "added_copy_bytes": 156672,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      },
+      {
+        "event": "batch_end",
+        "cores": 2,
+        "batch": 2,
+        "case_elapsed_seconds": 27.291780600033235,
+        "parent_signature": "b542da863b4b35352f2137af56c2ff726b513a1f1457dc91ce52abf435fdce10",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 51,
+        "valid_refined": 12,
+        "selected_signature": "b542da863b4b35352f2137af56c2ff726b513a1f1457dc91ce52abf435fdce10",
+        "score": {
+          "state_signature": "b542da863b4b35352f2137af56c2ff726b513a1f1457dc91ce52abf435fdce10",
+          "plan_digest": "66682c3e13078563f4806a03095b80a285d47b8035fbe248248165ff708fcad5",
+          "execution_digest": "9d7807fd8af39a4be81b4758de17c30ba75de49ad570cffe84ec469324424f92",
+          "environment_digest": "aab7410cf9ba08946ccb24722a3d96a75438420d5ac72bb227627b8a9f96311b",
+          "makespan": 194802,
+          "added_copy_bytes": 156672,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      }
+    ]
+  },
+  {
+    "case": "010",
+    "cores": 5,
+    "components": 36,
+    "computations": 667,
+    "loads": [
+      [
+        8916,
+        9198
+      ],
+      [
+        8388,
+        8563
+      ],
+      [
+        9516,
+        13379
+      ],
+      [
+        8904,
+        12361
+      ],
+      [
+        8886,
+        11995
+      ]
+    ],
+    "lower_bounds": [
+      17670,
+      17670
+    ],
+    "selected": [
+      [
+        "candidate",
+        "COARSE",
+        {
+          "delta": {
+            "bytes": -96,
+            "cross_pairs": -1,
+            "maximum_load": 13379,
+            "work": -2
+          },
+          "seed_op_index": 243,
+          "seed_original_id": 637,
+          "size": 1,
+          "target_core": 3,
+          "trace_source": "Q2-EventModel-1.0/refined/calibration-0"
+        }
+      ],
+      [
+        "candidate",
+        "EXECUTION_VALID",
+        null
+      ]
+    ],
+    "batches": [
+      {
+        "event": "batch_end",
+        "cores": 5,
+        "batch": 1,
+        "case_elapsed_seconds": 22.089679200027604,
+        "parent_signature": "cde1b7e808d3fc97501f399e7f30abc5766b89f2be23820be8d7b7938105a99b",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 64,
+        "valid_refined": 12,
+        "selected_signature": "60c239190c2050ee7a214bedeac48e02a60273363e3e47080617003b7cb38e20",
+        "score": {
+          "state_signature": "60c239190c2050ee7a214bedeac48e02a60273363e3e47080617003b7cb38e20",
+          "plan_digest": "a2e8956ff2aff5f7570ddefa17c7a9c92d1504708a87e05a02c1f4ab44525050",
+          "execution_digest": "6dcc56c6b3652f0f794349290d679ff80a0fcb09786b32a525bcccc66390722c",
+          "environment_digest": "57c01ea55f7be68c0dc5b8ed407c2fbb60121a4ca3020f99b1bc53026a7a1576",
+          "makespan": 21924,
+          "added_copy_bytes": 660564,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      },
+      {
+        "event": "batch_end",
+        "cores": 5,
+        "batch": 2,
+        "case_elapsed_seconds": 30.59286079998128,
+        "parent_signature": "60c239190c2050ee7a214bedeac48e02a60273363e3e47080617003b7cb38e20",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 52,
+        "valid_refined": 12,
+        "selected_signature": "19c90ca1fb93d21ef962f6069416eaeccc3a82de94e80ab5ee9513836037c837",
+        "score": {
+          "state_signature": "19c90ca1fb93d21ef962f6069416eaeccc3a82de94e80ab5ee9513836037c837",
+          "plan_digest": "828d7fb713927cae8a5aa0a035b430454517df90327649db6d208e4bb91c1549",
+          "execution_digest": "892d8e959ee8fb915b8cfb47892e81fea4c9699be1dd47f211e9d439cf02793c",
+          "environment_digest": "57c01ea55f7be68c0dc5b8ed407c2fbb60121a4ca3020f99b1bc53026a7a1576",
+          "makespan": 21924,
+          "added_copy_bytes": 660468,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      }
+    ]
+  },
+  {
+    "case": "059",
+    "cores": 5,
+    "components": 64,
+    "computations": 2752,
+    "loads": [
+      [
+        147768,
+        23104
+      ],
+      [
+        147768,
+        20900
+      ],
+      [
+        147244,
+        19532
+      ],
+      [
+        147244,
+        18620
+      ],
+      [
+        147768,
+        19988
+      ]
+    ],
+    "lower_bounds": [
+      147768,
+      148655
+    ],
+    "selected": [
+      [
+        "candidate",
+        "COARSE",
+        {
+          "kind": "insert",
+          "core": 0,
+          "from_position": 577,
+          "to_position": 578,
+          "blocks_digest": "53c29dbd4f121a1555bbf28a5591fa0f6a820d72869bab9e1ef76e8eea581a90"
+        }
+      ],
+      [
+        "candidate",
+        "EXECUTION_VALID",
+        null
+      ]
+    ],
+    "batches": [
+      {
+        "event": "batch_end",
+        "cores": 5,
+        "batch": 1,
+        "case_elapsed_seconds": 130.73839700000826,
+        "parent_signature": "fb2768be8e9ad6ab297549f5647c8a29e41e64ee6523616b47f2fbbb2969871f",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 60,
+        "valid_refined": 12,
+        "selected_signature": "cdca7b3b7876baba926499baf758a2e9c128adbd329104044dc23d84a1bd20c2",
+        "score": {
+          "state_signature": "cdca7b3b7876baba926499baf758a2e9c128adbd329104044dc23d84a1bd20c2",
+          "plan_digest": "02b84bc17793d793ec493e4af780cc18ec7700d4cf5c6e79e7466663d0c0ccb5",
+          "execution_digest": "b94f86c61de998eb1accf659f5abf96cb0bc658aee043844b2e0627569d39306",
+          "environment_digest": "f19c52d71ea953f65ec6443881c5eacbc3f12a62cc319265a407ada78a94531b",
+          "makespan": 149477,
+          "added_copy_bytes": 3514368,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      },
+      {
+        "event": "batch_end",
+        "cores": 5,
+        "batch": 2,
+        "case_elapsed_seconds": 187.49984579999,
+        "parent_signature": "cdca7b3b7876baba926499baf758a2e9c128adbd329104044dc23d84a1bd20c2",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 55,
+        "valid_refined": 12,
+        "selected_signature": "8625a94af1583cb8b947d7a32129ce3b8b3026b8a761c19da0d2fe66d8597980",
+        "score": {
+          "state_signature": "8625a94af1583cb8b947d7a32129ce3b8b3026b8a761c19da0d2fe66d8597980",
+          "plan_digest": "4271491256b0991b69d84844bf83d33873e0ea0dd16e7e1dbe6ca2aec3f92018",
+          "execution_digest": "591d27e49b6eb6dd1d0248ec16d2fc4a2a1f9a4cf3647aa05b9d2a4cdc53253b",
+          "environment_digest": "f19c52d71ea953f65ec6443881c5eacbc3f12a62cc319265a407ada78a94531b",
+          "makespan": 149450,
+          "added_copy_bytes": 3514368,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      }
+    ]
+  },
+  {
+    "case": "086",
+    "cores": 5,
+    "components": 1,
+    "computations": 5274,
+    "loads": [
+      [
+        12972,
+        13074
+      ],
+      [
+        12780,
+        13240
+      ],
+      [
+        17028,
+        17028
+      ],
+      [
+        20478,
+        20135
+      ],
+      [
+        15924,
+        14583
+      ]
+    ],
+    "lower_bounds": [
+      43270,
+      58190
+    ],
+    "selected": [
+      [
+        "candidate",
+        "COARSE",
+        {
+          "delta": {
+            "bytes": 1024,
+            "cross_pairs": 1,
+            "maximum_load": 20478,
+            "work": 18
+          },
+          "seed_op_index": 5043,
+          "seed_original_id": 5134,
+          "size": 1,
+          "target_core": 4,
+          "trace_source": "Q2-EventModel-1.0/refined/calibration-0"
+        }
+      ],
+      [
+        "candidate",
+        "EXECUTION_VALID",
+        null
+      ]
+    ],
+    "batches": [
+      {
+        "event": "batch_end",
+        "cores": 5,
+        "batch": 1,
+        "case_elapsed_seconds": 123.03377099998761,
+        "parent_signature": "ede53bfe5dfeb11f634cdf43cec4b4b4db730198a9d10c3b033d45462e428c2e",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 38,
+        "valid_refined": 11,
+        "selected_signature": "c401d739759e39b5b646c36255066ec5bc3a9b1bda25c9aff93fcff25568e9d7",
+        "score": {
+          "state_signature": "c401d739759e39b5b646c36255066ec5bc3a9b1bda25c9aff93fcff25568e9d7",
+          "plan_digest": "8bef6258b624f651307e08c881c6e5095cc0de46ca1aacf02c25e5c27f84e9e5",
+          "execution_digest": "faff49f84da031f45d3dcc3bf5a1a3e433fb5b8f57dea1f3f1552636946b98f9",
+          "environment_digest": "24477362b93d87603d98c2ab88b1af5d1dffee032f1a0d4263a8913ca7bab2bb",
+          "makespan": 62819,
+          "added_copy_bytes": 2176786,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      },
+      {
+        "event": "batch_end",
+        "cores": 5,
+        "batch": 2,
+        "case_elapsed_seconds": 172.4627077000332,
+        "parent_signature": "c401d739759e39b5b646c36255066ec5bc3a9b1bda25c9aff93fcff25568e9d7",
+        "complete": true,
+        "interruption": null,
+        "coarse_candidates": 36,
+        "valid_refined": 11,
+        "selected_signature": "c401d739759e39b5b646c36255066ec5bc3a9b1bda25c9aff93fcff25568e9d7",
+        "score": {
+          "state_signature": "c401d739759e39b5b646c36255066ec5bc3a9b1bda25c9aff93fcff25568e9d7",
+          "plan_digest": "8bef6258b624f651307e08c881c6e5095cc0de46ca1aacf02c25e5c27f84e9e5",
+          "execution_digest": "faff49f84da031f45d3dcc3bf5a1a3e433fb5b8f57dea1f3f1552636946b98f9",
+          "environment_digest": "24477362b93d87603d98c2ab88b1af5d1dffee032f1a0d4263a8913ca7bab2bb",
+          "makespan": 62819,
+          "added_copy_bytes": 2176786,
+          "source": "approximate",
+          "exact": false,
+          "evaluator_version": "Q2-EventModel-1.0/refined/calibration-0",
+          "calibrated_from": "same-input-official-v0",
+          "evidence_plan_digest": null,
+          "evidence_path": null
+        }
+      }
+    ]
+  }
+]

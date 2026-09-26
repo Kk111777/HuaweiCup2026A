@@ -46,3 +46,6 @@ results/q1_structure_100cases_20260926/** -text linguist-generated=true whitespa
 
 # Preserve byte-for-byte V2 result summaries, evidence, and checksums.
 results/q1_stage2_100cases_20260926/** -text linguist-generated=true whitespace=cr-at-eol
+
+# Preserve Q2 validation evidence and byte-based SHA-256 manifests.
+docs/q2/validation/** -text linguist-generated=true whitespace=cr-at-eol
