@@ -172,3 +172,11 @@ python -B -X utf8 -m scheduling new_graph.json --problem q1 --config config.txt 
 本页描述接口设计和代码边界。具体通过了哪些测试、是否执行新的真实case复测，应以本次实际验证记录为准；本次不宣称已经重新完成全量 100 case。
 
 2026-09-26 本地工程化验收：项目 Python 3.12.14 下125项测试中124项通过、1项跳过；84组旧快照/新代码差分的已覆盖决策轨迹一致；case001/006/014/056共16份短预算真实输出全部通过独立官方重放。31个原有算法、官方代码及默认配置文件内容哈希保持一致。范围、缩减的case056差分场景、源码指纹及发布复验见 [模块化与共享预算验收说明](modular_validation.md)。这次验证不是新的100case性能结论。
+
+## 配置补充：输出与整 case 预算
+
+`solve_case(..., seconds=None, parameters=None)` / `solve_file(..., seconds=None, parameters=None)` 在未显式传入时间时加载 `parameters.time_budget`；旧配置仍默认600/900/1200秒。显式 `seconds` 覆盖目标，并按配置比例缩放延长与保护。
+
+`parameters.artifacts.intermediate=false` 使最终输出仅含 `plan.json`（多核数保留 `N{cores}` 层级）。所有分数、评分来源和运行状态仍在接口返回对象中。内部恢复检查点位于临时目录，返回后清理；不会通过删除已有输出目录实现精简，目标目录必须为空。
+
+候选生成、评价模型、官方校准、近似接纳和问题语义接口没有变化。预算默认值不变，新增开关只控制持久化，详细字段见 [unified.md](unified.md)。

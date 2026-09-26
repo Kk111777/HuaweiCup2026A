@@ -16,12 +16,15 @@ _SUPERVISED = False
 class SearchBudget:
     """600 秒停止开新工作；近期改进可延至 900，已启动工作至多 1200。"""
 
-    def __init__(self, target, started=None):
-        if not math.isfinite(target) or not 0 < target <= 600:
-            raise ValueError("target budget must be finite and in (0, 600]")
+    def __init__(self, target, started=None, *, extension=None, hard=None):
+        extension = target * 1.5 if extension is None else extension
+        hard = target * 2 if hard is None else hard
+        if any(type(v) not in (int, float) or not math.isfinite(v) or v <= 0
+               for v in (target, extension, hard)) or not target <= extension <= hard:
+            raise ValueError("budget requires finite 0 < target <= extension <= hard")
         self.target = target
-        self.extension = target * 1.5
-        self.hard = target * 2
+        self.extension = extension
+        self.hard = hard
         self.started = time.perf_counter() if started is None else started
         self.last_gain = None
         self.last_gain_source = None
@@ -97,10 +100,10 @@ class CaseSliceBudget(SearchBudget):
         case_elapsed = parent.elapsed()
         limit = parent.extension if parent.extended else parent.target
         share = max(.001, (limit - case_elapsed) / remaining_cores)
-        super().__init__(min(600., share), started=now)
-        self.extension = min(self.target * 1.5,
+        super().__init__(min(max(600., parent.target), share), started=now)
+        self.extension = min(self.target * (parent.extension / parent.target),
                              max(0., (parent.extension-case_elapsed)/remaining_cores))
-        self.hard = min(self.target * 2, max(0., parent.hard-case_elapsed))
+        self.hard = min(self.target * (parent.hard / parent.target), max(0., parent.hard-case_elapsed))
         self.allocated_seconds = self.target
 
     def can_start(self, estimate=0):

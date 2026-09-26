@@ -219,7 +219,9 @@ python src/solve_problem1.py improve-batch --initial-root results/q1_adaptive_10
 python src/solve_problem1.py path/to/new_graph.json --config official/data/config.txt --cores 2 3 4 5 --seconds 600 --output outputs/new_graph
 ```
 
-输入可为任意名称的合法新图。一张图的全部请求核数共享 600 秒目标预算，包含预处理、搜索内官方调用及输出；保留有条件延至 900 秒、已启动工作最多至 1200 秒的项目保护机制。求解不先运行官方单核，固定单核结果仅在报告层用作加速比分母。单图内各核数和候选均串行，本地批量测试可显式并发不同 case。
+输入可为任意名称的合法新图。一张图的全部请求核数共享目标预算，默认600秒；保留默认900秒条件延长与1200秒保护机制。三个时间值可在 `configs/unified.json` 的 `time_budget` 中修改，省略命令行 `--seconds` 时直接使用配置；显式传入时覆盖目标并同比缩放另两项。求解不先运行官方单核，固定单核结果仅在报告层用作加速比分母。单图内各核数和候选均串行，本地批量测试可显式并发不同 case。
+
+同一配置的 `artifacts.intermediate` 默认true；设为false时，输出目录只保留各核数的 `plan.json`，恢复必需的临时检查点在返回后清理。API仍返回运行指标，关闭输出不改变候选生成和方案选择规则。此时不生成批测汇总或续跑元数据，详见[配置说明](docs/q1/unified.md#输出开关与时间预算)。
 
 公共框架以 `PlanSemantics / ExecutionModel / PredictionModel / ProposalSet` 四组接口绑定 Q1；旧 `q1.unified` 导入路径保持兼容，新增 `scheduling.api.solve_case(..., problem='q1')` 与 `python -m scheduling --problem q1 ...`。后续 Q3 需实现相应语义、执行/预测与候选模块再注册，目前尚未接入。接口层级图与调用示例见 [接口说明](docs/q1/interfaces.md)，最终要求核对、搬运字段修复及验证见 [合并前复核](docs/q1/merge_review.md)，初次发布与历史成绩取舍见 [验收说明](docs/q1/modular_validation.md)。
 

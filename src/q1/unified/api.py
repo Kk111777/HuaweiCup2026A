@@ -7,15 +7,16 @@ from scheduling.api import default_parameters, source_signature
 from scheduling.api import solve_case as _solve_case, _run_case
 from scheduling.io import read, write, digest, ROOT
 from .. import official
+from scheduling.configuration import intermediate_artifacts
 
 
-def solve_case(graph, config, cores, output, *, seconds=600, parameters=None):
+def solve_case(graph, config, cores, output, *, seconds=None, parameters=None):
     """Preserve the Q1 API and its single shared case budget."""
     return _solve_case(graph, config, cores, output, seconds=seconds,
                        parameters=parameters, problem='q1')
 
 
-def solve_file(graph,config,cores,output,*,seconds=600,parameters=None,
+def solve_file(graph,config,cores,output,*,seconds=None,parameters=None,
                local_test_baseline_archive=None,archive_repo_root=None,_verified_test_record=None):
     """One-count compatibility API. Use solve_case for a shared four-count budget.
 
@@ -39,5 +40,6 @@ def solve_file(graph,config,cores,output,*,seconds=600,parameters=None,
         entry = catalog[Path(graph).stem]
         row['baseline'] = dict(mode='reporting_only',cycles=entry['makespan_cycles'],reference=entry)
         row['speedup'] = entry['makespan_cycles']/row['makespan'] if row.get('makespan') else None
-    write(Path(output)/'summary.json',row)
+    if intermediate_artifacts(default_parameters() if parameters is None else parameters):
+        write(Path(output)/'summary.json',row)
     return row
