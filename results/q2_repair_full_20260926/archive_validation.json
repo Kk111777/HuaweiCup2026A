@@ -1,0 +1,11 @@
+{
+  "all_independent_official_replays": true,
+  "all_inputs_rehashed": true,
+  "all_plan_members_reverified": true,
+  "all_success_verified": true,
+  "excluded": "40 GB of local candidate evaluation directories, traces, and logs; serial rechecks",
+  "plans_in_zip": 400,
+  "source_artifacts_verified": 4400,
+  "source_combinations": 400,
+  "source_git_commit": "11501c5137d949514724baed3f6d0d3bd9e38896"
+}

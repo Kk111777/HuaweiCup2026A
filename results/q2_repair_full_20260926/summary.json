@@ -1,0 +1,135 @@
+{
+  "accepted_capacity_windows": 43,
+  "algorithm_version": "Q2-Repair-2.0",
+  "evidence_scope": "400 official verified outcomes; 16 searches stopped by initialization budget; serial rechecks are excluded",
+  "incomplete": [
+    {
+      "case": "case_014",
+      "num_cores": 2,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_014",
+      "num_cores": 3,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_014",
+      "num_cores": 4,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_014",
+      "num_cores": 5,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_072",
+      "num_cores": 2,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_072",
+      "num_cores": 3,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_072",
+      "num_cores": 4,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_072",
+      "num_cores": 5,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_076",
+      "num_cores": 2,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_076",
+      "num_cores": 3,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_076",
+      "num_cores": 4,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_076",
+      "num_cores": 5,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_091",
+      "num_cores": 2,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_091",
+      "num_cores": 3,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_091",
+      "num_cores": 4,
+      "reason": "initialization_budget"
+    },
+    {
+      "case": "case_091",
+      "num_cores": 5,
+      "reason": "initialization_budget"
+    }
+  ],
+  "official_evaluations": 4933,
+  "official_replay_verified": 400,
+  "per_core": [
+    {
+      "cases": 100,
+      "equal_to_singlecore": 0,
+      "faster_than_singlecore": 100,
+      "mean_speedup": 2.038161526079028,
+      "median_speedup": 1.998551921815178,
+      "num_cores": 2,
+      "search_complete": 96,
+      "slower_than_singlecore": 0
+    },
+    {
+      "cases": 100,
+      "equal_to_singlecore": 0,
+      "faster_than_singlecore": 100,
+      "mean_speedup": 2.7755968495764374,
+      "median_speedup": 2.9351799763440662,
+      "num_cores": 3,
+      "search_complete": 96,
+      "slower_than_singlecore": 0
+    },
+    {
+      "cases": 100,
+      "equal_to_singlecore": 0,
+      "faster_than_singlecore": 100,
+      "mean_speedup": 3.4527341723679053,
+      "median_speedup": 3.750479868829455,
+      "num_cores": 4,
+      "search_complete": 96,
+      "slower_than_singlecore": 0
+    },
+    {
+      "cases": 100,
+      "equal_to_singlecore": 0,
+      "faster_than_singlecore": 100,
+      "mean_speedup": 3.9919457140912207,
+      "median_speedup": 4.2804088822126385,
+      "num_cores": 5,
+      "search_complete": 96,
+      "slower_than_singlecore": 0
+    }
+  ],
+  "requested": 400,
+  "search_complete": 384,
+  "source_commit": "11501c5137d949514724baed3f6d0d3bd9e38896",
+  "successful": 400
+}
