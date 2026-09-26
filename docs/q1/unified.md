@@ -312,5 +312,5 @@ if __name__ == '__main__':
 
 1. `SearchServices.evaluate(plan, timeout)` 的 timeout 用于记录和协作式预算决策，不会单独中断这一次官方调用；最终强制保护由监督父进程执行。因此官方调用成本估计偏低时，仍可能触及 1200 秒上限。
 2. 当前最优检查点允许近似评分。它通过结构校验，不代表已通过官方局部内存可行性检查；所有核数先保存种子减少后续无输出风险，但若图解析或初始近似本身触及保护上限，仍可能出现未完成核数，必须如实报告。
-3. [incremental.py](../../src/q1/improvement/incremental.py) 读取单核搬运基数的键为 `original_copy_bytes`，而官方结果使用 `original_graph_copy_bytes`，目前存在字段不一致。它影响近似 `added_copy_bytes` 与官方次级目标的可比性，尤其是 makespan 相同时；不能把近似搬运量描述为与官方完全等价。本次文档补充未修复此代码问题。
-4. [configs/unified.json](../../configs/unified.json) 的描述仍含“官方裁决”旧措辞；当前实际行为是近似可接纳、官方周期纠偏，以代码及本说明的来源规则为准。
+3. 近似模型仍未完整模拟Spill，所以新增搬运量是明确标记的估计，`spill_added_copy_bytes=None` 不表示实测为0。原始搬运基数与官方字段不一致的问题已在合并前修复：从输入图统计COPY_IN输出、COPY_OUT输入字节，近似总搬运量减去该固定基数得到新增搬运量；官方校准会核对图基数。它不运行单核评估。
+4. 合并前同步修正配置说明、旧报告工具的单核补计和逐核预算措辞，并为历史报告加版本标记。完整核对、修复引起的行为变化及验证范围见 [merge_review.md](merge_review.md)。

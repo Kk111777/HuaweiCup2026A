@@ -1,4 +1,4 @@
-"""Report new staged results against paused, personal and base results, without solving."""
+"""Historical per-core report. Current case-budget runs use report_unified.py."""
 import argparse
 import csv
 from pathlib import Path
@@ -22,6 +22,8 @@ def main():
     for run in a.runs:
         for f in sorted(run.glob('case_*/N*/summary.json')):
             r=read(f);d=f.parent;case=d.parent.name;n=int(d.name[1:])
+            if r.get('budget_scope') == 'case_all_cores':
+                raise ValueError('historical per-core reporter: use tools/report_unified.py for current case budgets')
             assert r['source_signature']==source, 'different version in staged results'
             assert (case,n) not in seen,'duplicate result'
             seen.add((case,n))
@@ -53,7 +55,9 @@ def main():
     fields=list(dict.fromkeys(k for r in rows for k in r))
     with (a.output/'case_times.csv').open('w',encoding='utf-8-sig',newline='') as s:
         w=csv.DictWriter(s,fieldnames=fields);w.writeheader();w.writerows(rows)
-    lines=['# 图特征版本分批复测','',f'已完成 {len(rows)}/{a.expected} 项；独立重放通过 {sum(r["independent_replay"] for r in rows)} 项；保护超时 {sum(r["hard_timeout"] for r in rows)} 项。',
+    lines=['# 图特征版本分批复测','',
+        '> 历史每核预算记录，不代表当前共享整case预算版本。当前流程见 [unified.md](unified.md)。','',
+        f'已完成 {len(rows)}/{a.expected} 项；独立重放通过 {sum(r["independent_replay"] for r in rows)} 项；保护超时 {sum(r["hard_timeout"] for r in rows)} 项。',
         f'源代码指纹：`{source}`。','',
         '8 张代表性图：006、014、049、058、072、076、091、092。另用随机种子 20260926 从 86 张留出图抽取 004、008、013、030、036、075、088、095。均测试 2、5 核。',
         '每项保留实际墙钟、CPU 和补计历史单核后的总秒数；跨 case 并行，单个求解串行。原个人高核数归档包含历史热启动差异。', '',

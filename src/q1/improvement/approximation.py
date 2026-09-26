@@ -157,3 +157,16 @@ def simulate_plan(graph, plan, blocks, profiles, settings, *, trace=False):
         return dict(makespan=makespan,task_starts=task_starts,task_ends=task_ends,
                     operation_ends=operation_ends)
     return makespan
+
+
+def original_copy_bytes(graph):
+    """Declared COPY traffic, using the official COPY_IN-out/COPY_OUT-in sides.
+
+    This is an input-graph statistic, not a single-core evaluation or score.
+    """
+    return sum(
+        sum(graph.tensors[t]['size'] for t in tensors)
+        for v, op in graph.all_ops.items()
+        if op['op'] in ('COPY_IN', 'COPY_OUT')
+        for tensors in [graph.outputs[v] if op['op'] == 'COPY_IN' else graph.inputs[v]]
+    )

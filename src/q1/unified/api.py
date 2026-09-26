@@ -19,6 +19,9 @@ def solve_file(graph,config,cores,output,*,seconds=600,parameters=None,
                local_test_baseline_archive=None,archive_repo_root=None,_verified_test_record=None):
     """One-count compatibility API. Use solve_case for a shared four-count budget.
 
+    Four independent calls start four clocks; never use that loop as a complete
+    case-budget benchmark. Pass [2, 3, 4, 5] to solve_case once instead.
+
     An optional archived baseline is used after solving, for reporting only.
     It never enters the computing worker, candidate decisions or time budget.
     """

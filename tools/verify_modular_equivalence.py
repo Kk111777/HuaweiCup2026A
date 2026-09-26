@@ -243,6 +243,9 @@ def worker(request):
     raw = read(request['graph'])
     graph = Graph(raw)
     params = read(source / 'configs/unified.json')
+    # A label is not an experimental control. All numerical/strategy defaults
+    # remain version-specific unless overridden explicitly below.
+    params['description'] = 'fixed-work differential experiment'
     params.update(max_rounds=request['rounds'], max_initial_evaluations_per_core=3,
                   official_per_round=3, stage_widths=[4, 8], stage_batches=[1],
                   max_region_candidates=6, max_structural_candidates=6,

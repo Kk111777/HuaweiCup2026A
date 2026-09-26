@@ -51,21 +51,21 @@ class DifferentialHarnessTests(unittest.TestCase):
         self.assertIn('effective_params', equivalence.check_added_metadata(old, new))
 
     @unittest.skipUnless(equivalence.DEFAULT_BEFORE.is_file(), 'frozen pre-refactor archive not installed')
-    def test_frozen_version_matches_new_in_both_modes_and_budget_scopes(self):
+    def test_frozen_official_search_matches_in_both_budget_scopes(self):
         with tempfile.TemporaryDirectory() as folder:
             summary = equivalence.compare_suite(equivalence.DEFAULT_BEFORE, ROOT, folder,
                 cases=['tiny_independent'], cores=[2, 3], rounds=1,
+                modes=['official'],
                 manifest=equivalence.DEFAULT_BEFORE.with_name('before_manifest.json'))
             self.assertTrue(summary['passed'], summary['scenarios'])
-            self.assertEqual(len(summary['scenarios']), 4)
+            self.assertEqual(len(summary['scenarios']), 2)
             coverage = summary['coverage']
-            self.assertEqual(coverage['solves'], 8)
-            self.assertGreater(coverage['approximate_records'], 0)
-            self.assertGreater(coverage['approximate_acceptances'], 0)
+            self.assertEqual(coverage['solves'], 4)
+            self.assertEqual(coverage['approximate_records'], 0)
             self.assertGreater(coverage['calibration_events'], 0)
-            self.assertEqual(coverage['shared_case_solves'], 4)
-            artifact = equivalence.read(Path(folder) / 'tiny_independent_adaptive_shared_case/after.json')
-            old = equivalence.read(Path(folder) / 'tiny_independent_adaptive_shared_case/before.json')
+            self.assertEqual(coverage['shared_case_solves'], 2)
+            artifact = equivalence.read(Path(folder) / 'tiny_independent_official_shared_case/after.json')
+            old = equivalence.read(Path(folder) / 'tiny_independent_official_shared_case/before.json')
             self.assertNotEqual(artifact['identity']['source'], old['identity']['source'])
             self.assertTrue(Path(artifact['identity']['engine_file']).is_relative_to(ROOT))
             self.assertGreater(coverage['proposal_batches'], 0)

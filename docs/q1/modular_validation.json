@@ -1,5 +1,7 @@
 {
   "status": "passed",
+  "scope": "Initial publication commit 7bcfbc0; not the final merge-review revision",
+  "superseded_by": "merge_review.json",
   "python_version": "3.12.14",
   "source_signature": "89d285300a0571450b0e3d2be6f5911a242423640fc3d5fd5ac2351f50232e5d",
   "base_main_commit": "dac7d0df2eb6b9d64f2a395bd1289c76678aca96",

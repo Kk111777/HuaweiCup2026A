@@ -1,10 +1,11 @@
 """Input-only structural features and online wall-time estimates (not score labels)."""
 from collections import Counter
 import math
+from ..improvement.approximation import original_copy_bytes
 
 
 def recognize(graph, settings):
-    """Computed before the baseline. No case identifiers or archived scores."""
+    """Computed from the input alone. No case identifiers or archived scores."""
     widths = Counter(graph.level.values())
     work = graph.workload(graph.ops)
     pressure = graph.reference_pressure(frozenset(graph.ops))
@@ -13,12 +14,7 @@ def recognize(graph, settings):
     tensor_bytes = sum(t['size'] for t in graph.tensors.values())
     # Count declared COPY traffic, not every tensor once: tensor inventory is
     # neither scheduled traffic nor peak memory. Partition copies are separate.
-    copy_bytes = 0
-    for v, op in graph.all_ops.items():
-        if op['op'] == 'COPY_IN':
-            copy_bytes += sum(graph.tensors[t]['size'] for t in graph.inputs[v])
-        elif op['op'] == 'COPY_OUT':
-            copy_bytes += sum(graph.tensors[t]['size'] for t in graph.outputs[v])
+    copy_bytes = original_copy_bytes(graph)
     chain_sizes = [len(c) for c in graph.chains]
     chain_work = [sum(graph.cost[v] for v in c) for c in graph.chains]
     bandwidth = max(1, settings.get('bandwidth', 1))

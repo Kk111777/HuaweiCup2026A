@@ -1,5 +1,5 @@
 {
-  "description": "V3后支配区域：可展开完整单元、后继亲和打包、多Task联合重构与多起点搜索；官方裁决。",
+  "description": "基于宏观结构感知的候选扩展与联合优化：整case共享预算，近似与官方结果均可接纳，官方在时间允许时校准。",
   "evaluation": {
     "mode": "adaptive",
     "full_cost_fraction": 0.01,
