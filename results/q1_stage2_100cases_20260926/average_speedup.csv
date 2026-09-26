@@ -1,0 +1,6 @@
+num_cores,successful_cases,speedup_cases,expected_cases,status,mean_speedup
+1,100,100,100,complete,1.0
+2,100,100,100,complete,1.9218518691183044
+3,100,100,100,complete,2.587793056982278
+4,100,100,100,complete,3.102977059870466
+5,100,100,100,complete,3.551903991497202
