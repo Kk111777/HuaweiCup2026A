@@ -1,7 +1,7 @@
 # Q2 2.1：当前状态、评价证据与搜索快照
 
 版本 `Q2-Repair-2.1`，状态格式 `schema_version=2`，Python 3.12、标准库。
-2.1保留在 `fix/Zysishuiyears/q2-component-interfaces` 独立分支及草稿PR中，供后续第三版继续开发；当前正式基座实验仍使用main中的2.0，本次上传不合并替换它。
+2.1合入 `main`，供后续第三版基座优化算法继续开发。原2.0修复基座以固定标签 [q2-baseline-2.0](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-baseline-2.0) 保留，对应提交 `11501c5137d949514724baed3f6d0d3bd9e38896`；已有正式基座实验继续使用该版本，2.1暂不重跑实验。
 本次保留[2.0修复版算法](repair.md)的构造公式、候选家族及顺序、adaptive β规则、容量最小扰动DP和正式指标择优规则。
 改动集中于组件接口和重复计算复用；没有实现近似模型或下一轮优化搜索。
 
