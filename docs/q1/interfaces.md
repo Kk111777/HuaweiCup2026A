@@ -2,7 +2,7 @@
 
 本次工程化把预算、搜索编排、状态池、评估服务和运行产物移入 `src/scheduling`，将 Q1 的图、方案含义、官方执行、近似模型和候选算法通过适配器接回。**默认仍装配 Q1 第三个模型的现有实现，每次调用只选择一个问题后端。**没有同时求解 Q1、Q3 再择优的流程；Q3 尚未接入或注册到本公共框架。本地其他工作区的 Q3 独立实验不属于本次发布内容。
 
-这次工作的目标是保持现有 Q1 行为，建立可检验的扩展边界。没有借重构调整搜索公式、默认预算、结构控制阈值或官方/近似接纳原则；case77 已观察到的微小收益判断问题也不在本次修复范围。
+接口重构建立了可检验的扩展边界。后续 Q1 V3 更新将默认整 case 预算改为 480 秒，近似方案仍供探索，最终只输出历史官方最优；增加完整轮次准入、最低核验机会和 3% 显著改进额外核验。算法行为与最新验收以 [统一说明](unified.md) 和 [验证报告](v3_official_validation.md) 为准。
 
 算法动机、TaskGrowth 与个人算子的关系见 [unified.md](unified.md)。本页说明工程接口、装配、配置与隔离规则；它不把工程化验证等同于新一轮完整 100 case 性能验收。
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
         'stage_widths': [8, 16],
     }
     summary = solve_case('new_graph.json', 'config.txt', [2, 3, 4, 5],
-                         'outputs/explicit_parameters', seconds=600,
+                         'outputs/explicit_parameters', seconds=480,
                          problem='q1', parameters=parameters)
 ```
 
@@ -94,7 +94,7 @@ from q1.unified.api import solve_case, solve_file
 
 if __name__ == '__main__':
     summary = solve_case('new_graph.json', 'config.txt', [2, 3, 4, 5],
-                         'outputs/new_graph', seconds=600)
+                         'outputs/new_graph', seconds=480)
 ```
 
 直接使用公共入口时，显式选择问题：
@@ -104,7 +104,7 @@ from scheduling.api import solve_case
 
 if __name__ == '__main__':
     summary = solve_case('new_graph.json', 'config.txt', [2, 3, 4, 5],
-                         'outputs/new_graph', seconds=600, problem='q1')
+                         'outputs/new_graph', seconds=480, problem='q1')
 ```
 
 旧命令保持兼容；公共命令增加问题选择：
@@ -112,19 +112,19 @@ if __name__ == '__main__':
 ```powershell
 $env:PYTHONPATH = (Resolve-Path src).Path
 python -B -X utf8 -m q1 new_graph.json --config config.txt `
-  --cores 2 3 4 5 --seconds 600 --output outputs\new_graph
+  --cores 2 3 4 5 --seconds 480 --output outputs\new_graph
 
 python -B -X utf8 -m scheduling new_graph.json --problem q1 --config config.txt `
-  --cores 2 3 4 5 --seconds 600 --output outputs\new_graph_public
+  --cores 2 3 4 5 --seconds 480 --output outputs\new_graph_public
 ```
 
 两种 CLI 都可另加 `--parameters my_search_parameters.json` 读取搜索参数 JSON；它不会替代 `--config` 的官方硬件配置。公共 CLI 无论请求一个还是多个核数都调用 `solve_case`，因此输出 `N<核数>` 子目录；旧 Q1 CLI 只请求一个核数时继续调用 `solve_file`，保持原有根目录输出格式。
 
-`solve_case` 的 600 秒仍是一张图全部请求核数共用的目标预算，保留原有延长和保护机制。所有核数串行处理，共享本次图准备与模型；先保存各核数的近似种子，再深入搜索。`solve_file` 只处理一种核数，并保留输出根目录直接存放 `plan.json` 的格式；`solve_case` 使用 `N2` 至 `N5` 子目录。
+`solve_case` 的 480 秒仍是一张图全部请求核数共用的目标预算，保留原有延长和保护机制。所有核数串行处理，共享本次图准备与模型；先保存各核数的近似种子，再深入搜索。`solve_file` 只处理一种核数，并保留输出根目录直接存放 `plan.json` 的格式；`solve_case` 使用 `N2` 至 `N5` 子目录。
 
-没有单核基线前置调用。可选单核分母及独立官方回放属于结束后的报告阶段，不输入求解器，也不补计历史时间到共享预算。
+没有单核基线前置调用。可选单核分子及独立官方回放属于结束后的报告阶段，不输入求解器，也不补计历史时间到共享预算。
 
-不要循环调用四次 `solve_file(..., seconds=600)` 来代表完整case：四次独立调用会建立四份时钟。完整case必须一次调用 `solve_case(..., cores=[2,3,4,5], seconds=600)`；批测和100case脚本已使用这个入口。
+不要循环调用四次 `solve_file(..., seconds=480)` 来代表完整case：四次独立调用会建立四份时钟。完整case必须一次调用 `solve_case(..., cores=[2,3,4,5], seconds=480)`；批测和100case脚本已使用这个入口。
 
 合并前修正了近似新增搬运量的基数：现在直接从输入图按官方COPY方向统计原始搬运量，并用统一字段输出。它不需要单核成绩。该修复可能改变周期相同时的次级目标比较，属于已明确记录的正确性变更，而不是接口重构的无行为变化；验证见 [merge_review.md](merge_review.md)。
 
@@ -137,7 +137,7 @@ python -B -X utf8 -m scheduling new_graph.json --problem q1 --config config.txt 
 | 近似模型与校准 | 工厂为每个 case 创建；同 case 的核数共享同一所选后端实例 | 只用真实官方样本校准；不同核数完整方案各自评分 |
 | 搜索状态池 | 当前核数的搜索状态，身份由 `state_signature` 定义 | 原有划分去重与状态保留规则不变 |
 | 持久化与恢复 | 输入、配置、问题版本、源码指纹、参数及预算需一致 | 不能只凭 case 编号或文件名复用结果 |
-| 评分来源 | `official` 与 `approximate` 保留在各自结果/摘要中 | 近似可成为最终方案，官方有时间时纠偏；验收成绩来自独立回放 |
+| 评分来源 | `official` 与 `approximate` 保留在各自结果/摘要中 | 近似可更新探索状态；最终仅历史官方最优，无官方成功结果则报告无解；独立回放评分不反馈搜索 |
 
 `source_signature(problem)` 覆盖 `src` 下的 Python 文件、官方 Python 代码及配置 JSON，并纳入本次所选后端 `artifact_files` 声明的相关文件；不仅覆盖某一个后端文件。`backend_version` 是显式语义版本，不能替代文件指纹。工程化移动文件也会改变指纹，旧结果仍可用作对照，但不能冒充本次代码的重新运行。
 

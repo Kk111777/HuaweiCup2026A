@@ -5,6 +5,7 @@ structure_overrides mapping takes precedence over that profile; it cannot
 silently select a different execution model or alter hardware parameters.
 """
 from copy import deepcopy
+import math
 
 
 def apply_structure_overrides(parameters, controlled_parameters):
@@ -25,3 +26,22 @@ def apply_structure_overrides(parameters, controlled_parameters):
             raise ValueError(f'structure_overrides.{name} must contain positive integers')
         effective[name] = deepcopy(value)
     return effective
+
+
+def intermediate_artifacts(parameters):
+    artifacts = parameters.get('artifacts', {})
+    if not isinstance(artifacts, dict) or set(artifacts) - {'intermediate'}:
+        raise ValueError('artifacts must contain only the intermediate boolean')
+    enabled = artifacts.get('intermediate', True)
+    if type(enabled) is not bool:
+        raise TypeError('artifacts.intermediate must be a boolean')
+    return enabled
+
+
+def late_official_gain_fraction(parameters):
+    value = parameters.get('evaluation', {}).get('late_official_gain_fraction', .03)
+    if value is None:
+        return None
+    if type(value) not in (int, float) or not math.isfinite(value) or not 0 < value < 1:
+        raise ValueError('evaluation.late_official_gain_fraction must be null or a fraction in (0, 1)')
+    return float(value)

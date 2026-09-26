@@ -4,7 +4,7 @@ param(
     [string]$Config = "",
     [string]$Output = "",
     [int]$LocalTestWorkers = 16,
-    [double]$Seconds = 600,
+    [double]$Seconds = 480,
     [Alias("LocalTestBaselineArchive")]
     [string]$ReportBaselineArchive = "",
     [string]$ArchiveRepoRoot = "",
