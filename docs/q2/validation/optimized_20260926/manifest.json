@@ -1,0 +1,55 @@
+{
+  "base_commit": "fd0c97834d14cbba0cda8a1ee73b541086f229ae",
+  "branch": "feat/Zysishuiyears/q2-optimized",
+  "algorithm": "Q2-Optimized-1.0",
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "delivery_source_signature": "09b5852a2b837f67747828e59c87062de4f1a620f18cd99cab804c7795617fd2",
+  "algorithm_source_in_four_pilots": "ae428859312cb744ef17f5632667b962b2e634b60f3d650c492564175fc9d746",
+  "post_pilot_change": "Only common request baseline_policy label changed to backend_owned for custom CaseRuntime; no algorithm or evaluator change. 26 affected tests passed.",
+  "full_suite": {
+    "total": 280,
+    "passed": 278,
+    "skipped": 2,
+    "seconds": 42.069
+  },
+  "metadata_regression": {
+    "tests": 26,
+    "passed": 26
+  },
+  "random_differential": {
+    "graphs": 40,
+    "plans": 120,
+    "operation_intervals": 4478
+  },
+  "solver_input": "original DAG and configuration only",
+  "historical_scores_used_by_solver": false,
+  "full_batch_run": false,
+  "ablation_run": false,
+  "pairs": [
+    "004/N2",
+    "010/N5",
+    "059/N5",
+    "086/N5"
+  ],
+  "max_optimization_batches": 2,
+  "workers": 1,
+  "artifacts": {
+    "comparison_before_guard.csv": "b9b74787e4a33533edf58e4f45fd9dd46d9ad4d06944cd4ab5a60a4353648f07",
+    "comparison_guarded.csv": "03568ce183a4fec29fa96f0d9bd0d512468777780c1b1f3cfb30a078f65e84d8",
+    "diagnostic.json": "95f2f3e0d89f34a922e846eb3d776a9f39a377a6afc4076473b14c60185f26ce",
+    "evidence.json": "18ff82740e53fddf7e1cf867af0ef293053068e7331320c99d147f55df651635",
+    "false_promotion_control.json": "5a089bb646b729ca7b848e42c644174658793a8ea45179c2e2eacecd78f65ef0",
+    "official_integrity.json": "92103b2d6a1b85b7b5351572dfa6ba91d504cc57628005c4232438778c7d59cd"
+  },
+  "local_logs": {
+    "outputs/q2_optimized_regression_final.log": "719f2988c9200510cdedbdc045f46cb10bd232acddc58b0cea4d3ba1ad46a5f8",
+    "outputs/q2_optimized_metadata_regression.log": "17f0fcc90f0df69469aba30b65c934464e792fd9e64c353b896ccfc58d28bd4b"
+  },
+  "raw_graph_sha256": {
+    "004": "3e01adde3c4ad143ab3d7faabcf36d849f26b5428e7c8446a7e9f89345a55faa",
+    "010": "fd0b07588473d8b2ce05fab4798808cbc7f60cf1638e05608adc3d62061b8775",
+    "059": "50b062952359dc9aa22880856093e8ec7a69c66d358607de49fd5f559ac232e9",
+    "086": "ef91fda2692fd0add63db3c7f677e4e03c8d115d97db3cb959cffc62fff2434a"
+  }
+}

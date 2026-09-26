@@ -1,0 +1,42 @@
+[
+  {
+    "file": "official\\code\\contest_io.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\evaluation_validation.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\multicore_cut_evaluate_problem_1.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\multicore_cut_evaluate_problem_2.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\multicore_cut_evaluate_problem_3.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\schedule_step1.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\schedule_step2.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\schedule_step3.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\singlecore_evaluate.py",
+    "matches_original": true
+  },
+  {
+    "file": "official\\code\\stub_multicore_cut_and_schedule.py",
+    "matches_original": true
+  }
+]

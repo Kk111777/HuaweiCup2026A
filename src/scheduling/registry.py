@@ -7,7 +7,8 @@ from .contracts import ProblemDefinition
 
 # A configuration string cannot import arbitrary Python or select an unbuilt
 # problem. Further official problems require a real adapter and an explicit entry.
-BACKENDS = MappingProxyType({'q1': ('q1.unified.backend', 'get_problem_definition')})
+BACKENDS = MappingProxyType({'q1': ('q1.unified.backend', 'get_problem_definition'),
+                            'q2': ('q2.optimized.backend', 'get_problem_definition')})
 
 
 def resolve_problem(value='q1'):

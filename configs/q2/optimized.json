@@ -1,0 +1,16 @@
+{
+  "algorithm_version": "Q2-Optimized-3.0",
+  "pool_size": 6,
+  "baseline_guard": true,
+  "refine_per_batch": 12,
+  "family_minimum": 2,
+  "migration_limit": 24,
+  "block_limit": 24,
+  "beta_maximum": 4,
+  "beta_policy": "adaptive",
+  "calibration": "periodic",
+  "disagreement_threshold": 0.15,
+  "output_policy": "search",
+  "cache_bytes": 67108864,
+  "max_batches": null
+}

@@ -224,7 +224,7 @@ def _case_worker(request, output, started, single=False, problem=None):
             cpu_seconds=process_time()-cpu_started,worker_wall_seconds=perf_counter()-started))
 
 
-def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem="q1"):
+def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem="q1",_locked=False):
     problem = resolve_problem(problem)
     started = perf_counter()
     cores = list(cores)
@@ -234,17 +234,25 @@ def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem=
         raise ValueError('case target seconds must be in (0,600]')
     graph,config,output = Path(graph).resolve(),Path(config).resolve(),Path(output).resolve()
     output.mkdir(parents=True,exist_ok=True)
-    if any(output.iterdir()):
+    if problem.case_runtime is not None and not _locked:
+        from problem_1_baseline import output_lock
+        with output_lock(output):
+            return _run_case(graph,config,cores,output,seconds,parameters,single,problem,True)
+    if any(path.name != '.run.lock' or not _locked for path in output.iterdir()):
         raise ValueError('output directory must be empty; use verified case-level resume')
     request = dict(graph=str(graph),config=str(config),cores=cores,seconds=seconds,
         parameters=problem.default_parameters() if parameters is None else parameters,
         problem_id=problem.id,backend_version=problem.version,
         graph_sha256=digest(graph),config_sha256=digest(config),source_signature=source_signature(problem),
-        budget_scope='case_all_cores',baseline_policy='not_required_for_search')
+        budget_scope='case_all_cores',baseline_policy=(
+            'backend_owned' if problem.case_runtime is not None else 'not_required_for_search'))
     write(output/('case_request.json' if single else 'request.json'),request)
     telemetry = {}
-    expired = run_bounded(_case_worker,(request,str(output),started,single,problem),
+    worker = problem.case_runtime.worker if problem.case_runtime is not None else _case_worker
+    expired = run_bounded(worker,(request,str(output),started,single,problem),
                           started+seconds*2,telemetry=telemetry)
+    if problem.case_runtime is not None:
+        return problem.case_runtime.recover(request, output, started, single, expired, telemetry)
     elapsed = perf_counter()-started
     outcome = read(output/'worker.json') if (output/'worker.json').exists() else {}
     progress = read(output/'progress.json') if (output/'progress.json').exists() else {}

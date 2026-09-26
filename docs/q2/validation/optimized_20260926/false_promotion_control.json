@@ -1,0 +1,48 @@
+[
+  {
+    "index": 2,
+    "coarse": 150736,
+    "refined": 156177,
+    "official": 156177,
+    "spill": 81920,
+    "calls": [
+      {
+        "phase": "control",
+        "plan_hash": "d9f118cc0e4e7c1f94a76ddc0543c50e55b8fe4c96da55d4bc9159a09dff9ff9",
+        "timeout_seconds": 60,
+        "status": "OK",
+        "launched": true,
+        "peak_rss_bytes": 60039168,
+        "returncode": 0,
+        "objective": [
+          156177,
+          4407296
+        ],
+        "wall_seconds": 0.875
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "coarse": 150736,
+    "refined": 157856,
+    "official": 157856,
+    "spill": 0,
+    "calls": [
+      {
+        "phase": "control",
+        "plan_hash": "b119a18de3e7e271b4dcacb2fff8942d1e3ace38b8179d8e8926c546c9cc4ba6",
+        "timeout_seconds": 60,
+        "status": "OK",
+        "launched": true,
+        "peak_rss_bytes": 59629568,
+        "returncode": 0,
+        "objective": [
+          157856,
+          4325376
+        ],
+        "wall_seconds": 0.7660000000032596
+      }
+    ]
+  }
+]

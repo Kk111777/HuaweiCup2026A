@@ -90,6 +90,21 @@ class ProposalSet:
 
 
 @dataclass(frozen=True)
+class CaseRuntime:
+    """Optional case-wide policy; common API still owns the hard supervisor.
+
+    worker(request, output, started, single, problem) writes checkpoints;
+    recover(request, output, started, single, expired, telemetry) validates and
+    publishes those checkpoints after normal completion or interruption.
+    """
+    worker: Callable[..., Any]
+    recover: Callable[..., dict]
+
+    def __post_init__(self):
+        _callables(self, ('worker', 'recover'))
+
+
+@dataclass(frozen=True)
 class ProblemDefinition:
     id: str
     version: str
@@ -100,6 +115,7 @@ class ProblemDefinition:
     default_parameters: Callable[[], dict]
     supported_cores: tuple[int, ...] = (2, 3, 4, 5)
     artifact_files: tuple[str, ...] = ()
+    case_runtime: CaseRuntime | None = None
 
     def __post_init__(self):
         if not isinstance(self.id, str) or not self.id.strip():
@@ -111,6 +127,8 @@ class ProblemDefinition:
             if not isinstance(getattr(self, name), kind):
                 raise TypeError(f'{name} must be a complete {kind.__name__}')
         _callables(self, ('default_parameters',))
+        if self.case_runtime is not None and not isinstance(self.case_runtime, CaseRuntime):
+            raise TypeError('case_runtime must be a complete CaseRuntime')
         if (not isinstance(self.supported_cores, tuple) or not self.supported_cores or
                 len(set(self.supported_cores)) != len(self.supported_cores) or
                 any(type(n) is not int or n < 1 for n in self.supported_cores)):

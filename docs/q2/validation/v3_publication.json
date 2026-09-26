@@ -1,0 +1,157 @@
+{
+  "version": "Q2-Optimized-3.0",
+  "display_version": "v3",
+  "baseline_version": "Q2-Repair-2.1",
+  "baseline_tag": "q2-baseline-2.1",
+  "baseline_commit": "fd0c97834d14cbba0cda8a1ee73b541086f229ae",
+  "optimized_tag": "q2-optimized-3.0",
+  "branch": "feat/Zysishuiyears/q2-optimized",
+  "python": "3.12.14",
+  "source_signature": "3a6e7d5d1d8dac5f0ca3ffb43eb3313d2e5441979205c744746110773afec0e6",
+  "full_regression": {
+    "total": 283,
+    "passed": 281,
+    "skipped": 2,
+    "wall_seconds": 47.408,
+    "command": "python -m unittest discover -s tests -v",
+    "log_sha256": "d1ef3d999638a4c84754dce8b6be6326a4a11563dd274cdc4efa3f7b86570077"
+  },
+  "random_differential": {
+    "graphs": 40,
+    "plans": 120,
+    "operation_intervals": 4478
+  },
+  "baseline_files_preserved": [
+    {
+      "path": "configs/q2/ablation_affinity.json",
+      "git_blob": "a5cf6a0b0af347f753af40f000697440e7cd9b1e"
+    },
+    {
+      "path": "configs/q2/ablation_beta.json",
+      "git_blob": "925e5a4fa1979d15fcc0a0ac3877fb9813f5dd74"
+    },
+    {
+      "path": "configs/q2/ablation_capacity.json",
+      "git_blob": "5481d21085b423bfa6db5dd576e751ccb444af56"
+    },
+    {
+      "path": "configs/q2/ablation_order.json",
+      "git_blob": "ed229c0e39a6e0a4b40437cb9d69e89ad9ffd464"
+    },
+    {
+      "path": "configs/q2/baseline.json",
+      "git_blob": "f576437829c5d5dd153b885731e8d09c4ffb0f9e"
+    },
+    {
+      "path": "configs/q2/legacy_1_1.json",
+      "git_blob": "910db4d18cab9232001ea3c0508081278bd73de8"
+    },
+    {
+      "path": "configs/q2/official_sha256.json",
+      "git_blob": "2183b0a14c16b35a33a38c24a0a42d57714f8ce4"
+    },
+    {
+      "path": "src/q2/__init__.py",
+      "git_blob": "baf4d8b207b1c9c8c9f18a1f7d3d645c15482eca"
+    },
+    {
+      "path": "src/q2/__main__.py",
+      "git_blob": "625b451217d1d735077c783807e52b5440fec9cc"
+    },
+    {
+      "path": "src/q2/affinity.py",
+      "git_blob": "96b9dbf93873747d892a70b286f764404cf9b435"
+    },
+    {
+      "path": "src/q2/beta.py",
+      "git_blob": "1f641740df6788dc94c4368ce824d469021338a1"
+    },
+    {
+      "path": "src/q2/candidates.py",
+      "git_blob": "bf1ef935f6f32bdbd7b814b5bccd5e0a18452c6e"
+    },
+    {
+      "path": "src/q2/capacity.py",
+      "git_blob": "5208998a954618a102414da587cacdc2bd2a5c26"
+    },
+    {
+      "path": "src/q2/construct.py",
+      "git_blob": "4576c22497e154233f44fe7ba78ff420a985c7f1"
+    },
+    {
+      "path": "src/q2/contracts.py",
+      "git_blob": "040788790462ddc835ad25df61ae7cc0c3c9dddd"
+    },
+    {
+      "path": "src/q2/encoding.py",
+      "git_blob": "121f9b87e129df5a1142fbbd779fbfe1d213e622"
+    },
+    {
+      "path": "src/q2/evaluation.py",
+      "git_blob": "ffb62f82993227605ba6c54182fdc08a7974c6b4"
+    },
+    {
+      "path": "src/q2/graph.py",
+      "git_blob": "6c011724bdd788317d363a0dac7c935f495cf5f3"
+    },
+    {
+      "path": "src/q2/legacy/__init__.py",
+      "git_blob": "15e7d85a6d6e113ee0d7b6ae71850144b2eca718"
+    },
+    {
+      "path": "src/q2/legacy/beta.py",
+      "git_blob": "1cf40a67d07b344aae8f999dd3bacb7db620ef47"
+    },
+    {
+      "path": "src/q2/legacy/window.py",
+      "git_blob": "a5d0fd619918eb7de6bbb1a6f7a93b457cab8409"
+    },
+    {
+      "path": "src/q2/memory.py",
+      "git_blob": "f604466578279eb307f95106a0fba073b53234fe"
+    },
+    {
+      "path": "src/q2/official.py",
+      "git_blob": "311f6362a9b77332c500987f8710a06c2a5e0c33"
+    },
+    {
+      "path": "src/q2/pipeline.py",
+      "git_blob": "1fe7e556401956db422ab066fbd0426df1f3c06a"
+    },
+    {
+      "path": "src/q2/prefix.py",
+      "git_blob": "172d0e34dc858cad496392d04aa88f34816b19fb"
+    },
+    {
+      "path": "src/q2/preparation.py",
+      "git_blob": "ea1f8af7ecfbf4199978625887603d749bfa4930"
+    },
+    {
+      "path": "src/q2/snapshots.py",
+      "git_blob": "1b847a81b33da9d00d18702a5cc1a6bcc8a6343e"
+    },
+    {
+      "path": "src/q2/state.py",
+      "git_blob": "804f364ad3dfef3b8bc3c449c349c4d5a73f207e"
+    },
+    {
+      "path": "src/q2/window.py",
+      "git_blob": "ddc69d4f70eadda023553c29df73824668209cc2"
+    },
+    {
+      "path": "src/solve_problem2.py",
+      "git_blob": "8cdf0f6536006a3297b50b8d2620bfdcb5056e4a"
+    }
+  ],
+  "historical_experiment_version": "Q2-Optimized-1.0",
+  "historical_experiment_manifest": "optimized_20260926/manifest.json",
+  "historical_experiment_manifest_sha256": "9e370aac94a3a54d1421f5df35dd27436509ddc7385362f42b12be1e85dcdefa",
+  "algorithm_decisions_changed_for_publication": false,
+  "reran_large_cases": false,
+  "full_batch_run": false,
+  "ablation_run": false,
+  "skipped_reasons": [
+    "frozen pre-refactor archive not installed",
+    "original official zip is not installed at the test expected workspace path"
+  ]
+}
