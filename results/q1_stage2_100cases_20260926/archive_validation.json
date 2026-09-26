@@ -1,0 +1,111 @@
+{
+  "archive_sha256": "27107c67b829016a7dc1536a612cd1b46a196b34571427274455f8203a4e37f7",
+  "protocol_sha256": "eae3e72cddc2c4e348f0ccb23e3f269d5f52ee112feb6f61838a380ac8a79ffe",
+  "validated_task_reports": 224,
+  "rerun_combinations": 223,
+  "final_multi_core_combinations": 400,
+  "identity_checks_passed": true,
+  "selection_minimum_checks": 400,
+  "selected_sources": {
+    "historical": 345,
+    "rerun": 53,
+    "B": 2
+  },
+  "aggregates": [
+    {
+      "cores": 2,
+      "v1_mean": 1.8326854583071357,
+      "historical_mean": 1.9218332423624354,
+      "raw_replacement_mean": 1.9159820021600347,
+      "best_history_and_rerun_mean": 1.9218518691183044,
+      "final_mean": 1.9218518691183044,
+      "final_gain_pct": 0.0009692181120790622,
+      "gain_over_v1_pct": 4.865341753381536,
+      "rerun_count": 52,
+      "equal": 31,
+      "worse": 19,
+      "better": 2
+    },
+    {
+      "cores": 3,
+      "v1_mean": 2.4632777151832785,
+      "historical_mean": 2.5856093153898674,
+      "raw_replacement_mean": 2.58670343044699,
+      "best_history_and_rerun_mean": 2.587793056982278,
+      "final_mean": 2.587793056982278,
+      "final_gain_pct": 0.08445752339352186,
+      "gain_over_v1_pct": 5.0548641361672475,
+      "rerun_count": 54,
+      "equal": 34,
+      "better": 13,
+      "worse": 7
+    },
+    {
+      "cores": 4,
+      "v1_mean": 2.933059656949307,
+      "historical_mean": 3.0994149721933613,
+      "raw_replacement_mean": 3.1021391451890565,
+      "best_history_and_rerun_mean": 3.1029770598704656,
+      "final_mean": 3.1029770598704656,
+      "final_gain_pct": 0.11492774310835063,
+      "gain_over_v1_pct": 5.793179232429613,
+      "rerun_count": 57,
+      "better": 19,
+      "equal": 31,
+      "worse": 7
+    },
+    {
+      "cores": 5,
+      "v1_mean": 3.338752570309772,
+      "historical_mean": 3.545894374805974,
+      "raw_replacement_mean": 3.5482022671021363,
+      "best_history_and_rerun_mean": 3.5500071092316556,
+      "final_mean": 3.551903991497202,
+      "final_gain_pct": 0.16948098437243875,
+      "gain_over_v1_pct": 6.384163447237845,
+      "rerun_count": 60,
+      "equal": 35,
+      "better": 17,
+      "worse": 8
+    }
+  ],
+  "resources": {
+    "capacity": 32,
+    "jobs": 24,
+    "samples": 1731,
+    "sampled_hours": 4.56096639802162,
+    "mean_percent": 66.4911691571206,
+    "maximum_sample_percent": 75.81585262975227,
+    "fraction_time_above_85pct": 0.0,
+    "started": "2026-09-26T16:00:37.310773+08:00",
+    "ended": "2026-09-26T20:34:16.789844+08:00",
+    "median_worker_cpu_wall_ratio": 1.0000399319234612
+  },
+  "cycle_comparison_totals": {
+    "better": 51,
+    "equal": 131,
+    "worse": 41
+  },
+  "unchanged_budget_cases": 61,
+  "unchanged_budget_equal_cycles": 61,
+  "search_status": {
+    "INCOMPLETE": 157,
+    "NEIGHBORHOOD_EXHAUSTED": 66
+  },
+  "at_global_search_cap": 135,
+  "counters": {
+    "official_evaluations": 288843,
+    "budget_evaluations": 306331,
+    "secondary_hits": 17488
+  },
+  "limitation": "The bundle contains metadata, task reports, summaries and selection hashes; it does not contain all selected plan/result files. No new local official replay was run.",
+  "validation_scope": {
+    "method": "Local consistency and provenance audit of server reports; no new official simulation.",
+    "contains_all_final_plans": false,
+    "local_official_replays": 0,
+    "original_archive_members": 234,
+    "summary_rows": 500,
+    "cases_per_core": 100,
+    "algorithm_code_modified": false
+  }
+}

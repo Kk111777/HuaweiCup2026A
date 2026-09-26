@@ -43,3 +43,6 @@ results/q2_repair_full_20260926/*.sha256 -text linguist-generated=true whitespac
 
 # Preserve byte-for-byte Q1 official results and their SHA-256 manifests.
 results/q1_structure_100cases_20260926/** -text linguist-generated=true whitespace=cr-at-eol
+
+# Preserve byte-for-byte V2 result summaries, evidence, and checksums.
+results/q1_stage2_100cases_20260926/** -text linguist-generated=true whitespace=cr-at-eol
