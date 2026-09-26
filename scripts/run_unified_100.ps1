@@ -4,11 +4,14 @@ param(
     [string]$Config = "",
     [string]$Output = "",
     [int]$LocalTestWorkers = 16,
-    [string]$LocalTestBaselineArchive = "",
+    [double]$Seconds = 600,
+    [Alias("LocalTestBaselineArchive")]
+    [string]$ReportBaselineArchive = "",
     [string]$ArchiveRepoRoot = "",
     [string[]]$ReuseVerifiedRun = @(),
     [string]$BaseSpeedups = "",
-    [string]$PersonalReference = ""
+    [string]$PersonalReference = "",
+    [switch]$OfficialReplay
 )
 $ErrorActionPreference = "Stop"
 $TaskRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -29,27 +32,30 @@ if ($LASTEXITCODE -ne 0) { throw "Python 3.12 is required." }
 
 $RunArgs = @("-B", "-X", "utf8", (Join-Path $TaskRoot "tools\benchmark_unified.py"),
     "--data", $Data, "--config", $Config, "--output", $Output,
-    "--local-test-workers", "$LocalTestWorkers", "--resume")
-if ($LocalTestBaselineArchive) {
-    $RunArgs += @("--local-test-baseline-archive", $LocalTestBaselineArchive)
+    "--local-test-workers", "$LocalTestWorkers", "--seconds", "$Seconds", "--resume")
+if ($ReportBaselineArchive) {
+    $RunArgs += @("--report-baseline-archive", $ReportBaselineArchive)
     if ($ArchiveRepoRoot) { $RunArgs += @("--archive-repo-root", $ArchiveRepoRoot) }
 }
 if ($ReuseVerifiedRun.Count) { $RunArgs += @("--reuse-verified-run") + $ReuseVerifiedRun }
 # Case list is deliberately omitted: the Python runner defaults to ALL 001-100,
-# including case_076, and sequentially solves core counts 2,3,4,5 within each case.
+# including case_076. Core counts 2,3,4,5 share ONE case-wide budget.
 & $Python @RunArgs
 $RunExit = $LASTEXITCODE
 
-$AuditArgs = @("-B", "-X", "utf8", (Join-Path $TaskRoot "tools\audit_unified.py"),
-    "--run", $Output, "--replay", "--local-test-workers", "4", "--require-current-source")
-if ($BaseSpeedups) { $AuditArgs += @("--base-speedups", $BaseSpeedups) }
-if ($PersonalReference) { $AuditArgs += @("--personal-reference", $PersonalReference) }
-& $Python @AuditArgs
-if ($LASTEXITCODE -ne 0) { throw "Independent official replay failed; inspect the audit output." }
-& $Python -B -X utf8 (Join-Path $TaskRoot "tools\report_unified.py") --run $Output
-if ($LASTEXITCODE -ne 0) { throw "Report generation failed; execution outputs are preserved." }
+if ($OfficialReplay) {
+    $AuditArgs = @("-B", "-X", "utf8", (Join-Path $TaskRoot "tools\audit_unified.py"),
+        "--run", $Output, "--replay", "--local-test-workers", "4", "--require-current-source")
+    if ($BaseSpeedups) { $AuditArgs += @("--base-speedups", $BaseSpeedups) }
+    if ($PersonalReference) { $AuditArgs += @("--personal-reference", $PersonalReference) }
+    & $Python @AuditArgs
+    if ($LASTEXITCODE -ne 0) { throw "Independent official replay failed; inspect the audit output." }
+}
+elseif ($BaseSpeedups -or $PersonalReference) {
+    Write-Warning "Comparison references are only used with -OfficialReplay."
+}
 if ($RunExit -ne 0) {
-    Write-Warning "Batch contains failed or protected-timeout results. See results.json and timings.csv."
+    Write-Warning "Batch contains failed or protected-timeout results. See results.json, case_timings.csv and timings.csv."
     exit $RunExit
 }
-Write-Output "100-case execution and official replay finished. Results: $Output"
+Write-Output "100-case execution finished. Case-wide time: case_timings.csv; per-core details: timings.csv. Results: $Output"

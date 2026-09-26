@@ -22,6 +22,8 @@ def official_fingerprint():
 
 def replay_one(folder):
     req=read(folder/'request.json');stamp=official_fingerprint()
+    if req.get('problem_id', 'q1') != 'q1':
+        raise ValueError('audit_unified only replays Q1; select the corresponding problem evaluator')
     assert digest(req['graph'])==req['graph_sha256']
     assert digest(req['config'])==req['config_sha256']
     ph,rh=digest(folder/'plan.json'),digest(folder/'evaluation.json')
@@ -48,6 +50,8 @@ def replay_one(folder):
     marker=dict(plan_sha256=ph,result_sha256=rh,replay_seconds=elapsed,
         source_signature=req['source_signature'],official_fingerprint=stamp,
         graph_sha256=req['graph_sha256'],config_sha256=req['config_sha256'],independent_official_replay=True)
+    if 'problem_id' in req:
+        marker.update(problem_id=req['problem_id'],backend_version=req.get('backend_version'))
     marker.update(official_replay_sha256=digest(folder/'official_replay.json'),
         solver_score_source='approximate' if approximate else 'official',
         solver_makespan=saved['makespan'],official_makespan=actual['makespan'],
@@ -125,13 +129,14 @@ def main():
             wall_seconds=result['wall_seconds'],accounted_wall_seconds=result['accounted_wall_seconds'],
             cpu_seconds=result.get('cpu_seconds'),exceeded_target=result['exceeded_target'],
             extended=result['extended'],exceeded_extension=result['exceeded_extension'],
-            hard_timeout=result['hard_timeout'],speedup=result.get('baseline',{}).get('cycles',0)/cycles if cycles else None,
+            hard_timeout=result['hard_timeout'],speedup=(result.get('baseline',{}).get('cycles')/cycles
+                if cycles and result.get('baseline',{}).get('cycles') else None),
             replay_seconds=durations.get(str(folder)),source_signature=result['source_signature']))
     eligible=[r for r in rows if r.get('cycles') is not None];stats={}
     for n in sorted({r['cores'] for r in eligible}):
         rr=[r for r in eligible if r['cores']==n]
         ratios=[r['change_vs_personal'] for r in rr if r['change_vs_personal'] is not None]
-        stats[n]=dict(count=len(rr),mean_speedup=mean(r['speedup'] for r in rr),
+        stats[n]=dict(count=len(rr),mean_speedup=mean(r['speedup'] for r in rr if r['speedup'] is not None),
             mean_change_vs_personal=mean(ratios),worst_change_vs_personal=max(ratios) if ratios else None,
             personal_regressions_above_one_percent=sum(v>.01 for v in ratios),
             base_regressions_above_one_percent=sum(r['change_vs_base']>.01 for r in rr if r['change_vs_base'] is not None),
@@ -141,7 +146,7 @@ def main():
     write(a.run/'comparison.json',dict(stats=stats,rows=rows,independent_replay=a.replay and not replay_errors,
         replay_requested=a.replay,replay_errors=replay_errors,
         source_signatures=sorted({r.get('source_signature') for r in eligible}),
-        note='Historical personal higher-core results include earlier-core warm starts; this solver starts from singlecore.'))
+        note='Independent official replay; an optional baseline is a reporting denominator, never a search input.'))
     fields=list(dict.fromkeys(k for r in rows for k in r))
     with (a.run/'comparison.csv').open('w',encoding='utf-8-sig',newline='') as s:
         w=csv.DictWriter(s,fieldnames=fields);w.writeheader();w.writerows(rows)

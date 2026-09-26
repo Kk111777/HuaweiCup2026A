@@ -4,13 +4,38 @@ from copy import deepcopy
 from test_q1_initialization import graph_of, SETTINGS
 from q1 import official
 from q1.model import Graph
-from q1.unified.features import recognize, plan_complexity, OfficialCostModel
+from q1.unified.features import recognize, plan_complexity, OfficialCostModel, control_profile
 from q1.unified.api import default_parameters
 from q1.unified.engine import search
 from q1.unified.service import SearchServices
 
 
 class FeatureTests(unittest.TestCase):
+    def test_cold_cost_needs_no_singlecore_measurement(self):
+        graph = Graph(graph_of(20))
+        large = plan_complexity(graph, official.make_plan([graph.order],2))
+        split = plan_complexity(graph, official.make_plan([[v] for v in graph.order],2))
+        model = OfficialCostModel(graph)
+        self.assertGreater(model.predict(large), 0)
+        self.assertEqual(model.metadata()['source'], 'input_structure_cold_start')
+        model.observe(split, dict(status='ok', seconds=.2))
+        self.assertEqual(model.metadata()['source'], 'observed_multicore_structure')
+        self.assertAlmostEqual(model.predict(split), .27)
+
+    def test_structure_controls_do_not_use_singlecore_scores(self):
+        graph = Graph(graph_of(40, links=[(i,i+1) for i in range(39)]))
+        service = SearchServices(graph,SETTINGS)
+        features = recognize(graph,service.settings_dict)
+        self.assertEqual(features['maximum_chain_operations'],40)
+        self.assertEqual(features['levels'],40)
+        self.assertEqual(features['compute_parallelism'],1)
+        self.assertGreater(features['original_copy_bytes'],0)
+        self.assertNotEqual(features['original_copy_bytes'],features['tensor_bytes'])
+        controls = control_profile(features,5,150)
+        self.assertTrue(controls['limited_parallelism'])
+        self.assertEqual(controls['stage_widths'],[8,32])
+        self.assertGreater(controls['generation_seconds_prior']['construction'],0)
+
     def test_structure_cost_is_independent_of_hardware_cycles(self):
         raw = graph_of(20)
         graph = Graph(raw)

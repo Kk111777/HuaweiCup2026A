@@ -11,6 +11,18 @@ def recognize(graph, settings):
     size = len(graph.ops)
     edges = sum(map(len, graph.pred.values()))
     tensor_bytes = sum(t['size'] for t in graph.tensors.values())
+    # Count declared COPY traffic, not every tensor once: tensor inventory is
+    # neither scheduled traffic nor peak memory. Partition copies are separate.
+    copy_bytes = 0
+    for v, op in graph.all_ops.items():
+        if op['op'] == 'COPY_IN':
+            copy_bytes += sum(graph.tensors[t]['size'] for t in graph.inputs[v])
+        elif op['op'] == 'COPY_OUT':
+            copy_bytes += sum(graph.tensors[t]['size'] for t in graph.outputs[v])
+    chain_sizes = [len(c) for c in graph.chains]
+    chain_work = [sum(graph.cost[v] for v in c) for c in graph.chains]
+    bandwidth = max(1, settings.get('bandwidth', 1))
+    compute = sum(work.values())
     ratio = max((pressure.get(p, 0) / cap for p, cap in settings['capacity'].items()), default=0)
     result = dict(operations=size, original_operations=len(graph.all_ops), tensors=len(graph.tensors),
         dependency_edges=edges, components=len(graph.components), largest_component=max(map(len, graph.components), default=0),
@@ -18,6 +30,15 @@ def recognize(graph, settings):
         compute_cycles=sum(work.values()), pipe_cycles=dict(work),
         max_fanout=max(map(len, graph.succ.values()), default=0),
         tensor_bytes=tensor_bytes, reference_pressure_bytes=pressure, reference_pressure_ratio=ratio,
+        levels=max(graph.level.values(), default=-1)+1,
+        chains=len(chain_sizes), maximum_chain_operations=max(chain_sizes, default=0),
+        maximum_chain_compute_cycles=max(chain_work, default=0),
+        compute_parallelism=compute/max(1,graph.critical),
+        dominant_pipe_fraction=max(work.values(), default=0)/max(1,compute),
+        original_copy_bytes=copy_bytes, original_copy_cycles_proxy=copy_bytes/bandwidth,
+        original_copy_to_compute_ratio=copy_bytes/bandwidth/max(1,compute),
+        near_critical_fraction=sum(s <= graph.critical*.05 for s in graph.slack.values())/max(1,size),
+        squared_component_operations=sum(len(c)**2 for c in graph.components),
         edge_density=edges/max(1,size),
         note='Input-only reference order pressure; not actual Spill and not a feasibility test.')
     result['traits'] = [name for name, flag in (
@@ -26,6 +47,37 @@ def recognize(graph, settings):
         ('large', size>=2000)) if flag]
     graph.structural_features = result
     return result
+
+
+def control_profile(features, cores, seconds):
+    """Structure selects search granularity and advisory generation cost priors.
+
+    All values depend on the current input and budget; no case IDs, archived
+    scores, single-core runtime or fitted benchmark lookup table is involved.
+    """
+    n = features['operations']
+    deep = features.get('levels', 0) >= 32
+    memory_risk = features['reference_pressure_ratio'] > 1
+    limited_parallelism = features.get('compute_parallelism', float('inf')) < cores * 1.5
+    copy_heavy = features.get('original_copy_to_compute_ratio', 0) > .2
+    # These rates only decide whether to start work. They are deliberately
+    # advisory; observed phase time replaces them within the same case.
+    density = max(1., features['edge_density'])
+    scan_work = n*n*density
+    generation = dict(construction=.1+scan_work/8_000_000+n/15_000,
+                      initial_generation=.1+scan_work/20_000_000+n/10_000,
+                      local_generation=.05+scan_work/30_000_000+n/15_000)
+    return dict(memory_risk=memory_risk, limited_parallelism=limited_parallelism,
+                copy_heavy=copy_heavy,
+                generation_seconds_prior=generation,
+                calibration_interval_seconds=min(45., seconds*(.1 if memory_risk else .2)),
+                # Avoid enumerating a large Cartesian grid before any checkpoint.
+                stage_widths=([8,32] if deep else [4,16]), stage_batches=[1,2],
+                max_region_candidates=8 if limited_parallelism else 12,
+                max_structural_candidates=6 if copy_heavy else 8,
+                max_proposals_per_round=24 if n >= 2000 else 48,
+                max_cuts_per_task=4 if memory_risk else 3,
+                memory_merges=32 if n >= 2000 else 64)
 
 
 def plan_complexity(graph, plan):
@@ -65,7 +117,12 @@ class OfficialCostModel:
     def predict(self, complexity):
         units = complexity['units']
         donors = self.samples[-12:] or ([self.prior] if self.prior else [])
-        if not donors:return 0.
+        if not donors:
+            # A non-zero CPU-work prior makes the first multi-core admission
+            # meaningful. Hardware cycles and graph tensor bytes are unrelated
+            # to evaluator wall-time and intentionally absent from this formula.
+            return max(.05, complexity['units']/2_000_000 +
+                       complexity.get('events',0)/20_000 + complexity.get('tasks',0)/2_000)
         nearest = sorted(donors,key=lambda x:abs(math.log(units/x[0])))[:3]
         # Baseline includes a different preparation path: deliberately conservative
         # bootstrap estimate. Real multicore calls replace this prior immediately.
@@ -79,5 +136,5 @@ class OfficialCostModel:
 
     def metadata(self):
         return dict(source='observed_multicore_structure' if self.samples else
-                    'singlecore_time_structure_prior' if self.prior else 'unmeasured',
+                    'singlecore_time_structure_prior' if self.prior else 'input_structure_cold_start',
                     samples=len(self.samples), note='Heuristic wall seconds, separate from cycle prediction; not a bound.')
