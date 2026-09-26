@@ -64,7 +64,7 @@ class BetaPolicyTests(unittest.TestCase):
         self.assertEqual(search.states['global']['best_beta'], 2)
 
     def test_invalid_options_and_legacy_version_rejected(self):
-        good = pipeline.load_options()
+        good = pipeline.load_options(ROOT/'configs/q2/legacy_1_1.json')
         self.assertEqual(good['construction']['beta_search'], 'adaptive')
         for key, value in [('beta_search', 'unknown'), ('betas', [2, 1]), ('betas', [1, 3]),
                            ('betas', [True]), ('betas', []), ('betas', [1, 2, 3, 4, 5])]:
@@ -87,7 +87,7 @@ class BetaPolicyTests(unittest.TestCase):
 class BetaPipelineTests(unittest.TestCase):
     def run_curves(self, curves, policy='adaptive', modes=None, interrupted=None):
         """真实构造接口/前缀/发布链；用可控官方响应隔离搜索逻辑，不作为实际成绩。"""
-        options = pipeline.load_options()
+        options = pipeline.load_options(ROOT/'configs/q2/legacy_1_1.json')
         options['construction']['beta_search'] = policy
         options['enhancement']['enabled'] = False
         options['runtime'].update(wall_budget_seconds=30, final_verification_reserve_seconds=5)
@@ -179,7 +179,7 @@ class BetaPipelineTests(unittest.TestCase):
         self.assertEqual(calls[-1], ('component_grouped', 1, 'final_verification'))
 
     def test_real_duplicate_uses_cached_official_feedback_then_stops(self):
-        options = pipeline.load_options(); options['enhancement']['enabled'] = False
+        options = pipeline.load_options(ROOT/'configs/q2/legacy_1_1.json'); options['enhancement']['enabled'] = False
         with tempfile.TemporaryDirectory() as d:
             result = pipeline.solve(q2_tests.FIX/'minimal.json', 2, d, options)
             self.assertEqual(result['final_objective'], (6, 0))
@@ -194,7 +194,7 @@ class BetaPipelineTests(unittest.TestCase):
                 pipeline.solve(q2_tests.FIX/'minimal.json', 2, d, other, resume=True)
 
     def test_grid_does_not_cache_failed_evaluation(self):
-        options = pipeline.load_options(); options['construction']['beta_search'] = 'grid'
+        options = pipeline.load_options(ROOT/'configs/q2/legacy_1_1.json'); options['construction']['beta_search'] = 'grid'
         options['enhancement']['enabled'] = False
         real = pipeline.run_official
         def fail_once(graph, plan, settings, directory, timeout, calls, phase):
@@ -211,7 +211,7 @@ class BetaPipelineTests(unittest.TestCase):
             self.assertEqual([c['phase'] for c in result['official_calls']], ['B0', 'B0', 'final_verification'])
 
     def test_cached_winner_loads_its_full_matching_result(self):
-        options = pipeline.load_options()
+        options = pipeline.load_options(ROOT/'configs/q2/legacy_1_1.json')
         options['construction'].update(beta_search='fixed', scope_modes=['component_grouped', 'global'])
         options['enhancement']['enabled'] = False
         with tempfile.TemporaryDirectory() as d:

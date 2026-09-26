@@ -1,0 +1,98 @@
+{
+  "status": "USER_STOPPED_PARTIAL",
+  "reason": "User requested only partial local validation and deferred full runs to another machine.",
+  "recorded_at_utc": "2026-09-26T09:58:01.678165+00:00",
+  "stopped_pid": 66020,
+  "requested_repaired_combinations": 32,
+  "completed_repaired_combinations": 11,
+  "uncompleted_combinations": [
+    {
+      "case": "case_003",
+      "cores": 5
+    },
+    {
+      "case": "case_048",
+      "cores": 2
+    },
+    {
+      "case": "case_048",
+      "cores": 3
+    },
+    {
+      "case": "case_048",
+      "cores": 4
+    },
+    {
+      "case": "case_048",
+      "cores": 5
+    },
+    {
+      "case": "case_059",
+      "cores": 2
+    },
+    {
+      "case": "case_059",
+      "cores": 3
+    },
+    {
+      "case": "case_059",
+      "cores": 4
+    },
+    {
+      "case": "case_059",
+      "cores": 5
+    },
+    {
+      "case": "case_064",
+      "cores": 2
+    },
+    {
+      "case": "case_064",
+      "cores": 3
+    },
+    {
+      "case": "case_064",
+      "cores": 4
+    },
+    {
+      "case": "case_064",
+      "cores": 5
+    },
+    {
+      "case": "case_067",
+      "cores": 2
+    },
+    {
+      "case": "case_067",
+      "cores": 3
+    },
+    {
+      "case": "case_067",
+      "cores": 4
+    },
+    {
+      "case": "case_067",
+      "cores": 5
+    },
+    {
+      "case": "case_086",
+      "cores": 2
+    },
+    {
+      "case": "case_086",
+      "cores": 3
+    },
+    {
+      "case": "case_086",
+      "cores": 4
+    },
+    {
+      "case": "case_086",
+      "cores": 5
+    }
+  ],
+  "ablations_executed": false,
+  "full_100x4_executed": false,
+  "interrupted_attempt": "repair/case_003/.N5-attempt-yzlh763l",
+  "checkpoint_is_not_a_verified_result": true
+}

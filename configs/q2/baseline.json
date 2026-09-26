@@ -1,5 +1,5 @@
 {
-  "algorithm_version": "Q2-Baseline-AdaptiveBeta-1.1",
+  "algorithm_version": "Q2-Repair-2.0",
   "construction": {
     "beta_search": "adaptive",
     "scope_modes": [
@@ -19,19 +19,25 @@
     "official_rank_fields": [
       "makespan",
       "added_copy_bytes",
-      "mode_order",
-      "beta"
-    ]
+      "stable_candidate_order"
+    ],
+    "encodings": [
+      "legacy",
+      "commit",
+      "tail"
+    ],
+    "component_candidates": true,
+    "beta_continuation": "plateau"
   },
   "enhancement": {
     "enabled": true,
-    "objective": "max_normalized_no_spill_peak",
+    "objective": "capacity_min_disruption",
     "window_subgraphs": 8,
-    "max_windows": 32,
-    "keep_original_on_equal_peak": true,
+    "max_windows": 8,
     "apply_incomplete_window": false,
     "release_swap_fastpath": false,
-    "full_evaluate_each_window": false
+    "block_operations": 32,
+    "spill_gate": true
   },
   "runtime": {
     "wall_budget_seconds": 600,

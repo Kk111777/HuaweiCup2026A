@@ -1,6 +1,8 @@
 """规范第 5–9 节：纯增量试放、核心持续状态、四短名单联动生长。"""
 from dataclasses import dataclass
 import heapq
+import json
+from .contracts import ConstructionDraft
 
 
 class BudgetExpired(TimeoutError):
@@ -26,6 +28,7 @@ class State:
         self.orders = [[] for _ in range(cores)]
         self.groups = []; self.current = set(); self.current_core = None
         self.subgraph_work = [0, 0]; self.limit = 0
+        self.commit_order = []; self.close_records = []
 
     def plan(self, graph):
         if any(k < 0 for k in self.core): raise ValueError('partial plan cannot be published')
@@ -127,13 +130,19 @@ def commit(g, s, trial, *, seed=False, limit=None):
     s.compute_end[v] = trial.end; s.core[v] = k; s.sgid[v] = j
     s.work[k][g.pipe[v]] += g.duration[v]; s.subgraph_work[g.pipe[v]] += g.duration[v]
     s.groups[j].append(v); s.current.add(v); s.ready.remove(v)
+    s.commit_order.append(v)
     for w in g.succs[v]:
         s.remaining_preds[w] -= 1
         if s.remaining_preds[w] == 0: s.ready.add(w)
     s.version += 1
 
 
-def close(s):
+def close(s, reason='explicit_close', advantage=None):
+    if s.current:
+        s.close_records.append(dict(sgid=len(s.groups)-1, core=s.current_core,
+                                   reason=reason, work=tuple(s.subgraph_work), limit=s.limit,
+                                   work_over_limit=max(s.subgraph_work)/max(1, s.limit),
+                                   core_advantage=advantage))
     s.current = set(); s.current_core = None; s.subgraph_work = [0, 0]; s.limit = 0
 
 
@@ -158,7 +167,7 @@ def shortlist(g, s, scope, count, stats):
     return selected
 
 
-def construct(g, cores, mode, beta, count=8, check=lambda: None, trace=None, *, stats=None):
+def construct_candidate(g, cores, mode, beta, count=8, check=lambda: None, trace=None, *, stats=None):
     s = State(g, cores)
     # 调用方持有计数器，预算中断后仍能记录已付出的构造成本。
     if stats is None: stats = {}
@@ -181,21 +190,31 @@ def construct(g, cores, mode, beta, count=8, check=lambda: None, trace=None, *, 
                 commit(g, s, best, seed=True, limit=limit)
             else:
                 candidates = shortlist(g, s, scope, count, stats)
-                if not candidates: close(s); continue
+                if not candidates: close(s, 'no_eligible_candidate'); continue
                 ranked = []
                 for v in candidates:
                     check(); ts = trials(v); current = ts[s.current_core]
                     advantage = min((t.score for t in ts if t.core != s.current_core), default=current.score)-current.score
                     ranked.append(((-advantage, -g.b[v], current.added_bytes, g.ids[v]), current))
                 rank, best = min(ranked, key=lambda x: x[0])
-                if rank[0] > 0: close(s); continue
+                if rank[0] > 0: close(s, 'negative_core_advantage', -rank[0]); continue
                 commit(g, s, best)
             remaining -= 1
             if trace is not None:
                 trace({'version': s.version, 'op_id': g.ids[best.op], 'core': best.core,
                        'sgid': s.sgid[best.op], 'proxy_score': best.score})
-        close(s)
+        close(s, 'scope_exhausted')
     expected = g.base_traffic(s.core)
     if expected != (s.copy_work, s.copy_bytes): raise AssertionError('incremental/formula traffic mismatch')
-    return s.plan(g), dict(mode=mode, beta=beta, proxy_J=s.score, base_copy_work=s.copy_work,
-                         base_copy_bytes=s.copy_bytes, **stats)
+    info = dict(mode=mode, beta=beta, proxy_J=s.score, base_copy_work=s.copy_work,
+                base_copy_bytes=s.copy_bytes, close_records=s.close_records,
+                proxy_clocks=s.clocks, proxy_peaks=s.peaks,
+                proxy_semantics='historical_max; append_source_MTE3; global_remaining_consumers', **stats)
+    return ConstructionDraft(tuple(s.core), tuple(s.commit_order), tuple(map(tuple, s.groups)),
+                             json.dumps(s.plan(g)), 'linked', mode, beta, json.dumps(info))
+
+
+def construct(g, cores, mode, beta, count=8, check=lambda: None, trace=None, *, stats=None):
+    """Compatibility wrapper; exactly the same construction kernel as Q2 2.0."""
+    draft = construct_candidate(g, cores, mode, beta, count, check, trace, stats=stats)
+    return draft.legacy_plan, draft.diagnostics

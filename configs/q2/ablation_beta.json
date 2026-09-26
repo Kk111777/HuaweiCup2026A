@@ -1,0 +1,53 @@
+{
+  "algorithm_version": "Q2-Repair-2.0",
+  "construction": {
+    "beta_search": "adaptive",
+    "scope_modes": [
+      "global",
+      "component_grouped"
+    ],
+    "betas": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "shortlist_k": 8,
+    "accept_zero_core_advantage": true,
+    "reuse_identical_plan_evaluations": true,
+    "baseline_selection": "best_official_objective",
+    "official_rank_fields": [
+      "makespan",
+      "added_copy_bytes",
+      "stable_candidate_order"
+    ],
+    "encodings": [
+      "legacy"
+    ],
+    "component_candidates": false,
+    "beta_continuation": "plateau"
+  },
+  "enhancement": {
+    "enabled": true,
+    "objective": "max_normalized_no_spill_peak",
+    "window_subgraphs": 8,
+    "max_windows": 32,
+    "apply_incomplete_window": false,
+    "release_swap_fastpath": false,
+    "block_operations": 32,
+    "spill_gate": false
+  },
+  "runtime": {
+    "wall_budget_seconds": 600,
+    "final_verification_reserve_seconds": 60,
+    "workers": 1,
+    "recheck_written_plan": true,
+    "debug_trace": false
+  },
+  "validation": {
+    "verify_official_hashes": true,
+    "strict_official_config": true,
+    "no_unverified_output": true,
+    "check_step1_sequence_roundtrip": true
+  }
+}

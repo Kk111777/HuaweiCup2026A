@@ -1,0 +1,288 @@
+{
+  "legacy": {
+    "identity": {
+      "problem": 2,
+      "scene": "B",
+      "schema_version": 1,
+      "case": "case_001",
+      "num_cores": 2,
+      "graph_sha256": "a634cd1151c0e918dd3a143eba421b88907f7f0334bfe6a5ca0412342307f09f",
+      "config_sha256": "dcd10de54b23f8366428fb24e828812b1da9549e6eae4a3c3f38604fe5ae77b9",
+      "official_sha256": {
+        "code/contest_io.py": "d5936908e4c261c7003b78e783f30bd7d65cb38d6b53a269ea67f0103cac848e",
+        "code/evaluation_validation.py": "103206b8c5c25e37de50cc3193de3989d7c1e01d4a11cc5f509dedd8f9be9a64",
+        "code/multicore_cut_evaluate_problem_1.py": "2095f188a6c24ce3899f156bef21d50dcd87cbd9368488046b1e77e2bf91af3f",
+        "code/multicore_cut_evaluate_problem_2.py": "0b39f84d5ec0a7fba9a4c92a598a9044b97ab79c71393824c1ba130ecfe6c464",
+        "code/multicore_cut_evaluate_problem_3.py": "eab1504dead881f4b67c0f0498cbc2dbbd9039dc3c9d198c6af58773c127eeb0",
+        "code/schedule_step1.py": "d8fe721ff3dbe036e34a20c00cce6430960860000a49eb467e63465f76b84034",
+        "code/schedule_step2.py": "2836baac176f4e0bdd9eec59b8d9ce254e209e5f7a251e23837ab684312fa0c3",
+        "code/schedule_step3.py": "50053db0436f1d166dd75436693ba3af49b5c339576beb6e7299477f6b69fc7a",
+        "code/singlecore_evaluate.py": "446b753ee134ef1fec8e052356bb077a2602fbe95572ccd3dddd7928e894b77a",
+        "code/stub_multicore_cut_and_schedule.py": "0a3a3b79b5173b466fc05fc8d33b72d11d90b4df78995435853d91c632a35892",
+        "data/config.txt": "dcd10de54b23f8366428fb24e828812b1da9549e6eae4a3c3f38604fe5ae77b9"
+      },
+      "source_sha256": {
+        "src/q2/__init__.py": "37b04809b7e097e76de9935b5240b584e46b89ebe1ca929c5056f4f72538b3fa",
+        "src/q2/__main__.py": "f3e74b891125147746a3566b5b4e3511c218d0bdd8399c2ecd0ff3cc18527d52",
+        "src/q2/affinity.py": "c6d429797cf8c4d2fda289e60c0d560a72e633a80db1364f59625172521150f1",
+        "src/q2/beta.py": "d6c289a6642f616e50ac36e98ac95e1706225e15648bb4fdbeff87d237b8bad7",
+        "src/q2/candidates.py": "15f3f72f9397e42e083a0ccc6e5b2759c0615dd2a8ced5d409ee7759ebaec03a",
+        "src/q2/capacity.py": "4c29bdf9f8d5ee81a9470e5d164f4866628f88c3b422d1831f7fbc516f102638",
+        "src/q2/construct.py": "dd414b70337f69d5ceabedd088b77ebb8533b7a82bd70c346d9408ae8285858f",
+        "src/q2/contracts.py": "5c81b9aceaa0753117309dfd668f6b8bb75b0a2afaf0d40f7b80364492c5b89d",
+        "src/q2/encoding.py": "1b2bceb9bd3a36c3ad3e8300549f1e8394b591ef6f7e3bcc77a4c1f86e0d6c2f",
+        "src/q2/graph.py": "499141bb76f616d9e633c4005e806f5683f674bd4fc73a1331e20885a48df5b3",
+        "src/q2/memory.py": "f4fb7a7dd01dabaa94056dbaef601b3c7d7b9bd68070e6f16ae29a938bb98433",
+        "src/q2/official.py": "511384cfdcc292ea01fa5d57200956212cd2f757bd7290b060e62bfed7da5367",
+        "src/q2/pipeline.py": "b21a1b61ff2588e8c294b53221340d61461322f0a75e730d71c7cdb8e18d1f2a",
+        "src/q2/prefix.py": "646176855858885d202a414bc4544f16fe1ba59394d5dbecdc247a8f7eda01c0",
+        "src/q2/window.py": "cff2fe0d930053af6f8cded26a3686c1ebdc8a3d72040282ccf7d50f12746a73",
+        "src/common/__init__.py": "7c786f744ae7ffe6bd910e50ea4ef167336232b1f900f8c19fa59013365c3a33",
+        "src/common/artifacts.py": "e6c157db0d669027a3000c60a8d16aaa643a543c62680b6b0f03af9103170a79",
+        "src/common/baseline.py": "f85f81d2371cb0cdf6962c39bfc0d659599d8fcac02d08598962828961b39140",
+        "src/problem_1_baseline.py": "619204ae8dc637922439f39b50c1d1c911813690b92b45519ab6d2f82eb789c0",
+        "src/solve_problem2.py": "3f067184cf250414e70fd02cba7dbb66df86140e4c464c6364e87227deb22d46",
+        "configs/q2/official_sha256.json": "681656e9fe2d025cb43c2a75842fce0990a1091d143c52380256447642d09566"
+      },
+      "algorithm": {
+        "algorithm_version": "Q2-Baseline-AdaptiveBeta-1.1",
+        "construction": {
+          "beta_search": "adaptive",
+          "scope_modes": [
+            "global",
+            "component_grouped"
+          ],
+          "betas": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "shortlist_k": 8,
+          "accept_zero_core_advantage": true,
+          "reuse_identical_plan_evaluations": true,
+          "baseline_selection": "best_official_objective",
+          "official_rank_fields": [
+            "makespan",
+            "added_copy_bytes",
+            "mode_order",
+            "beta"
+          ]
+        },
+        "enhancement": {
+          "enabled": true,
+          "objective": "max_normalized_no_spill_peak",
+          "window_subgraphs": 8,
+          "max_windows": 32,
+          "keep_original_on_equal_peak": true,
+          "apply_incomplete_window": false,
+          "release_swap_fastpath": false,
+          "full_evaluate_each_window": false
+        },
+        "runtime": {
+          "wall_budget_seconds": 600,
+          "final_verification_reserve_seconds": 60,
+          "workers": 1,
+          "recheck_written_plan": true,
+          "debug_trace": false
+        },
+        "validation": {
+          "verify_official_hashes": true,
+          "strict_official_config": true,
+          "no_unverified_output": true,
+          "check_step1_sequence_roundtrip": true
+        }
+      },
+      "python": {
+        "executable": "C:\\Users\\10433\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "version": "3.12.14"
+      },
+      "baseline": {
+        "case": "case_001",
+        "makespan_cycles": 233110,
+        "baseline_ref": {
+          "archive": "results/problem_1_singlecore",
+          "manifest_sha256": "54f10fc9c5d1631f72f5decdc51ea41458e6ea900ec3d4d26e422f20368be2ba",
+          "case": "case_001",
+          "result": "case_001/case_001_singlecore_res.json",
+          "result_sha256": "5b77f444d6312da76778dc92e8a1dadfc74283352916755ab498d2d5c6a2ce28"
+        }
+      }
+    },
+    "fingerprint": "0e89f0d5a096255cbbc789a28b1121c0799fcc4e50c0478a1f0ac51f69eb0cb8",
+    "git_head": "74714709ad70659638554ca7959e5463fc773457",
+    "git_status": [
+      " M configs/q2/baseline.json",
+      " M src/q2/__main__.py",
+      " M src/q2/beta.py",
+      " M src/q2/construct.py",
+      " M src/q2/pipeline.py",
+      " M tests/test_q2.py",
+      " M tests/test_q2_beta.py",
+      "?? configs/q2/ablation_affinity.json",
+      "?? configs/q2/ablation_beta.json",
+      "?? configs/q2/ablation_capacity.json",
+      "?? configs/q2/ablation_order.json",
+      "?? configs/q2/legacy_1_1.json",
+      "?? src/q2/affinity.py",
+      "?? src/q2/candidates.py",
+      "?? src/q2/capacity.py",
+      "?? src/q2/contracts.py",
+      "?? src/q2/encoding.py",
+      "?? tests/fixtures/q2_repair/",
+      "?? tests/test_q2_repair_pipeline.py",
+      "?? tests/test_q2_repairs.py"
+    ],
+    "platform": "Windows-11-10.0.26200-SP0",
+    "created_at": "2026-09-26T09:24:19.372333+00:00"
+  },
+  "repair": {
+    "identity": {
+      "problem": 2,
+      "scene": "B",
+      "schema_version": 1,
+      "case": "case_001",
+      "num_cores": 2,
+      "graph_sha256": "a634cd1151c0e918dd3a143eba421b88907f7f0334bfe6a5ca0412342307f09f",
+      "config_sha256": "dcd10de54b23f8366428fb24e828812b1da9549e6eae4a3c3f38604fe5ae77b9",
+      "official_sha256": {
+        "code/contest_io.py": "d5936908e4c261c7003b78e783f30bd7d65cb38d6b53a269ea67f0103cac848e",
+        "code/evaluation_validation.py": "103206b8c5c25e37de50cc3193de3989d7c1e01d4a11cc5f509dedd8f9be9a64",
+        "code/multicore_cut_evaluate_problem_1.py": "2095f188a6c24ce3899f156bef21d50dcd87cbd9368488046b1e77e2bf91af3f",
+        "code/multicore_cut_evaluate_problem_2.py": "0b39f84d5ec0a7fba9a4c92a598a9044b97ab79c71393824c1ba130ecfe6c464",
+        "code/multicore_cut_evaluate_problem_3.py": "eab1504dead881f4b67c0f0498cbc2dbbd9039dc3c9d198c6af58773c127eeb0",
+        "code/schedule_step1.py": "d8fe721ff3dbe036e34a20c00cce6430960860000a49eb467e63465f76b84034",
+        "code/schedule_step2.py": "2836baac176f4e0bdd9eec59b8d9ce254e209e5f7a251e23837ab684312fa0c3",
+        "code/schedule_step3.py": "50053db0436f1d166dd75436693ba3af49b5c339576beb6e7299477f6b69fc7a",
+        "code/singlecore_evaluate.py": "446b753ee134ef1fec8e052356bb077a2602fbe95572ccd3dddd7928e894b77a",
+        "code/stub_multicore_cut_and_schedule.py": "0a3a3b79b5173b466fc05fc8d33b72d11d90b4df78995435853d91c632a35892",
+        "data/config.txt": "dcd10de54b23f8366428fb24e828812b1da9549e6eae4a3c3f38604fe5ae77b9"
+      },
+      "source_sha256": {
+        "src/q2/__init__.py": "37b04809b7e097e76de9935b5240b584e46b89ebe1ca929c5056f4f72538b3fa",
+        "src/q2/__main__.py": "f3e74b891125147746a3566b5b4e3511c218d0bdd8399c2ecd0ff3cc18527d52",
+        "src/q2/affinity.py": "c6d429797cf8c4d2fda289e60c0d560a72e633a80db1364f59625172521150f1",
+        "src/q2/beta.py": "511b8aef3693b834427ddb07445a5305025c36e5edc8edf6919df52e6acfa08d",
+        "src/q2/candidates.py": "c8c5b129307cbd6cf7aa78aa782c1939d70e0746798e7d48433cf9462c8c3a8c",
+        "src/q2/capacity.py": "4c29bdf9f8d5ee81a9470e5d164f4866628f88c3b422d1831f7fbc516f102638",
+        "src/q2/construct.py": "dd414b70337f69d5ceabedd088b77ebb8533b7a82bd70c346d9408ae8285858f",
+        "src/q2/contracts.py": "5c81b9aceaa0753117309dfd668f6b8bb75b0a2afaf0d40f7b80364492c5b89d",
+        "src/q2/encoding.py": "1b2bceb9bd3a36c3ad3e8300549f1e8394b591ef6f7e3bcc77a4c1f86e0d6c2f",
+        "src/q2/graph.py": "499141bb76f616d9e633c4005e806f5683f674bd4fc73a1331e20885a48df5b3",
+        "src/q2/memory.py": "f4fb7a7dd01dabaa94056dbaef601b3c7d7b9bd68070e6f16ae29a938bb98433",
+        "src/q2/official.py": "511384cfdcc292ea01fa5d57200956212cd2f757bd7290b060e62bfed7da5367",
+        "src/q2/pipeline.py": "b21a1b61ff2588e8c294b53221340d61461322f0a75e730d71c7cdb8e18d1f2a",
+        "src/q2/prefix.py": "646176855858885d202a414bc4544f16fe1ba59394d5dbecdc247a8f7eda01c0",
+        "src/q2/window.py": "cff2fe0d930053af6f8cded26a3686c1ebdc8a3d72040282ccf7d50f12746a73",
+        "src/common/__init__.py": "7c786f744ae7ffe6bd910e50ea4ef167336232b1f900f8c19fa59013365c3a33",
+        "src/common/artifacts.py": "e6c157db0d669027a3000c60a8d16aaa643a543c62680b6b0f03af9103170a79",
+        "src/common/baseline.py": "f85f81d2371cb0cdf6962c39bfc0d659599d8fcac02d08598962828961b39140",
+        "src/problem_1_baseline.py": "619204ae8dc637922439f39b50c1d1c911813690b92b45519ab6d2f82eb789c0",
+        "src/solve_problem2.py": "3f067184cf250414e70fd02cba7dbb66df86140e4c464c6364e87227deb22d46",
+        "configs/q2/official_sha256.json": "681656e9fe2d025cb43c2a75842fce0990a1091d143c52380256447642d09566"
+      },
+      "algorithm": {
+        "algorithm_version": "Q2-Repair-2.0",
+        "construction": {
+          "beta_search": "adaptive",
+          "scope_modes": [
+            "global",
+            "component_grouped"
+          ],
+          "betas": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "shortlist_k": 8,
+          "accept_zero_core_advantage": true,
+          "reuse_identical_plan_evaluations": true,
+          "baseline_selection": "best_official_objective",
+          "official_rank_fields": [
+            "makespan",
+            "added_copy_bytes",
+            "stable_candidate_order"
+          ],
+          "encodings": [
+            "legacy",
+            "commit",
+            "tail"
+          ],
+          "component_candidates": true,
+          "beta_continuation": "plateau"
+        },
+        "enhancement": {
+          "enabled": true,
+          "objective": "capacity_min_disruption",
+          "window_subgraphs": 8,
+          "max_windows": 8,
+          "apply_incomplete_window": false,
+          "release_swap_fastpath": false,
+          "block_operations": 32,
+          "spill_gate": true
+        },
+        "runtime": {
+          "wall_budget_seconds": 600,
+          "final_verification_reserve_seconds": 60,
+          "workers": 1,
+          "recheck_written_plan": true,
+          "debug_trace": false
+        },
+        "validation": {
+          "verify_official_hashes": true,
+          "strict_official_config": true,
+          "no_unverified_output": true,
+          "check_step1_sequence_roundtrip": true
+        }
+      },
+      "python": {
+        "executable": "C:\\Users\\10433\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "version": "3.12.14"
+      },
+      "baseline": {
+        "case": "case_001",
+        "makespan_cycles": 233110,
+        "baseline_ref": {
+          "archive": "results/problem_1_singlecore",
+          "manifest_sha256": "54f10fc9c5d1631f72f5decdc51ea41458e6ea900ec3d4d26e422f20368be2ba",
+          "case": "case_001",
+          "result": "case_001/case_001_singlecore_res.json",
+          "result_sha256": "5b77f444d6312da76778dc92e8a1dadfc74283352916755ab498d2d5c6a2ce28"
+        }
+      }
+    },
+    "fingerprint": "8f05a3533a1f4cbf7d5e55fa732631d3d7040de67cc448dcd48e2b07aa6fa36c",
+    "git_head": "74714709ad70659638554ca7959e5463fc773457",
+    "git_status": [
+      " M README.md",
+      " M configs/q2/baseline.json",
+      " M docs/architecture.md",
+      " M docs/q2/adaptive_beta.md",
+      " M docs/q2/baseline.md",
+      " M src/q2/__main__.py",
+      " M src/q2/beta.py",
+      " M src/q2/construct.py",
+      " M src/q2/pipeline.py",
+      " M tests/test_q2.py",
+      " M tests/test_q2_beta.py",
+      "?? configs/q2/ablation_affinity.json",
+      "?? configs/q2/ablation_beta.json",
+      "?? configs/q2/ablation_capacity.json",
+      "?? configs/q2/ablation_order.json",
+      "?? configs/q2/legacy_1_1.json",
+      "?? docs/q2/repair.md",
+      "?? scripts/validate_q2_repair.py",
+      "?? src/q2/affinity.py",
+      "?? src/q2/candidates.py",
+      "?? src/q2/capacity.py",
+      "?? src/q2/contracts.py",
+      "?? src/q2/encoding.py",
+      "?? tests/fixtures/q2_repair/",
+      "?? tests/test_q2_repair_pipeline.py",
+      "?? tests/test_q2_repairs.py"
+    ],
+    "platform": "Windows-11-10.0.26200-SP0",
+    "created_at": "2026-09-26T09:42:02.465992+00:00"
+  }
+}

@@ -29,11 +29,14 @@ from .window import Window, choose_window, solve_window, apply_order
 def load_options(path=None):
     defaults = read_json(ROOT/'configs/q2/baseline.json')
     options = read_json(path) if path else defaults
-    return validate_options(options, defaults)
+    return validate_options(options)
 
 
 def validate_options(options, defaults=None):
-    if defaults is None: defaults = read_json(ROOT/'configs/q2/baseline.json')
+    if options.get('algorithm_version') == 'Q2-Baseline-AdaptiveBeta-1.1':
+        defaults = read_json(ROOT/'configs/q2/legacy_1_1.json')
+    elif defaults is None: defaults = read_json(ROOT/'configs/q2/baseline.json')
+    repair = options.get('algorithm_version') == 'Q2-Repair-2.0'
     if set(options) != set(defaults): raise Q2Error('INPUT_INVALID', 'algorithm config fields differ')
     for group in ('construction', 'enhancement', 'runtime', 'validation'):
         if set(options[group]) != set(defaults[group]): raise Q2Error('INPUT_INVALID', f'{group}: unknown/missing options')
@@ -56,8 +59,8 @@ def validate_options(options, defaults=None):
             raise Q2Error('INPUT_INVALID', key)
     if r['final_verification_reserve_seconds'] >= r['wall_budget_seconds']:
         raise Q2Error('INPUT_INVALID', 'reserve must be smaller than wall budget')
-    for group, editable in [('construction', {'scope_modes', 'betas', 'shortlist_k', 'beta_search'}),
-                            ('enhancement', {'enabled', 'window_subgraphs', 'max_windows'}),
+    for group, editable in [('construction', {'scope_modes', 'betas', 'shortlist_k', 'beta_search'} | ({'encodings', 'component_candidates', 'beta_continuation'} if repair else set())),
+                            ('enhancement', {'enabled', 'window_subgraphs', 'max_windows'} | ({'objective', 'spill_gate', 'block_operations'} if repair else set())),
                             ('runtime', {'wall_budget_seconds', 'final_verification_reserve_seconds', 'workers', 'debug_trace'}),
                             ('validation', set())]:
         for k, v in options[group].items():
@@ -67,6 +70,19 @@ def validate_options(options, defaults=None):
         if type(v) is not bool: raise Q2Error('INPUT_INVALID', 'boolean flag required')
     if options['algorithm_version'] != defaults['algorithm_version']:
         raise Q2Error('INPUT_INVALID', 'unknown algorithm version')
+    if repair:
+        if (not isinstance(c['encodings'], list) or not c['encodings'] or
+                len(set(c['encodings'])) != len(c['encodings']) or
+                any(x not in ('legacy', 'commit', 'tail') for x in c['encodings'])):
+            raise Q2Error('INPUT_INVALID', 'invalid encodings')
+        if c['beta_continuation'] not in ('plateau', 'strict'):
+            raise Q2Error('INPUT_INVALID', 'invalid beta continuation')
+        if type(c['component_candidates']) is not bool or type(e['spill_gate']) is not bool:
+            raise Q2Error('INPUT_INVALID', 'boolean flags required')
+        if e['objective'] not in ('capacity_min_disruption', 'max_normalized_no_spill_peak'):
+            raise Q2Error('INPUT_INVALID', 'unknown enhancement objective')
+        if type(e['block_operations']) is not int or not 1 <= e['block_operations'] <= 128:
+            raise Q2Error('INPUT_INVALID', 'invalid block operations')
     return options
 
 
@@ -206,6 +222,16 @@ def select_final(baseline, enhanced):
     return 'B1' if enhanced is not None and objective(enhanced) < objective(baseline) else 'B0'
 
 
+def load_baseline_result(directory):
+    """Load a published, hash-verified Q2 2.0 snapshot for a future optimizer."""
+    from .contracts import BaselineResult
+    directory = Path(directory)
+    complete = read_json(directory/'complete.json')
+    if not reusable(directory, complete.get('fingerprint')):
+        raise Q2Error('RESULT_MISMATCH', 'baseline artifacts failed integrity check')
+    return BaselineResult.from_record(read_json(directory/'baseline_state.json'))
+
+
 def solve(graph_path, cores, output, options=None, reference=ROOT/'official', config=None, resume=False, baseline=None):
     graph_path = Path(graph_path).resolve(); directory = Path(output).resolve()/graph_path.stem/f'N{cores}'
     directory.parent.mkdir(parents=True, exist_ok=True)
@@ -237,161 +263,171 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
     try:
         started = time.monotonic(); raw = read_json(graph_path); g = Graph(raw, settings)
         stages['graph_seconds'] = time.monotonic()-started
-        baseline_plan = baseline_result = None
-        c = options['construction']; prefix_seconds = 0.; construction_seconds = 0.
-        modes = [mode for mode in c['scope_modes'] if mode != 'component_grouped' or len(g.components) > 1]
-        search = BetaSearch(modes, c['betas'], c['beta_search'])
-        report['search'] = search.report
-        # 仅复用完全相同方案的成功评价。等价执行图仍可能有不同子图边界及结果元数据。
-        # 缓存只保留指标、证书和落盘路径，避免持有多个完整官方结果。
-        evaluated = {}; best_key = None
-        phase = 'construction'; checkpoint()
-        debug_stream = (attempt/'construction.jsonl').open('w', encoding='utf-8') if options['runtime']['debug_trace'] else None
-        try:
-            while (spec := search.next_candidate()) is not None:
-                mode, beta = spec
-                interrupted = info = None
-                try:
-                    phase = 'construction'; checkpoint(); budget.check_construction(); started = time.monotonic()
-                    interrupted = dict(mode=mode, beta=beta, status='CONSTRUCTION_INCOMPLETE')
-                    stats = {}
-                    trace = (lambda ev: debug_stream.write(json.dumps(dict(mode=mode, beta=beta, **ev))+'\n')) if debug_stream else None
+        repaired = options['algorithm_version'] == 'Q2-Repair-2.0'
+        if repaired:
+            from .candidates import search_baseline
+            outcome = search_baseline(g, graph_path, cores, options, attempt, budget, calls,
+                                      candidates, windows, run_official, fp, report)
+            baseline_plan, baseline_result = outcome['baseline_plan'], outcome['baseline_result']
+            enhanced, selected = outcome['enhanced'], outcome['selected']
+            final_plan, final_result = outcome['final_plan'], outcome['final_result']
+            stop, accepted = outcome['stop'], outcome['accepted']
+        else:
+            baseline_plan = baseline_result = None
+            c = options['construction']; prefix_seconds = 0.; construction_seconds = 0.
+            modes = [mode for mode in c['scope_modes'] if mode != 'component_grouped' or len(g.components) > 1]
+            search = BetaSearch(modes, c['betas'], c['beta_search'])
+            report['search'] = search.report
+            # 仅复用完全相同方案的成功评价。等价执行图仍可能有不同子图边界及结果元数据。
+            # 缓存只保留指标、证书和落盘路径，避免持有多个完整官方结果。
+            evaluated = {}; best_key = None
+            phase = 'construction'; checkpoint()
+            debug_stream = (attempt/'construction.jsonl').open('w', encoding='utf-8') if options['runtime']['debug_trace'] else None
+            try:
+                while (spec := search.next_candidate()) is not None:
+                    mode, beta = spec
+                    interrupted = info = None
                     try:
-                        plan, info = construct(g, cores, mode, beta, c['shortlist_k'], budget.check_construction, trace, stats=stats)
-                    finally:
-                        elapsed = time.monotonic()-started
-                        construction_seconds += elapsed
-                        interrupted.update(wall_seconds=elapsed, **stats)
-                    interrupted = None
-                    info = dict(info, candidate_index=len(candidates), plan_hash=digest(plan), status='CONSTRUCTED')
-                    candidates.append(info)
-                    cached = evaluated.get(info['plan_hash'])
-                    result = None
-                    if cached is not None:
-                        if (info['base_copy_work'], info['base_copy_bytes']) != cached['traffic']:
-                            raise AssertionError('same plan has different base traffic')
-                        info.update(cached['profile'], status='DUPLICATE', evaluation_status='CACHED',
-                                    objective=cached['objective'], reused_candidate_index=cached['candidate_index'],
-                                    official_call_index=cached['official_call_index'])
-                    else:
-                        phase = 'step1_profile'; checkpoint(); budget.check(); started = time.monotonic()
-                        from stub_multicore_cut_and_schedule import MulticoreCutError
-                        from multicore_cut_evaluate_problem_2 import SceneBEvaluationError
+                        phase = 'construction'; checkpoint(); budget.check_construction(); started = time.monotonic()
+                        interrupted = dict(mode=mode, beta=beta, status='CONSTRUCTION_INCOMPLETE')
+                        stats = {}
+                        trace = (lambda ev: debug_stream.write(json.dumps(dict(mode=mode, beta=beta, **ev))+'\n')) if debug_stream else None
                         try:
-                            bundle = settings.prefix(raw, plan)
-                        except (MulticoreCutError, SceneBEvaluationError) as error:
+                            plan, info = construct(g, cores, mode, beta, c['shortlist_k'], budget.check_construction, trace, stats=stats)
+                        finally:
+                            elapsed = time.monotonic()-started
+                            construction_seconds += elapsed
+                            interrupted.update(wall_seconds=elapsed, **stats)
+                        interrupted = None
+                        info = dict(info, candidate_index=len(candidates), plan_hash=digest(plan), status='CONSTRUCTED')
+                        candidates.append(info)
+                        cached = evaluated.get(info['plan_hash'])
+                        result = None
+                        if cached is not None:
+                            if (info['base_copy_work'], info['base_copy_bytes']) != cached['traffic']:
+                                raise AssertionError('same plan has different base traffic')
+                            info.update(cached['profile'], status='DUPLICATE', evaluation_status='CACHED',
+                                        objective=cached['objective'], reused_candidate_index=cached['candidate_index'],
+                                        official_call_index=cached['official_call_index'])
+                        else:
+                            phase = 'step1_profile'; checkpoint(); budget.check(); started = time.monotonic()
+                            from stub_multicore_cut_and_schedule import MulticoreCutError
+                            from multicore_cut_evaluate_problem_2 import SceneBEvaluationError
+                            try:
+                                bundle = settings.prefix(raw, plan)
+                            except (MulticoreCutError, SceneBEvaluationError) as error:
+                                prefix_seconds += time.monotonic()-started
+                                info.update(status='PLAN_INVALID', error=str(error), evaluation_status='NOT_EVALUATED')
+                                info['search_decision'] = search.observe(mode, beta, None)
+                                checkpoint(); continue
+                            prefix_work = sum(max(1, o['cycles']) for x in bundle['cores'].values()
+                                              for o in x['graph']['ops'] if o['op'] in ('COPY_IN', 'COPY_OUT'))
+                            if (prefix_work, bundle['base_copy_bytes']) != (info['base_copy_work'], info['base_copy_bytes']):
+                                raise AssertionError('incremental/formula/official prefix traffic differs')
+                            profiles = {k: profiled(x['graph'], x['seq'], settings.capacity) for k, x in bundle['cores'].items()}
+                            info.update(profile_peak_scaled=max((p.scaled for p in profiles.values()), default=0),
+                                        execution_signature=execution_digest(bundle, settings))
                             prefix_seconds += time.monotonic()-started
-                            info.update(status='PLAN_INVALID', error=str(error), evaluation_status='NOT_EVALUATED')
-                            info['search_decision'] = search.observe(mode, beta, None)
-                            checkpoint(); continue
-                        prefix_work = sum(max(1, o['cycles']) for x in bundle['cores'].values()
-                                          for o in x['graph']['ops'] if o['op'] in ('COPY_IN', 'COPY_OUT'))
-                        if (prefix_work, bundle['base_copy_bytes']) != (info['base_copy_work'], info['base_copy_bytes']):
-                            raise AssertionError('incremental/formula/official prefix traffic differs')
+                            del bundle, profiles
+                            phase = 'baseline_official'; checkpoint(); budget.check()
+                            if baseline_result is not None and budget.remaining()-budget.reserve < budget.estimate:
+                                raise BudgetExpired('reserve final verification before another candidate evaluation')
+                            call_index = len(calls); evaluation_dir = attempt/f'eval_{call_index:03d}'
+                            result = run_official(graph_path, plan, settings, evaluation_dir,
+                                                  budget.remaining()-budget.reserve, calls, 'B0')
+                            budget.observe(calls[-1]['wall_seconds'])
+                            search.report['official_evaluations'] += int(calls[-1]['launched'])
+                            info.update(evaluation_status=calls[-1]['status'], official_call_index=call_index,
+                                        status='SUCCESS' if result is not None else calls[-1]['status'])
+                            if result is not None:
+                                info['objective'] = objective(result)
+                                evaluated[info['plan_hash']] = dict(objective=info['objective'],
+                                    traffic=(info['base_copy_work'], info['base_copy_bytes']),
+                                    profile={k: info[k] for k in ('profile_peak_scaled', 'execution_signature')},
+                                    candidate_index=info['candidate_index'], official_call_index=call_index,
+                                    result_path=evaluation_dir/'result.json')
+                        value = info.get('objective')
+                        improved_best = False
+                        if value is not None:
+                            key = (*value, ('global', 'component_grouped').index(mode), beta)
+                            if best_key is None or key < best_key:
+                                # 同方案命中只有成为新 incumbent 时才读回完整结果。
+                                baseline_result = result if result is not None else read_json(cached['result_path'])
+                                baseline_plan, best_key = plan, key
+                                improved_best = True
+                        info['search_decision'] = search.observe(mode, beta, value, cached=cached is not None)
+                        if improved_best:
+                            report['selected_candidate'] = dict(info)
+                        del result
+                        checkpoint()
+                    except BudgetExpired:
+                        if interrupted is not None: report['interrupted_construction'] = interrupted
+                        stop = 'construction_budget' if phase == 'construction' else 'initialization_budget'
+                        if info is not None and 'search_decision' not in info:
+                            info.update(evaluation_status='NOT_EVALUATED_BUDGET',
+                                        search_decision=dict(previous_makespan=None, strictly_improved=None,
+                                                             next_beta=None, stop_reason=stop))
+                        search.stop(stop); break
+            finally:
+                if debug_stream: debug_stream.close()
+            stages.update(construction_seconds=construction_seconds, step1_profile_seconds=prefix_seconds)
+            stages['initialization_official_seconds'] = sum(call['wall_seconds'] for call in calls)
+            report['evaluated_candidates'] = search.report['evaluated_candidates']
+            if baseline_result is None:
+                search.report['fallback_used'] = True
+                phase = 'fallback_official'; checkpoint()
+                fallback = dict(node_to_subgraph={str(g.ids[v]): i for i, v in enumerate(g.order)},
+                                core_schedules=[list(range(len(g.ids)))]+[[] for _ in range(cores-1)])
+                result = run_official(graph_path, fallback, settings, attempt/f'eval_{len(calls):03d}',
+                                      budget.remaining()-budget.reserve, calls, 'fallback')
+                if result is None: raise Q2Error(calls[-1]['status'], '没有完成有效 B0；未发布正式方案')
+                baseline_plan, baseline_result = fallback, result
+                budget.observe(calls[-1]['wall_seconds']); report['selected_candidate'] = dict(mode='fallback')
+            started = time.monotonic()
+            write_json(attempt/'baseline_plan.json', baseline_plan); write_json(attempt/'baseline_result.json', baseline_result)
+            stages['plan_serialization_seconds'] = time.monotonic()-started
+            phase = 'windows'; checkpoint(); started = time.monotonic()
+            trial_plan = copy.deepcopy(baseline_plan); bundle = None; processed = set(); accepted = 0
+            e = options['enhancement']
+            if e['enabled']:
+                for _ in range(e['max_windows']):
+                    try:
+                        budget.check()
+                        if bundle is None:
+                            bundle = settings.prefix(raw, trial_plan); bundle['_raw'] = raw
                         profiles = {k: profiled(x['graph'], x['seq'], settings.capacity) for k, x in bundle['cores'].items()}
-                        info.update(profile_peak_scaled=max((p.scaled for p in profiles.values()), default=0),
-                                    execution_signature=execution_digest(bundle, settings))
-                        prefix_seconds += time.monotonic()-started
-                        del bundle, profiles
-                        phase = 'baseline_official'; checkpoint(); budget.check()
-                        if baseline_result is not None and budget.remaining()-budget.reserve < budget.estimate:
-                            raise BudgetExpired('reserve final verification before another candidate evaluation')
-                        call_index = len(calls); evaluation_dir = attempt/f'eval_{call_index:03d}'
-                        result = run_official(graph_path, plan, settings, evaluation_dir,
-                                              budget.remaining()-budget.reserve, calls, 'B0')
-                        budget.observe(calls[-1]['wall_seconds'])
-                        search.report['official_evaluations'] += int(calls[-1]['launched'])
-                        info.update(evaluation_status=calls[-1]['status'], official_call_index=call_index,
-                                    status='SUCCESS' if result is not None else calls[-1]['status'])
-                        if result is not None:
-                            info['objective'] = objective(result)
-                            evaluated[info['plan_hash']] = dict(objective=info['objective'],
-                                traffic=(info['base_copy_work'], info['base_copy_bytes']),
-                                profile={k: info[k] for k in ('profile_peak_scaled', 'execution_signature')},
-                                candidate_index=info['candidate_index'], official_call_index=call_index,
-                                result_path=evaluation_dir/'result.json')
-                    value = info.get('objective')
-                    improved_best = False
-                    if value is not None:
-                        key = (*value, ('global', 'component_grouped').index(mode), beta)
-                        if best_key is None or key < best_key:
-                            # 同方案命中只有成为新 incumbent 时才读回完整结果。
-                            baseline_result = result if result is not None else read_json(cached['result_path'])
-                            baseline_plan, best_key = plan, key
-                            improved_best = True
-                    info['search_decision'] = search.observe(mode, beta, value, cached=cached is not None)
-                    if improved_best:
-                        report['selected_candidate'] = dict(info)
-                    del result
-                    checkpoint()
-                except BudgetExpired:
-                    if interrupted is not None: report['interrupted_construction'] = interrupted
-                    stop = 'construction_budget' if phase == 'construction' else 'initialization_budget'
-                    if info is not None and 'search_decision' not in info:
-                        info.update(evaluation_status='NOT_EVALUATED_BUDGET',
-                                    search_decision=dict(previous_makespan=None, strictly_improved=None,
-                                                         next_beta=None, stop_reason=stop))
-                    search.stop(stop); break
-        finally:
-            if debug_stream: debug_stream.close()
-        stages.update(construction_seconds=construction_seconds, step1_profile_seconds=prefix_seconds)
-        stages['initialization_official_seconds'] = sum(call['wall_seconds'] for call in calls)
-        report['evaluated_candidates'] = search.report['evaluated_candidates']
-        if baseline_result is None:
-            search.report['fallback_used'] = True
-            phase = 'fallback_official'; checkpoint()
-            fallback = dict(node_to_subgraph={str(g.ids[v]): i for i, v in enumerate(g.order)},
-                            core_schedules=[list(range(len(g.ids)))]+[[] for _ in range(cores-1)])
-            result = run_official(graph_path, fallback, settings, attempt/f'eval_{len(calls):03d}',
-                                  budget.remaining()-budget.reserve, calls, 'fallback')
-            if result is None: raise Q2Error(calls[-1]['status'], '没有完成有效 B0；未发布正式方案')
-            baseline_plan, baseline_result = fallback, result
-            budget.observe(calls[-1]['wall_seconds']); report['selected_candidate'] = dict(mode='fallback')
-        started = time.monotonic()
-        write_json(attempt/'baseline_plan.json', baseline_plan); write_json(attempt/'baseline_result.json', baseline_result)
-        stages['plan_serialization_seconds'] = time.monotonic()-started
-        phase = 'windows'; checkpoint(); started = time.monotonic()
-        trial_plan = copy.deepcopy(baseline_plan); bundle = None; processed = set(); accepted = 0
-        e = options['enhancement']
-        if e['enabled']:
-            for _ in range(e['max_windows']):
-                try:
-                    budget.check()
-                    if bundle is None:
-                        bundle = settings.prefix(raw, trial_plan); bundle['_raw'] = raw
-                    profiles = {k: profiled(x['graph'], x['seq'], settings.capacity) for k, x in bundle['cores'].items()}
-                    selected = choose_window(bundle, profiles, e['window_subgraphs'], processed)
-                    if selected is None: break
-                    k, left, right = selected; processed.add(selected)
-                    w = Window(bundle, k, left, right, settings.capacity)
-                    window_started = time.monotonic(); r = solve_window(w, budget.check)
-                    predicted = r.pop('predicted_seq', None)
-                    record = dict(core=k, left=left, right=right, version=accepted, **r,
-                                  wall_seconds=time.monotonic()-window_started, accepted=False)
-                    windows.append(record)
-                    if not r['completed']: stop = 'window_budget'; break
-                    if r['peak_after'] < r['peak_before']:
-                        r['predicted_seq'] = predicted
-                        trial_plan, bundle = apply_order(trial_plan, bundle, w, r, settings, profiler=profiled)
-                        accepted += 1; processed.clear(); record['accepted'] = True; record['sequence_verified'] = True
-                    checkpoint()
-                except BudgetExpired:
-                    stop = 'enhancement_budget'; break
-                except Q2Error as error:
-                    if error.status != 'WINDOW_UNSUPPORTED': raise
-                    windows.append(dict(status=error.status, error=str(error), completed=False, accepted=False))
-        stages['enhancement_seconds'] = time.monotonic()-started
-        enhanced = None
-        if trial_plan != baseline_plan:
-            phase = 'enhanced_official'; checkpoint()
-            # 没有足够时间容纳一次估计评价和最终复核时保留 B0。
-            if budget.remaining()-budget.reserve >= budget.estimate:
-                enhanced = run_official(graph_path, trial_plan, settings, attempt/f'eval_{len(calls):03d}',
-                                        budget.remaining()-budget.reserve, calls, 'B1')
-                budget.observe(calls[-1]['wall_seconds'])
-            else: stop = 'enhanced_evaluation_budget'
-        selected = select_final(baseline_result, enhanced)
-        final_plan, final_result = (trial_plan, enhanced) if selected == 'B1' else (baseline_plan, baseline_result)
+                        selected = choose_window(bundle, profiles, e['window_subgraphs'], processed)
+                        if selected is None: break
+                        k, left, right = selected; processed.add(selected)
+                        w = Window(bundle, k, left, right, settings.capacity)
+                        window_started = time.monotonic(); r = solve_window(w, budget.check)
+                        predicted = r.pop('predicted_seq', None)
+                        record = dict(core=k, left=left, right=right, version=accepted, **r,
+                                      wall_seconds=time.monotonic()-window_started, accepted=False)
+                        windows.append(record)
+                        if not r['completed']: stop = 'window_budget'; break
+                        if r['peak_after'] < r['peak_before']:
+                            r['predicted_seq'] = predicted
+                            trial_plan, bundle = apply_order(trial_plan, bundle, w, r, settings, profiler=profiled)
+                            accepted += 1; processed.clear(); record['accepted'] = True; record['sequence_verified'] = True
+                        checkpoint()
+                    except BudgetExpired:
+                        stop = 'enhancement_budget'; break
+                    except Q2Error as error:
+                        if error.status != 'WINDOW_UNSUPPORTED': raise
+                        windows.append(dict(status=error.status, error=str(error), completed=False, accepted=False))
+            stages['enhancement_seconds'] = time.monotonic()-started
+            enhanced = None
+            if trial_plan != baseline_plan:
+                phase = 'enhanced_official'; checkpoint()
+                # 没有足够时间容纳一次估计评价和最终复核时保留 B0。
+                if budget.remaining()-budget.reserve >= budget.estimate:
+                    enhanced = run_official(graph_path, trial_plan, settings, attempt/f'eval_{len(calls):03d}',
+                                            budget.remaining()-budget.reserve, calls, 'B1')
+                    budget.observe(calls[-1]['wall_seconds'])
+                else: stop = 'enhanced_evaluation_budget'
+            selected = select_final(baseline_result, enhanced)
+            final_plan, final_result = (trial_plan, enhanced) if selected == 'B1' else (baseline_plan, baseline_result)
         started = time.monotonic(); write_json(attempt/'plan.json', final_plan)
         stages['plan_serialization_seconds'] += time.monotonic()-started
         phase = 'final_verification'; checkpoint(); started = time.monotonic()
@@ -406,6 +442,7 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
         if identity(graph_path, cores, settings, options, baseline) != source:
             raise Q2Error('REFERENCE_MISMATCH', '运行期间输入或工程源码发生变化')
         stages['verification_seconds'] = time.monotonic()-started
+        if not repaired: report['search_complete'] = stop == 'completed'
         stages['official_seconds'] = sum(c['wall_seconds'] for c in calls)
         report.update(status='SUCCESS_VERIFIED', selected=selected, baseline_objective=objective(baseline_result),
                       enhanced_objective=objective(enhanced) if enhanced else None, final_objective=objective(verified),
@@ -431,6 +468,12 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
         atomic_text(attempt/'windows.jsonl', ''.join(json.dumps(r, ensure_ascii=False)+'\n' for r in windows))
         names = ['plan.json', 'result.json', 'trace.json', 'result.log', 'run.json', 'provenance.json',
                  'windows.jsonl', 'baseline_plan.json', 'baseline_result.json']
+        if repaired:
+            from .candidates import export_baseline_result
+            from dataclasses import asdict
+            snapshot = export_baseline_result(g, outcome['candidate'], verified, candidates, report['search'])
+            write_json(attempt/'baseline_state.json', asdict(snapshot))
+            names += ['baseline_state.json', 'beta_state.json']
         write_json(attempt/'complete.json', dict(status='SUCCESS_VERIFIED', fingerprint=fp, official_replay_verified=True,
                    artifacts_sha256={n: file_hash(attempt/n) for n in names}))
         attempt.rename(directory)
@@ -450,7 +493,9 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
 def summarize(rows, requested, output):
     expected = {(str(case), n) for case, n in requested}
     success = {(r['case'], r['num_cores']): r for r in rows if r['status'] == 'SUCCESS_VERIFIED'}
-    report = dict(requested=len(expected), successful=len(success), complete=len(success) == len(expected), rows=rows)
+    strategy_complete = sum(r.get('search_complete', r.get('stop_reason') == 'completed') for r in success.values())
+    report = dict(requested=len(expected), successful=len(success), complete=len(success) == len(expected),
+                  strategy_complete=strategy_complete, search_complete=strategy_complete == len(expected), rows=rows)
     report['averages'] = []
     for n in sorted({n for _, n in expected}):
         group = [r for (_, k), r in success.items() if k == n]

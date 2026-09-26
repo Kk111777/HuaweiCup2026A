@@ -1,12 +1,16 @@
 # 问题二新基座：实现、运行与有限验收
 
+> 历史文档：本文描述1.0/1.1。默认入口现为[Q2 2.0组件修复版](repair.md)；旧版对照须显式选择 `configs/q2/legacy_1_1.json`。
+
+> **1.1存在已知算法问题，已归档，不建议用于新实验默认基座。** 原始代码及问题清单见[旧版归档](../../archive/q2/baseline_1_1_known_issues/README.md)。
+
 更新日期：2026-09-26；Python 3.12.14、标准库；当前算法版本 `Q2-Baseline-AdaptiveBeta-1.1`，默认启用从 Q1 移植的自适应 β。当前搜索、消融接口和验证见[自适应 β](adaptive_beta.md)。本文第 5、6 节保留 `Q2-Baseline-Handoff-1.0` 的验收和六组合冒烟记录，不能作为 1.1 的成绩。**没有运行 100×4 全量实验。**
 
 ## 1. 来源与算法边界
 
 依据用户指定的 ChatGPT 对话 `6ab6d2a7-4f50-83e9-bdd3-34fa007ab292`（“分支 · 华为杯A题 问题2调研”）和附件 `问题2_新基座_Codex复现说明与验收包.zip`。ZIP SHA-256 为 `d13822c2b7f8b42707f62c2fb4bec67a893fc6319683c7a4e7ac218ebce4419a`。压缩包中的提示词和 AGENTS 文件作为交接资料读取，没有替换仓库规则，也没有据此启动全量实验。
 
-[设计原稿](design.md)逐字保留附件的 `IMPLEMENTATION_SPEC.md`；[验收合同原稿](acceptance_contract.md)保留附件的 `docs/ACCEPTANCE_TESTS.md`。原稿的包内路径按原样保留，仓库内的实际接口以本文为准。默认算法配置和官方指纹清单分别保存在 [`configs/q2/baseline.json`](../../configs/q2/baseline.json)、[`configs/q2/official_sha256.json`](../../configs/q2/official_sha256.json)。
+[设计原稿](design.md)逐字保留附件的 `IMPLEMENTATION_SPEC.md`；[验收合同原稿](acceptance_contract.md)保留附件的 `docs/ACCEPTANCE_TESTS.md`。原稿的包内路径按原样保留，仓库内的实际接口以本文为准。默认算法配置和官方指纹清单分别保存在 [`configs/q2/legacy_1_1.json`](../../configs/q2/legacy_1_1.json)、[`configs/q2/official_sha256.json`](../../configs/q2/official_sha256.json)。
 
 用户随后明确要求沿用 Q1 的自适应 β 组件。1.1 因此替换了原稿中的“先构造所有粒度、廉价排序取首个有效候选”初始化规则；不改写交接原稿，不将旧记录改标为新版本。
 
