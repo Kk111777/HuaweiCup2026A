@@ -1,4 +1,4 @@
-"""便宜候选排序 → 首个官方有效 B0 → 组装 B1 → 原版 CLI 独立复核。"""
+"""按官方反馈自适应 β → 最好已评价 B0 → 组装 B1 → 原版 CLI 独立复核。"""
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,6 +21,7 @@ from problem_1_baseline import output_lock
 from .official import ROOT, Settings, Q2Error, read_json, file_hash, digest, signature, objective, normalized
 from .graph import Graph
 from .construct import construct, BudgetExpired
+from .beta import BetaSearch, POLICIES
 from .memory import profile
 from .window import Window, choose_window, solve_window, apply_order
 
@@ -28,6 +29,11 @@ from .window import Window, choose_window, solve_window, apply_order
 def load_options(path=None):
     defaults = read_json(ROOT/'configs/q2/baseline.json')
     options = read_json(path) if path else defaults
+    return validate_options(options, defaults)
+
+
+def validate_options(options, defaults=None):
+    if defaults is None: defaults = read_json(ROOT/'configs/q2/baseline.json')
     if set(options) != set(defaults): raise Q2Error('INPUT_INVALID', 'algorithm config fields differ')
     for group in ('construction', 'enhancement', 'runtime', 'validation'):
         if set(options[group]) != set(defaults[group]): raise Q2Error('INPUT_INVALID', f'{group}: unknown/missing options')
@@ -36,9 +42,11 @@ def load_options(path=None):
     if (not isinstance(modes, list) or not modes or len(set(modes)) != len(modes)
         or any(m not in ('global', 'component_grouped') for m in modes)):
         raise Q2Error('INPUT_INVALID', 'invalid modes')
-    if (not isinstance(betas, list) or not betas or any(type(b) is not int or b not in (1, 2, 3, 4) for b in betas)
-        or len(set(betas)) != len(betas)):
-        raise Q2Error('INPUT_INVALID', 'invalid betas')
+    if (not isinstance(betas, list) or not betas or len(betas) > 4
+        or any(type(b) is not int for b in betas) or betas != list(range(1, len(betas)+1))):
+        raise Q2Error('INPUT_INVALID', 'betas must be an ascending prefix of [1, 2, 3, 4]')
+    if c['beta_search'] not in POLICIES:
+        raise Q2Error('INPUT_INVALID', 'beta_search must be adaptive, fixed or grid')
     for key, val, low, high in [('shortlist_k', c['shortlist_k'], 1, 8), ('window_subgraphs', e['window_subgraphs'], 1, 8),
                                 ('max_windows', e['max_windows'], 0, 32), ('workers', r['workers'], 1, 128)]:
         if type(val) is not int or not low <= val <= high: raise Q2Error('INPUT_INVALID', key)
@@ -48,7 +56,7 @@ def load_options(path=None):
             raise Q2Error('INPUT_INVALID', key)
     if r['final_verification_reserve_seconds'] >= r['wall_budget_seconds']:
         raise Q2Error('INPUT_INVALID', 'reserve must be smaller than wall budget')
-    for group, editable in [('construction', {'scope_modes', 'betas', 'shortlist_k'}),
+    for group, editable in [('construction', {'scope_modes', 'betas', 'shortlist_k', 'beta_search'}),
                             ('enhancement', {'enabled', 'window_subgraphs', 'max_windows'}),
                             ('runtime', {'wall_budget_seconds', 'final_verification_reserve_seconds', 'workers', 'debug_trace'}),
                             ('validation', set())]:
@@ -201,7 +209,7 @@ def select_final(baseline, enhanced):
 def solve(graph_path, cores, output, options=None, reference=ROOT/'official', config=None, resume=False, baseline=None):
     graph_path = Path(graph_path).resolve(); directory = Path(output).resolve()/graph_path.stem/f'N{cores}'
     directory.parent.mkdir(parents=True, exist_ok=True)
-    options = options or load_options()
+    options = load_options() if options is None else validate_options(options)
     settings = Settings.read(reference, config)
     source = identity(graph_path, cores, settings, options, baseline); fp = digest(source)
     if resume and reusable(directory, fp):
@@ -219,76 +227,118 @@ def solve(graph_path, cores, output, options=None, reference=ROOT/'official', co
     # 失败 attempt 保留证据，正式目录只在全部验证完成后原子出现。
     attempt = Path(tempfile.mkdtemp(prefix=f'.N{cores}-attempt-', dir=directory.parent))
     report = dict(case=graph_path.stem, num_cores=cores, status='RUNNING', fingerprint=fp,
+                  beta_search=options['construction']['beta_search'],
                   official_calls=calls, candidates=candidates, windows=windows, stages=stages)
     def checkpoint():
         write_json(attempt/'progress.json', dict(phase=phase, elapsed_seconds=time.monotonic()-budget.start,
-                   stop_reason=stop, official_calls=calls, completed_candidates=len(candidates), completed_windows=len(windows)))
+                   stop_reason=stop, official_calls=calls, completed_candidates=len(candidates), completed_windows=len(windows),
+                   search=report.get('search')))
         print(f'[{graph_path.stem} N{cores}] {phase}; candidates={len(candidates)} windows={len(windows)} calls={len(calls)}', flush=True)
     try:
         started = time.monotonic(); raw = read_json(graph_path); g = Graph(raw, settings)
         stages['graph_seconds'] = time.monotonic()-started
         baseline_plan = baseline_result = None
-        c = options['construction']; seen = set(); prefix_seconds = 0.; construction_seconds = 0.
+        c = options['construction']; prefix_seconds = 0.; construction_seconds = 0.
+        modes = [mode for mode in c['scope_modes'] if mode != 'component_grouped' or len(g.components) > 1]
+        search = BetaSearch(modes, c['betas'], c['beta_search'])
+        report['search'] = search.report
+        # 仅复用完全相同方案的成功评价。等价执行图仍可能有不同子图边界及结果元数据。
+        # 缓存只保留指标、证书和落盘路径，避免持有多个完整官方结果。
+        evaluated = {}; best_key = None
         phase = 'construction'; checkpoint()
         debug_stream = (attempt/'construction.jsonl').open('w', encoding='utf-8') if options['runtime']['debug_trace'] else None
         try:
-            for mode in c['scope_modes']:
-                if mode == 'component_grouped' and len(g.components) <= 1: continue
-                for beta in c['betas']:
-                    interrupted = None
+            while (spec := search.next_candidate()) is not None:
+                mode, beta = spec
+                interrupted = info = None
+                try:
+                    phase = 'construction'; checkpoint(); budget.check_construction(); started = time.monotonic()
+                    interrupted = dict(mode=mode, beta=beta, status='CONSTRUCTION_INCOMPLETE')
+                    stats = {}
+                    trace = (lambda ev: debug_stream.write(json.dumps(dict(mode=mode, beta=beta, **ev))+'\n')) if debug_stream else None
                     try:
-                        budget.check_construction(); started = time.monotonic()
-                        interrupted = dict(mode=mode, beta=beta, status='CONSTRUCTION_INCOMPLETE')
-                        stats = {}
-                        trace = (lambda ev: debug_stream.write(json.dumps(dict(mode=mode, beta=beta, **ev))+'\n')) if debug_stream else None
-                        try:
-                            plan, info = construct(g, cores, mode, beta, c['shortlist_k'], budget.check_construction, trace, stats=stats)
-                        finally:
-                            elapsed = time.monotonic()-started
-                            construction_seconds += elapsed
-                            interrupted.update(wall_seconds=elapsed, **stats)
-                        interrupted = None
+                        plan, info = construct(g, cores, mode, beta, c['shortlist_k'], budget.check_construction, trace, stats=stats)
+                    finally:
+                        elapsed = time.monotonic()-started
+                        construction_seconds += elapsed
+                        interrupted.update(wall_seconds=elapsed, **stats)
+                    interrupted = None
+                    info = dict(info, candidate_index=len(candidates), plan_hash=digest(plan), status='CONSTRUCTED')
+                    candidates.append(info)
+                    cached = evaluated.get(info['plan_hash'])
+                    result = None
+                    if cached is not None:
+                        if (info['base_copy_work'], info['base_copy_bytes']) != cached['traffic']:
+                            raise AssertionError('same plan has different base traffic')
+                        info.update(cached['profile'], status='DUPLICATE', evaluation_status='CACHED',
+                                    objective=cached['objective'], reused_candidate_index=cached['candidate_index'],
+                                    official_call_index=cached['official_call_index'])
+                    else:
                         phase = 'step1_profile'; checkpoint(); budget.check(); started = time.monotonic()
                         from stub_multicore_cut_and_schedule import MulticoreCutError
                         from multicore_cut_evaluate_problem_2 import SceneBEvaluationError
                         try:
                             bundle = settings.prefix(raw, plan)
                         except (MulticoreCutError, SceneBEvaluationError) as error:
-                            candidates.append(dict(**info, status='PLAN_INVALID', error=str(error))); continue
+                            prefix_seconds += time.monotonic()-started
+                            info.update(status='PLAN_INVALID', error=str(error), evaluation_status='NOT_EVALUATED')
+                            info['search_decision'] = search.observe(mode, beta, None)
+                            checkpoint(); continue
                         prefix_work = sum(max(1, o['cycles']) for x in bundle['cores'].values()
                                           for o in x['graph']['ops'] if o['op'] in ('COPY_IN', 'COPY_OUT'))
                         if (prefix_work, bundle['base_copy_bytes']) != (info['base_copy_work'], info['base_copy_bytes']):
                             raise AssertionError('incremental/formula/official prefix traffic differs')
                         profiles = {k: profiled(x['graph'], x['seq'], settings.capacity) for k, x in bundle['cores'].items()}
-                        execution = execution_digest(bundle, settings)
                         info.update(profile_peak_scaled=max((p.scaled for p in profiles.values()), default=0),
-                                    plan=plan, plan_hash=digest(plan), execution_signature=execution,
-                                    status='DUPLICATE' if execution in seen else 'READY')
-                        seen.add(execution); candidates.append(info)
+                                    execution_signature=execution_digest(bundle, settings))
                         prefix_seconds += time.monotonic()-started
                         del bundle, profiles
-                        phase = 'construction'; checkpoint()
-                    except BudgetExpired:
-                        if interrupted is not None: report['interrupted_construction'] = interrupted
-                        stop = 'construction_budget'; break
-                if stop != 'completed': break
+                        phase = 'baseline_official'; checkpoint(); budget.check()
+                        if baseline_result is not None and budget.remaining()-budget.reserve < budget.estimate:
+                            raise BudgetExpired('reserve final verification before another candidate evaluation')
+                        call_index = len(calls); evaluation_dir = attempt/f'eval_{call_index:03d}'
+                        result = run_official(graph_path, plan, settings, evaluation_dir,
+                                              budget.remaining()-budget.reserve, calls, 'B0')
+                        budget.observe(calls[-1]['wall_seconds'])
+                        search.report['official_evaluations'] += int(calls[-1]['launched'])
+                        info.update(evaluation_status=calls[-1]['status'], official_call_index=call_index,
+                                    status='SUCCESS' if result is not None else calls[-1]['status'])
+                        if result is not None:
+                            info['objective'] = objective(result)
+                            evaluated[info['plan_hash']] = dict(objective=info['objective'],
+                                traffic=(info['base_copy_work'], info['base_copy_bytes']),
+                                profile={k: info[k] for k in ('profile_peak_scaled', 'execution_signature')},
+                                candidate_index=info['candidate_index'], official_call_index=call_index,
+                                result_path=evaluation_dir/'result.json')
+                    value = info.get('objective')
+                    improved_best = False
+                    if value is not None:
+                        key = (*value, ('global', 'component_grouped').index(mode), beta)
+                        if best_key is None or key < best_key:
+                            # 同方案命中只有成为新 incumbent 时才读回完整结果。
+                            baseline_result = result if result is not None else read_json(cached['result_path'])
+                            baseline_plan, best_key = plan, key
+                            improved_best = True
+                    info['search_decision'] = search.observe(mode, beta, value, cached=cached is not None)
+                    if improved_best:
+                        report['selected_candidate'] = dict(info)
+                    del result
+                    checkpoint()
+                except BudgetExpired:
+                    if interrupted is not None: report['interrupted_construction'] = interrupted
+                    stop = 'construction_budget' if phase == 'construction' else 'initialization_budget'
+                    if info is not None and 'search_decision' not in info:
+                        info.update(evaluation_status='NOT_EVALUATED_BUDGET',
+                                    search_decision=dict(previous_makespan=None, strictly_improved=None,
+                                                         next_beta=None, stop_reason=stop))
+                    search.stop(stop); break
         finally:
             if debug_stream: debug_stream.close()
         stages.update(construction_seconds=construction_seconds, step1_profile_seconds=prefix_seconds)
-        ranked = sorted((x for x in candidates if x['status'] == 'READY'), key=lambda x:
-                        (x['proxy_J'], x['base_copy_bytes'], x['profile_peak_scaled'],
-                         ('global', 'component_grouped').index(x['mode']), x['beta'], signature(x['plan'])))
-        phase = 'baseline_official'; checkpoint()
-        for item in ranked:
-            result = run_official(graph_path, item['plan'], settings, attempt/f'eval_{len(calls):03d}',
-                                  budget.remaining()-budget.reserve, calls, 'B0')
-            item['evaluation_status'] = calls[-1]['status']
-            if result is not None:
-                baseline_plan, baseline_result = item['plan'], result
-                report['selected_candidate'] = {k: v for k, v in item.items() if k != 'plan'}
-                budget.observe(calls[-1]['wall_seconds']); break
-            if budget.remaining() <= budget.reserve: break
+        stages['initialization_official_seconds'] = sum(call['wall_seconds'] for call in calls)
+        report['evaluated_candidates'] = search.report['evaluated_candidates']
         if baseline_result is None:
+            search.report['fallback_used'] = True
             phase = 'fallback_official'; checkpoint()
             fallback = dict(node_to_subgraph={str(g.ids[v]): i for i, v in enumerate(g.order)},
                             core_schedules=[list(range(len(g.ids)))]+[[] for _ in range(cores-1)])
@@ -408,10 +458,16 @@ def summarize(rows, requested, output):
         report['averages'].append(dict(num_cores=n, successful_cases=len(group), requested_cases=sum(k == n for _, k in expected),
                                       speedup_cases=len(ratios), mean_speedup=sum(ratios)/len(ratios) if ratios else None))
     Path(output).mkdir(parents=True, exist_ok=True); write_json(Path(output)/'summary.json', report)
-    stream = io.StringIO(); fields = ['case', 'num_cores', 'status', 'makespan', 'added_copy_bytes', 'selected', 'wall_seconds', 'speedup']
+    stream = io.StringIO(); fields = ['case', 'num_cores', 'status', 'makespan', 'added_copy_bytes', 'selected',
+                                    'beta_search', 'selected_mode', 'selected_beta', 'evaluated_candidates',
+                                    'initialization_official_evaluations', 'initialization_cache_hits', 'wall_seconds', 'speedup']
     writer = csv.DictWriter(stream, fieldnames=fields, lineterminator='\n'); writer.writeheader()
     for r in rows:
         writer.writerow({**{f: r.get(f) for f in fields}, 'makespan': r.get('final_objective', [None])[0],
+                         'selected_mode': r.get('selected_candidate', {}).get('mode'),
+                         'selected_beta': r.get('selected_candidate', {}).get('beta'),
+                         'initialization_official_evaluations': r.get('search', {}).get('official_evaluations'),
+                         'initialization_cache_hits': r.get('search', {}).get('cache_hits'),
                          'added_copy_bytes': r.get('data_movement_bytes', {}).get('added_copy_bytes')})
     atomic_text(Path(output)/'summary.csv', stream.getvalue())
     return report
@@ -420,6 +476,7 @@ def summarize(rows, requested, output):
 def batch(graphs, cores, output, options, reference, config, workers=1, resume=False, baseline_archive=None):
     graphs = [Path(g).resolve() for g in graphs]; output = Path(output).resolve()
     options = copy.deepcopy(options); options['runtime']['workers'] = workers
+    validate_options(options)
     if not graphs or len({p.stem for p in graphs}) != len(graphs): raise Q2Error('INPUT_INVALID', 'nonempty distinct cases required')
     settings = Settings.read(reference, config)
     catalog = load_baseline_catalog(baseline_archive, graphs, settings.config, settings.root/'code', repo_root=ROOT) if baseline_archive else {}

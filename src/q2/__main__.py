@@ -3,7 +3,8 @@ import argparse
 from pathlib import Path
 import sys
 from .official import ROOT, Settings, Q2Error, read_json
-from .pipeline import load_options, batch, run_official
+from .pipeline import load_options, validate_options, batch, run_official
+from .beta import POLICIES
 
 
 def main(argv=None):
@@ -18,6 +19,8 @@ def main(argv=None):
         p.add_argument('--output-dir', type=Path, required=True)
         if name != 'verify':
             p.add_argument('--algorithm-config', type=Path, default=ROOT/'configs/q2/baseline.json')
+            p.add_argument('--beta-search', choices=POLICIES,
+                           help='adaptive: 官方周期严格下降才继续（默认）；fixed: 仅 β=1；grid: 全枚举')
             p.add_argument('--resume', action='store_true')
             p.add_argument('--wall-seconds', type=float)
             p.add_argument('--verification-reserve', type=float)
@@ -39,6 +42,7 @@ def main(argv=None):
                                   args.output_dir.resolve(), args.timeout, calls, 'verify')
             print(calls[-1]); return 0 if result is not None else 1
         options = load_options(args.algorithm_config)
+        if args.beta_search is not None: options['construction']['beta_search'] = args.beta_search
         if args.wall_seconds is not None: options['runtime']['wall_budget_seconds'] = args.wall_seconds
         if args.verification_reserve is not None: options['runtime']['final_verification_reserve_seconds'] = args.verification_reserve
         import math
@@ -52,6 +56,7 @@ def main(argv=None):
             if len(set(cores)) != len(cores) or not 1 <= workers <= 128:
                 raise Q2Error('INPUT_INVALID', 'distinct core counts and positive workers required')
         options['runtime']['workers'] = workers
+        validate_options(options)
         result = batch(graphs, cores, args.output_dir, options, args.reference_root, args.config,
                        workers, args.resume, None if args.without_baseline else args.baseline_archive)
         print(f'{result["successful"]}/{result["requested"]} SUCCESS_VERIFIED; {args.output_dir / "summary.json"}')

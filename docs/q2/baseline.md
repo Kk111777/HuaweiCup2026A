@@ -1,6 +1,6 @@
 # 问题二新基座：实现、运行与有限验收
 
-实现日期：2026-09-26；Python 3.12.14、标准库；算法版本 `Q2-Baseline-Handoff-1.0`。本次交付包含算法程序、小图差分与集成测试，以及 case_001、case_067、case_086 的 N=2、5 六组合冒烟记录。**没有运行 100×4 全量实验。**
+更新日期：2026-09-26；Python 3.12.14、标准库；当前算法版本 `Q2-Baseline-AdaptiveBeta-1.1`，默认启用从 Q1 移植的自适应 β。当前搜索、消融接口和验证见[自适应 β](adaptive_beta.md)。本文第 5、6 节保留 `Q2-Baseline-Handoff-1.0` 的验收和六组合冒烟记录，不能作为 1.1 的成绩。**没有运行 100×4 全量实验。**
 
 ## 1. 来源与算法边界
 
@@ -8,21 +8,24 @@
 
 [设计原稿](design.md)逐字保留附件的 `IMPLEMENTATION_SPEC.md`；[验收合同原稿](acceptance_contract.md)保留附件的 `docs/ACCEPTANCE_TESTS.md`。原稿的包内路径按原样保留，仓库内的实际接口以本文为准。默认算法配置和官方指纹清单分别保存在 [`configs/q2/baseline.json`](../../configs/q2/baseline.json)、[`configs/q2/official_sha256.json`](../../configs/q2/official_sha256.json)。
 
+用户随后明确要求沿用 Q1 的自适应 β 组件。1.1 因此替换了原稿中的“先构造所有粒度、廉价排序取首个有效候选”初始化规则；不改写交接原稿，不将旧记录改标为新版本。
+
 Q2 每核全部子图合成一个 Task；同核子图边界不收取 Q1 的 100 cycles 等待，跨核数据按每个 source-core→target-core 插入独立 COPY_OUT/IN 对，释放延迟为 500 cycles。固定 L1=524288、UB=131072 bytes、共享 DDR=60 bytes/cycle。官方代码、硬件配置、原始图及已归档单核结果均保持原样。
 
 完整链路为：
 
 ```text
-只读图索引 → global/component_grouped × β=1,2,3,4 联动生长
-→ 真实 Step1 前缀与闭区间内存证书 → 执行输入去重与廉价排序
-→ 首个官方有效方案 B0（必要时正式验证后备方案）
+只读图索引 → global/component_grouped 各模式 β=1 起步、独立联动生长
+→ 真实 Step1 前缀与闭区间内存证书 → 完整官方评价或同方案成功缓存
+→ β=2 起仅在官方 makespan 严格下降时继续，至多 β=4
+→ 已评价候选按官方 (makespan, added_copy_bytes) 择优得 B0（必要时验证后备）
 → 固定子图成员/核心归属，至多 32 个宽度 ≤8 的窗口 DP
 → 完整组装 B1，只做一次完整官方评价
 → 按 (makespan, added_copy_bytes) 严格择优，平局保留 B0
 → plan.json 落盘重读 → 原版官方 CLI 独立全字段复评 → 原子发布
 ```
 
-`proxy_J` 是启发式排序量，不是官方耗时的上下界。窗口 DP 精确最小化安全排列域内的 `max(L1_peak/L1_cap, UB_peak/UB_cap)`，用等价整数 `max(L1_peak, 4*UB_peak)` 比较；不保证两个分量各自不增，也不保证实际 makespan 下降。若 B1 更差、无效或超时，保留已经验证的 B0。最终复评失败则不发布成功方案。
+`proxy_J` 仍用于构造时的试放决策，不参与自适应 β 的早停或 B0 最终择优，也不是官方耗时的上下界。窗口 DP 精确最小化安全排列域内的 `max(L1_peak/L1_cap, UB_peak/UB_cap)`，用等价整数 `max(L1_peak, 4*UB_peak)` 比较；不保证两个分量各自不增，也不保证实际 makespan 下降。若 B1 更差、无效或超时，保留已经验证的 B0。最终复评失败则不发布成功方案。
 
 ## 2. 代码与工程选择
 
@@ -30,11 +33,12 @@ Q2 每核全部子图合成一个 Task；同核子图边界不收取 Q1 的 100 
 |---|---|
 | [`graph.py`](../../src/q2/graph.py) | 原 ID 的稠密映射、标准输入校验、计算 DAG、a/b、弱连通分量与基础搬运整图公式 |
 | [`construct.py`](../../src/q2/construct.py) | 持续核心状态、纯 `try_place` / 单次 `commit`、四短名单、范围与 β 构造 |
+| [`beta.py`](../../src/q2/beta.py) | adaptive / fixed / grid、各模式独立停止与搜索记录 |
 | [`prefix.py`](../../src/q2/prefix.py) | 从交接参考适配器引入的静态 Scene B 前缀；只执行基础重建与 Step1，不含 Step2/3/D |
 | [`memory.py`](../../src/q2/memory.py) | 首末触及闭区间、同时计入输入输出的无换出峰值及证书 |
 | [`window.py`](../../src/q2/window.py) | 保留外部路径的数据依赖约束、动态 COPY_IN 分桶、子集 DP、官方序列回放一致性 |
 | [`official.py`](../../src/q2/official.py) | 官方哈希及模块来源检查、严格 JSON、方案签名与指标 |
-| [`pipeline.py`](../../src/q2/pipeline.py) | 候选排序、官方子进程、时间预留、B0/B1 保护、产物、续跑与批处理 |
+| [`pipeline.py`](../../src/q2/pipeline.py) | 交错构造与官方反馈、同方案成功评价复用、时间预留、B0/B1 保护与批处理 |
 | [`solve_problem2.py`](../../src/solve_problem2.py) | `solve`、`batch`、`verify` 命令入口 |
 
 工程实现吸收 Q1 的运行经验，但没有调用其 Task 生长或核心分配模型：
@@ -69,7 +73,9 @@ python -X utf8 src/solve_problem2.py verify official/data/case_001.json outputs/
 python -X utf8 src/solve_problem2.py solve tests/fixtures/q2/minimal.json --cores 2 --without-baseline --output-dir outputs/q2_minimal
 ```
 
-`batch` 若省略 `--cases` 会枚举输入目录的全部 `case_*.json`，默认核数为 2/3/4/5。本轮所有真实运行均显式限定了三个 case 和两种核数。
+`batch` 若省略 `--cases` 会枚举输入目录的全部 `case_*.json`，默认核数为 2/3/4/5。1.0 的六组合冒烟显式限定了三个 case 和两种核数；1.1 的有限对照集合见[自适应 β 验证](adaptive_beta.md)。
+
+`solve` 和 `batch` 支持 `--beta-search adaptive|fixed|grid`；未指定时使用配置，默认 `adaptive`。消融必须使用独立输出目录。新版本改变源码和算法配置指纹，不能续用旧版成功目录。
 
 `solve --cores 1` 只供内部诊断；正式多核统计用 N=2/3/4/5，正文的固定单核点仍为 1，不使用 Q2 优化过的 N=1 方案替换单核分子或正文单核点。
 
@@ -91,13 +97,15 @@ outputs/<实验>/
 
 `plan.json` 仅含官方要求的 `node_to_subgraph` 与 `core_schedules`。`result.json` 是最终独立复评的完整结果。`run.json` 记录候选指标、去重、试放与 ready 扫描计数、短名单轮数/总数/最大值、复制元素计数、C1 证书次数/时间、窗口状态/转移/事件计数、B0/B1 指标、真实官方调用数、阶段时间、峰值内存与停止原因。预算中断的构造计数和耗时单独保存在 `interrupted_construction`，不把部分方案列为可评候选。`plan_serialization_seconds` 包含 B0 方案/结果写入及最终方案写入重读，不包括每个官方子进程的内部 I/O；其时间同样可能与其他阶段交叉。
 
+1.1 另记录 `beta_search`、`search.modes` 中逐模式已尝试 β、最好官方目标及停止原因，以及每候选的 `search_decision`、缓存来源和真实官方调用索引。CSV 追加策略、选中模式/β、候选数、初始化官方调用数和缓存命中数。`initialization_official_seconds` 属于 `official_seconds`，不能重复加总。
+
 `provenance.json` 保存输入、固定配置、10 个官方程序、算法配置、实现源码、解释器及固定单核分子的指纹，以及 Git HEAD/工作区状态。本文的六组合冒烟在提交前的源码快照上执行，实际版本以各次运行记录的逐文件 SHA-256 为准；提交整理后的源码不追溯替换旧记录。`complete.json` 校验主要产物哈希，并要求 `SUCCESS_VERIFIED` 和最终复评标记。
 
 失败或未完成尝试保留在 `case/.N*-attempt-*`，用于诊断；不覆盖旧成功目录。`--resume` 只复用完整且指纹匹配的结果，对未完成组合重新求解，不恢复半途 DP 栈。来源改变或成功产物损坏时拒绝覆盖，需新输出目录。墙钟中断位置受机器负载影响，跨机运行可能选择不同的已完成候选，不能只凭确定性并列规则声称限时结果完全一致。
 
 RSS 分别记录求解进程的历史峰值和官方子进程采样的峰值；串行批次中的求解进程峰值可能来自较早 case。它们不是同一时刻的总和，也不是整机或整个进程树的统一峰值。未设置系统级内存上限；可识别的 Python `MemoryError` 记为 `RESOURCE_LIMIT`，不凭任意退出码推测 OOM。
 
-## 5. 已运行验证
+## 5. 历史 1.0 已运行验证
 
 验收源代码为 [`tests/test_q2.py`](../../tests/test_q2.py)，附四组小图/方案 fixture。实际执行命令如下；PowerShell 的 `PYTHONUTF8=1` 同时覆盖旧 Q1 测试启动的子解释器。
 
@@ -118,7 +126,7 @@ python -X utf8 tools/benchmark_q2_trial.py official/data/case_001.json --output 
 
 验收合同中的极端多输出/重复边组合、两个缓存峰值反向变化的专项构造、OS 强制 OOM、Linux 平台及全量性能尚未逐项穷尽；资源错误仅做了受控异常注入验证，不制造真实内存耗尽。不把有限测试描述为全输入正确性证明。
 
-## 6. 性能测量与实测记录
+## 6. 历史 1.0 性能测量与实测记录
 
 微基准固定 case_001 的 600 个计算操作、801 个逻辑张量，先接受 300 个操作，留下 100 个 ready；5 核，同一份 128 次试放列表，交替测量顺序，3 次重复。所有快慢参考的分数、工作量/字节、时钟、驻留与峰值一致；父状态不变。
 

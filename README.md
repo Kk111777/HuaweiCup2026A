@@ -220,17 +220,20 @@ python src/solve_problem1.py path/to/new_graph.json --config official/data/confi
 
 ## 问题二：联动生长与精确窗口缓存排序新基座
 
-Q2 将每核全部子图合成一个 Task，跨核 COPY 等待 500 cycles。先用持续核心状态、四类短名单和增量试放构造至多八个方案，经廉价排序选择首个官方有效的 B0；再固定子图成员和核心归属，以至多 32 个、宽度至多 8 的子集 DP 窗口优化无换出归一化缓存峰值。增强方案 B1 只有在官方 `(makespan, added_copy_bytes)` 严格改善时才被保留。最终方案落盘重读，并用原版官方 CLI 全字段复评后才发布。
+Q2 将每核全部子图合成一个 Task，跨核 COPY 等待 500 cycles。持续核心状态、四类短名单和增量试放负责构造；默认沿用 Q1 的自适应 β 规则：每种模式从 β=1、2 开始，官方 makespan 严格下降才继续，最多 β=4。B0 取所有已成功评价候选中的官方字典序最优方案；再固定子图成员和核心归属，以至多 32 个、宽度至多 8 的子集 DP 窗口优化无换出归一化缓存峰值。增强方案 B1 只有在官方 `(makespan, added_copy_bytes)` 严格改善时才被保留。最终方案落盘重读，并用原版官方 CLI 全字段复评后才发布。
 
 ```powershell
 # python 指向 Python 3.12；先运行单例
 python src/solve_problem2.py solve official/data/case_001.json --cores 2 --output-dir outputs/q2_single
 
+# 自适应 β 消融：只试 β=1；grid 则完整尝试配置中的 β
+python src/solve_problem2.py solve official/data/case_001.json --cores 2 --beta-search fixed --output-dir outputs/q2_fixed
+
 # 显式限定六个冒烟组合，默认串行；不会扩展到其他 case
 python src/solve_problem2.py batch --data-dir official/data --cases case_001 case_067 case_086 --cores 2 5 --workers 1 --wall-seconds 90 --verification-reserve 15 --output-dir outputs/q2_smoke
 ```
 
-默认预算为每 case/N 600 秒，预留 60 秒复核；单核分子读取并校验现有固定归档。续跑须使用相同来源和参数并显式加 `--resume`，自定义小图可用 `--without-baseline`。本地仅进行了小图验收和六组合冒烟，没有运行 100×4 全量实验。运行、输出、工程优化与实测边界见[Q2 实现与验收](docs/q2/baseline.md)，完整算法约定见[设计原稿](docs/q2/design.md)。
+默认预算为每 case/N 600 秒，预留 60 秒复核；单核分子读取并校验现有固定归档。续跑须使用相同来源和参数并显式加 `--resume`，自定义小图可用 `--without-baseline`。没有运行 100×4 全量实验。当前版本 `Q2-Baseline-AdaptiveBeta-1.1` 的搜索、消融与验证边界见[自适应 β](docs/q2/adaptive_beta.md)；通用运行和旧版六组合记录见[Q2 实现与验收](docs/q2/baseline.md)。[设计原稿](docs/q2/design.md)保留 1.0 的交接内容，初始化的变更以当前版本说明为准。
 
 ## 日常协作
 
