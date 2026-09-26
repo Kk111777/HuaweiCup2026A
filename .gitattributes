@@ -34,3 +34,9 @@ results/q1_adaptive_100cases_20260925/** -text linguist-generated=true whitespac
 # Preserve exact ablation detail exports and their published SHA-256.
 results/q1_ablation_2400_20260926/details.csv -text linguist-generated=true whitespace=cr-at-eol
 results/q1_ablation_2400_20260926/details.json -text linguist-generated=true whitespace=cr-at-eol
+
+# Keep published Q2 result bytes stable across platforms.
+results/q2_repair_full_20260926/*.csv -text linguist-generated=true whitespace=cr-at-eol
+results/q2_repair_full_20260926/*.json -text linguist-generated=true whitespace=cr-at-eol
+results/q2_repair_full_20260926/*.txt -text linguist-generated=true whitespace=cr-at-eol
+results/q2_repair_full_20260926/*.sha256 -text linguist-generated=true whitespace=cr-at-eol
