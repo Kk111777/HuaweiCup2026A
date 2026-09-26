@@ -11,22 +11,11 @@ from .memory import events
 
 
 def profile(graph, seq, capacity):
-    local, touches = events(graph)
-    first, last = {}, {}
-    for i, o in enumerate(seq):
-        for t in touches[o]: first.setdefault(t, i); last[t] = i
-    diff = [[0] * (len(seq)+1) for _ in range(2)]
-    for t, f in first.items():
-        p, size = local[t]; diff[p][f] += size; diff[p][last[t]+1] -= size
-    curves, peaks = [], []
-    for p in (0, 1):
-        now, curve = 0, []
-        for value in diff[p][:-1]: now += value; curve.append(now)
-        curves.append(curve); peaks.append(max(curve, default=0))
-    caps = (capacity['L1'], capacity['UB'])
-    bad = [i for i in range(len(seq)) if any(curves[p][i] > caps[p] for p in (0,1))]
-    return {'curves': curves, 'peaks': peaks, 'first_overflow': bad[0] if bad else None,
-            'no_spill_certificate': not bad}
+    """Reference-format adapter; the production interval scan lives in memory.py."""
+    from .memory import profile as production_profile
+    value = production_profile(graph, seq, capacity)
+    return dict(curves=[list(row) for row in value.curve], peaks=list(value.peaks),
+                first_overflow=value.first_overflow, no_spill_certificate=value.no_spill)
 
 
 def window_predecessors(view, core, blocks):

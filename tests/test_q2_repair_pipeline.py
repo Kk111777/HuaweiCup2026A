@@ -107,7 +107,7 @@ class RepairPipelineTests(unittest.TestCase):
 
     def test_default_config_and_fixed_grid_policies(self):
         options = self.options()
-        self.assertEqual(options['algorithm_version'], 'Q2-Repair-2.0')
+        self.assertEqual(options['algorithm_version'], 'Q2-Repair-2.1')
         self.assertEqual(options['construction']['beta_search'], 'adaptive')
         for policy, expected in [('fixed',[1]),('grid',[1,2,3,4])]:
             beta = PlateauBeta(['s'],4,policy); visited=[]

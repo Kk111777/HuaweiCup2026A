@@ -1,11 +1,11 @@
 # Q2 2.0：顺序保真、分量局部性与容量修复
 
-默认版本为 `Q2-Repair-2.0`，Python 3.12，仅标准库。默认配置是
+本文记录2.0修复算法；当前默认 `Q2-Repair-2.1` 保留这些算法决策，增加[状态与评价接口](interfaces.md)。Python 3.12，仅标准库。默认配置是
 [`baseline.json`](../../configs/q2/baseline.json)。[1.1 对照配置](../../configs/q2/legacy_1_1.json)
 保留原自适应规则与峰值增强，用同一个构造内核复现旧版。
 
 原1.1版本已标记为存在已知问题并[完整归档](../../archive/q2/baseline_1_1_known_issues/README.md)；
-归档保留其原始源码字节和提交身份，当前默认入口使用2.0修复版。
+归档保留其原始源码字节和提交身份，当前默认入口使用2.1接口版及2.0修复算法。
 
 本次依据对话 `6ab6d2a7-4f50-83e9-bdd3-34fa007ab292` 的最终修复约定，
 以及两份修复包的共同规范和参考实现。参考代码中的 trace 重建、无硬超时的评价驱动、
@@ -16,7 +16,7 @@
 
 记计算节点集为 V，计算节点 v 的核心为 k(v)，构造器成功 commit 的全局拓扑序为 σ。
 `ConstructionDraft` 保存稠密索引下的 `operation_core`、`commit_order`、原逻辑
-`search_blocks`、旧编码和代理诊断。搜索块是后续邻域的结构单位，不是执行屏障，
+`construction_blocks_ops`（2.0名为 `search_blocks`）、旧编码和代理诊断。搜索块是后续邻域的结构单位，不是执行屏障，
 也不要求与提交 sgid 一一对应。关闭子图只重置当前生长块，不重置核心时钟与持续状态。
 
 一次运行依次执行：共享 DAG 索引 → 两个整分量候选 → 联动构造的各 β／编码流 →
@@ -102,6 +102,8 @@ d[X union {j}] = min(d[X union {j}], d[X] + popcount(((1 << j) - 1) & ~X)).
 
 ## 组件接口与产物
 
+下表保留基座入口；2.1新增当前状态、合法性、评分及快照接口见[接口说明](interfaces.md)。
+
 | 接口 | 含义 |
 |---|---|
 | `construct.construct_candidate(...)` | 一次联动生长，返回不可变 ConstructionDraft |
@@ -113,8 +115,8 @@ d[X union {j}] = min(d[X union {j}], d[X] + popcount(((1 << j) - 1) & ~X)).
 | `PlateauBeta.next()/observe()/state_dict()` | 流调度、正式反馈与可序列化状态 |
 | `pipeline.load_baseline_result(directory)` | 核验文件哈希后加载 BaselineResult |
 
-`BaselineResult` 保存方案、官方结果、所选草案、实际搜索块、Step1 与最终官方时间线、
-候选摘要和 β 轨迹。JSON 属性返回独立副本；后续优化器可以修改核心、块和顺序后调用同一套组件。
+2.1的 `BaselineResult` 保存当前状态、评分、合法性以及可选的官方结果、构造来源和执行记录、
+候选摘要与 β 轨迹。默认基座仍提供完整正式证据。JSON 属性返回独立副本；后续优化器修改核心、块和顺序后须重建当前状态再调用组件。
 没有注册未实现的 Q2 公共后端，也没有实现下一轮基座专用优化主循环。
 
 正式目录继续提供 `plan.json/result.json/trace.json/run.json/provenance.json/complete.json`，

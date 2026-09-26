@@ -1,4 +1,4 @@
-"""Shared Q2 proposal/evaluation services; official incumbents only.
+"""Baseline policy using reusable current-state preparation and exact evaluation.
 
 The pipeline owns process supervision and publication. This module never launches
 a second solver and never reads historical multi-core answers.
@@ -9,9 +9,12 @@ import time
 
 from common.artifacts import write_json
 from .official import digest, objective, read_json, Q2Error
-from .contracts import BaselineResult, ConstructionDraft, EncodedCandidate
+from .contracts import BaselineResult, ConstructionDraft, EncodedCandidate, CandidateOrigin, LegalityRecord
 from .construct import construct_candidate, BudgetExpired
-from .encoding import encode_candidate, encode_atomic, validate_fidelity, realized_blocks
+from .encoding import encode_candidate, encode_atomic, validate_fidelity
+from .state import validate_state, derive_state, candidate_from_state
+from .preparation import PreparationService
+from .evaluation import exact_score, binding
 from .affinity import component_candidates
 from .beta import PlateauBeta
 from .memory import profile
@@ -19,11 +22,15 @@ from .capacity import CapacityWindow, minimum_disruption, apply_window
 
 
 class CandidateEvaluator:
-    def __init__(self, graph, graph_path, directory, budget, calls, records, run_official, identity):
+    def __init__(self, graph, graph_path, directory, budget, calls, records, run_official, identity, preparation=None,
+                 block_operations=32):
         self.g, self.graph_path, self.directory = graph, graph_path, directory
         self.budget, self.calls, self.records = budget, calls, records
         self.run_official, self.identity = run_official, identity
-        self.cache = {}; self.best = None
+        self.exact_scope = digest(dict(identity=identity, directory=str(directory.resolve()), evaluation_version='2.1'))
+        self.preparation = preparation or PreparationService(graph)
+        self.block_operations = block_operations
+        self.best = None
         self.prefix_seconds = 0.; self.cache_hits = 0
 
     def evaluate(self, candidate, phase='B0', bundle=None):
@@ -34,9 +41,11 @@ class CandidateEvaluator:
         """
         self.budget.check()
         g, plan = self.g, candidate.plan
-        key = digest(dict(identity=self.identity, plan=plan, evaluation_version=2))
-        row = dict(candidate_index=len(self.records), family=candidate.draft.family,
-                   mode=candidate.draft.mode, beta=candidate.draft.beta, encoding=candidate.encoding,
+        origin = candidate.state.origin if candidate.state is not None else (
+            CandidateOrigin(candidate.draft.family, candidate.draft.mode, candidate.draft.beta, candidate.encoding)
+            if candidate.draft is not None else CandidateOrigin(encoding=candidate.encoding))
+        row = dict(candidate_index=len(self.records), family=origin.family,
+                   mode=origin.mode, beta=origin.beta, encoding=candidate.encoding,
                    plan_hash=digest(plan), encoder_version=candidate.encoder_version,
                    parent_version=candidate.parent_version, phase=phase)
         self.records.append(row)
@@ -44,9 +53,19 @@ class CandidateEvaluator:
         from stub_multicore_cut_and_schedule import MulticoreCutError
         from multicore_cut_evaluate_problem_2 import SceneBEvaluationError
         try:
-            bundle = g.settings.prefix(g.raw, plan) if bundle is None else bundle
+            # Never seed a cache from an arbitrary caller-supplied bundle.
+            bundle = self.preparation.prefix(plan)
+            if candidate.state is None:
+                state = self.preparation.prepare(plan, origin=origin,
+                    parent_signature=candidate.parent_version,
+                    construction_blocks_ops=candidate.draft.construction_blocks_ops if candidate.draft else (),
+                    max_operations=self.block_operations)
+            else:
+                if candidate.state.plan != plan: raise ValueError('candidate plan/state mismatch')
+                state = validate_state(g, candidate.state, preparation=self.preparation)
+            candidate = replace(candidate, state=state)
             row['fidelity'] = validate_fidelity(g, bundle, candidate)
-            core = candidate.draft.operation_core
+            core = state.core_of_op
             work, size = g.base_traffic(core)
             actual_work = sum(max(1, op['cycles']) for c in bundle['cores'].values()
                               for op in c['graph']['ops'] if op['op'] in ('COPY_IN', 'COPY_OUT'))
@@ -55,19 +74,27 @@ class CandidateEvaluator:
             row.update(base_copy_bytes=size, cross_copy_pairs=len(bundle['cross_links']),
                        split_components=sum(len({core[v] for v in component}) > 1 for component in g.components),
                        subgraph_count=len(set(plan['node_to_subgraph'].values())),
-                       search_block_count=len(candidate.draft.search_blocks),
-                       proxy_J=candidate.draft.diagnostics.get('proxy_J'),
-                       profile_by_core={k: profile(c['graph'], c['seq'], g.settings.capacity).record()
-                                        for k, c in bundle['cores'].items()})
+                       search_block_count=sum(map(len, state.realized_blocks_by_core)),
+                       proxy_J=candidate.draft.diagnostics.get('proxy_J') if candidate.draft else None,
+                       state_signature=state.state_signature, execution_digest=state.execution_digest,
+                       state_plan_digest=state.plan_digest,
+                       profile_by_core={k: p.record() for k,p in self.preparation.profiles(bundle).items()})
         except (MulticoreCutError, SceneBEvaluationError) as error:
             row.update(evaluation_status='INVALID', error=str(error))
             return None, row
         finally:
             self.prefix_seconds += time.monotonic()-start
-        cached = self.cache.get(key)
+        cache = self.preparation.cache
+        key = (state.environment_digest, self.exact_scope, 'plan', state.plan_digest)
+        execution_key = (state.environment_digest, self.exact_scope, 'execution', state.execution_digest)
+        cached = cache.get('exact', key)
+        if cached is None: cached = cache.get('exact', execution_key)
         if cached is not None:
             self.cache_hits += 1
-            row.update(cached, evaluation_status='CACHED_OFFICIAL')
+            same = cached['evidence_plan_digest'] == state.plan_digest
+            row.update(cached, evaluation_status='CACHED_OFFICIAL' if same else 'EQUIVALENT_OFFICIAL')
+            row['result_path'] = cached['evidence_path'] if same else None
+            cache.stats['plan_score_hits' if same else 'equivalent_score_hits'] += 1
         else:
             self.budget.check()
             if self.best is not None and self.budget.remaining()-self.budget.reserve < self.budget.estimate:
@@ -82,27 +109,55 @@ class CandidateEvaluator:
             if result is None:
                 return None, row
             value = objective(result)
-            cached = dict(objective=value, result_path=f'{path.name}/result.json',
+            cached = dict(objective=value, evidence_path=f'{path.name}/result.json',
+                          evidence_plan_digest=state.plan_digest,
                           official_call_index=len(self.calls)-1,
                           spill_bytes=result['data_movement_bytes']['spill_added_copy_bytes'])
-            self.cache[key] = cached
+            cache.put('exact', key, cached); cache.put('exact', execution_key, cached)
+            cache.stats['official_evaluations'] += 1
             row.update(cached)
+            row['result_path'] = cached['evidence_path']
         value = tuple(row['objective'])
+        row['score'] = asdict(exact_score(state, value, evidence_path=row['evidence_path'],
+                                        evidence_plan_digest=row['evidence_plan_digest']))
+        row['legality'] = asdict(LegalityRecord(**binding(state), level='execution', status='VALID'))
+        cache.put('legality', (state.environment_digest, state.execution_digest), dict(status='VALID', reason=None))
         if self.best is None or value < self.best[0]:
             self.best = (value, candidate, dict(row))
             write_json(self.directory/'checkpoint_plan.json', plan)
             write_json(self.directory/'checkpoint_candidate.json', row)
         return value, row
 
+    def materialize_result(self, candidate, row):
+        """Equivalent objectives are not result JSONs labelled for this plan."""
+        if row.get('result_path') is not None:
+            return read_json(self.directory/row['result_path'])
+        self.budget.check()
+        path = self.directory/f'eval_{len(self.calls):03d}'
+        result = self.run_official(self.graph_path, candidate.plan, self.g.settings, path,
+                                  self.budget.remaining()-self.budget.reserve, self.calls, 'materialize')
+        if result is None: raise Q2Error(self.calls[-1]['status'], 'exact-equivalent result materialization failed')
+        if objective(result) != tuple(row['objective']): raise AssertionError('execution equivalence objective mismatch')
+        self.budget.observe(self.calls[-1]['wall_seconds'])
+        row.update(result_path=f'{path.name}/result.json', evidence_path=f'{path.name}/result.json',
+                   evidence_plan_digest=candidate.state.plan_digest)
+        row['score'] = asdict(exact_score(candidate.state, objective(result), evidence_path=row['result_path']))
+        return result
+
 
 def evaluate_candidate(service, candidate, **kwargs):
     return service.evaluate(candidate, **kwargs)
 
 
-def capacity_repair_candidates(g, candidate, bundle, options, check, records):
+def capacity_repair_candidates(g, candidate, bundle, options, check, records, preparation=None):
     """All proposals share this frozen parent; no unverified changes accumulate."""
     plan = candidate.plan
-    blocks_by_core = realized_blocks(g, plan, bundle, candidate.draft, options['block_operations'])
+    preparation = preparation or PreparationService(g)
+    bundle = preparation.prefix(plan)
+    parent = validate_state(g, candidate.state, preparation=preparation) if candidate.state else preparation.prepare(plan,
+        construction_blocks_ops=candidate.draft.construction_blocks_ops if candidate.draft else (),
+        max_operations=options['block_operations'])
+    blocks_by_core = {k: tuple(b.sgids for b in row) for k,row in enumerate(parent.realized_blocks_by_core)}
     seen = set()
     for k, c in bundle['cores'].items():
         check()
@@ -131,12 +186,13 @@ def capacity_repair_candidates(g, candidate, bundle, options, check, records):
                        wall_seconds=time.monotonic()-start, completed=True)
             records.append(row)
             if answer['status'] == 'OPTIMAL_IN_FIXED_WINDOW' and answer['inversions'] > 0:
-                new, fresh = apply_window(g, plan, bundle, w, answer, lambda graph, p: graph.settings.prefix(graph.raw, p))
+                new, fresh = apply_window(g, plan, bundle, w, answer, lambda graph, p: preparation.prefix(p))
                 row['sequence_verified'] = True
                 row['whole_core_profile'] = profile(fresh['cores'][k]['graph'], fresh['cores'][k]['seq'], g.settings.capacity).record()
                 # The window has a new intended order; never claim the old commit order.
-                proposed = replace(candidate, plan_json=json.dumps(new), encoding='capacity_min_disruption',
-                                   intended_order=None, parent_version=digest(plan))
+                state = derive_state(g, parent, new, preparation=preparation,
+                                     origin=replace(parent.origin, encoding='capacity_min_disruption'))
+                proposed = candidate_from_state(state, draft=candidate.draft)
                 yield proposed, fresh, row
 
 
@@ -146,7 +202,8 @@ def search_baseline(g, graph_path, cores, options, directory, budget, calls, rec
     modes = [m for m in c['scope_modes'] if m != 'component_grouped' or len(g.components) > 1]
     streams = [f'linked/{mode}/{enc}' for enc in c['encodings'] for mode in modes]
     beta = PlateauBeta(streams, c['betas'][-1], c['beta_search'], c['beta_continuation'])
-    service = CandidateEvaluator(g, graph_path, directory, budget, calls, records, run_official, identity)
+    service = CandidateEvaluator(g, graph_path, directory, budget, calls, records, run_official, identity,
+                                 block_operations=e['block_operations'])
     drafts = {}; construction_seconds = 0.; stop = 'completed'; incomplete = False
 
     def checkpoint():
@@ -160,7 +217,7 @@ def search_baseline(g, graph_path, cores, options, directory, budget, calls, rec
         if c['component_candidates']:
             for candidate in component_candidates(g, cores):
                 value, row = service.evaluate(candidate)
-                incomplete |= row['evaluation_status'] not in ('OFFICIAL', 'CACHED_OFFICIAL', 'INVALID')
+                incomplete |= row['evaluation_status'] not in ('OFFICIAL', 'CACHED_OFFICIAL', 'EQUIVALENT_OFFICIAL', 'INVALID')
                 checkpoint()
         while (entry := beta.next()) is not None:
             stream, b = entry; _, mode, enc = stream.split('/')
@@ -197,7 +254,7 @@ def search_baseline(g, graph_path, cores, options, directory, budget, calls, rec
         if service.best is None:
             raise Q2Error('NO_VERIFIED_CANDIDATE', '没有完成有效 B0')
     base_value, base_candidate, base_row = service.best
-    base_result = read_json(directory/base_row['result_path'])
+    base_result = service.materialize_result(base_candidate, base_row)
     baseline_plan = base_candidate.plan
     write_json(directory/'baseline_plan.json', baseline_plan)
     write_json(directory/'baseline_result.json', base_result)
@@ -210,16 +267,16 @@ def search_baseline(g, graph_path, cores, options, directory, budget, calls, rec
     if e['enabled'] and (not e['spill_gate'] or base_row['spill_bytes'] > 0):
         report['enhancement_gate'] = 'REAL_SPILL' if e['spill_gate'] else 'LEGACY_PEAK_ABLATION'
         try:
-            budget.check(); bundle = g.settings.prefix(g.raw, baseline_plan)
+            budget.check(); bundle = service.preparation.prefix(baseline_plan)
             if e['objective'] == 'capacity_min_disruption':
-                for candidate, fresh, row in capacity_repair_candidates(g, base_candidate, bundle, e, budget.check, windows):
+                for candidate, fresh, row in capacity_repair_candidates(g, base_candidate, bundle, e, budget.check, windows, service.preparation):
                     value, ev = service.evaluate(candidate, 'B1', fresh)
                     row.update(official_objective=value, plan_hash=ev['plan_hash'], evaluation_status=ev['evaluation_status'],
                                accepted_against_parent=value is not None and value < base_value)
-                    incomplete |= ev['evaluation_status'] not in ('OFFICIAL', 'CACHED_OFFICIAL', 'INVALID')
+                    incomplete |= ev['evaluation_status'] not in ('OFFICIAL', 'CACHED_OFFICIAL', 'EQUIVALENT_OFFICIAL', 'INVALID')
                     checkpoint()
             else:
-                from .window import Window, choose_window, solve_window, apply_order
+                from .legacy.window import Window, choose_window, solve_window, apply_order
                 plan = baseline_plan; processed = set()
                 for _ in range(e['max_windows']):
                     budget.check(); bundle['_raw'] = g.raw
@@ -236,15 +293,16 @@ def search_baseline(g, graph_path, cores, options, directory, budget, calls, rec
                         plan, bundle = apply_order(plan, bundle, w, answer, g.settings)
                         processed.clear(); row['accepted'] = True
                 if plan != baseline_plan:
-                    candidate = replace(base_candidate, plan_json=json.dumps(plan), intended_order=None,
-                                        encoding='legacy_peak', parent_version=digest(baseline_plan))
+                    state = derive_state(g, base_candidate.state, plan, preparation=service.preparation,
+                                         origin=replace(base_candidate.state.origin, encoding='legacy_peak'))
+                    candidate = candidate_from_state(state, draft=base_candidate.draft)
                     _, row = service.evaluate(candidate, 'B1', bundle)
-                    incomplete |= row['evaluation_status'] not in ('OFFICIAL', 'CACHED_OFFICIAL', 'INVALID')
+                    incomplete |= row['evaluation_status'] not in ('OFFICIAL', 'CACHED_OFFICIAL', 'EQUIVALENT_OFFICIAL', 'INVALID')
         except BudgetExpired:
             incomplete = True; stop = 'enhancement_budget'
     best_value, selected_candidate, selected_row = service.best
     selected = 'B1' if best_value < base_value else 'B0'
-    result = read_json(directory/selected_row['result_path'])
+    result = service.materialize_result(selected_candidate, selected_row)
     for row in windows:
         if e['objective'] == 'capacity_min_disruption':
             row['accepted'] = selected == 'B1' and row.get('plan_hash') == selected_row['plan_hash']
@@ -256,23 +314,26 @@ def search_baseline(g, graph_path, cores, options, directory, budget, calls, rec
     report['search_complete'] = not incomplete
     report['selected_candidate'] = selected_row
     report['evaluated_candidates'] = len(records)
+    report['preparation_cache'] = service.preparation.cache.record()
     checkpoint()
     return dict(baseline_plan=baseline_plan, baseline_result=base_result,
                 enhanced=result if selected == 'B1' else None, selected=selected,
                 final_plan=selected_candidate.plan, final_result=result,
-                candidate=selected_candidate, stop=stop,
+                candidate=selected_candidate, preparation=service.preparation, stop=stop,
                 accepted=sum(bool(w.get('accepted')) for w in windows))
 
 
-def export_baseline_result(g, candidate, verified, records, beta_state):
+def export_baseline_result(g, candidate, verified, records, beta_state, preparation=None):
+    preparation = preparation or PreparationService(g)
     plan = candidate.plan
-    bundle = g.settings.prefix(g.raw, plan)
-    blocks = realized_blocks(g, plan, bundle, candidate.draft)
+    state = validate_state(g, candidate.state, preparation=preparation) if candidate.state else preparation.prepare(
+        plan, construction_blocks_ops=candidate.draft.construction_blocks_ops if candidate.draft else ())
+    bundle = preparation.prefix(plan)
     execution = dict(source='official_scene_b', step1=dict(cores=bundle['cores'], cross_links=bundle['cross_links']),
-                     step3_summary=verified['step3_by_core'],
-                     final_timeline=verified['per_core_timeline'],
-                     data_movement_bytes=verified['data_movement_bytes'],
-                     plan_hash=digest(plan), encoder_version=candidate.encoder_version)
-    return BaselineResult(json.dumps(plan), json.dumps(verified), candidate.draft,
-                          tuple(block for k in sorted(blocks) for block in blocks[k]),
-                          json.dumps(execution), json.dumps(records), json.dumps(beta_state))
+                     step3_summary=verified['step3_by_core'], final_timeline=verified['per_core_timeline'],
+                     data_movement_bytes=verified['data_movement_bytes'], plan_hash=digest(plan),
+                     encoder_version=candidate.encoder_version)
+    return BaselineResult(state, exact_score(state, objective(verified), evidence_path='result.json'),
+                          LegalityRecord(**binding(state), level='execution', status='VALID'),
+                          json.dumps(verified), candidate.draft, json.dumps(execution),
+                          json.dumps(records), json.dumps(beta_state))

@@ -1,0 +1,583 @@
+{
+  "source_commit": "11501c5137d949514724baed3f6d0d3bd9e38896",
+  "algorithm": "Q2-Repair-2.0",
+  "cores": 2,
+  "rows": [
+    {
+      "case": "minimal",
+      "input_sha256": "841a2fddb5ee11ee2de849250a7c737c5328bc0829ed3ff63962d00b821f5a16",
+      "plan": {
+        "node_to_subgraph": {
+          "11": 0
+        },
+        "core_schedules": [
+          [
+            0
+          ],
+          []
+        ]
+      },
+      "objective": [
+        6,
+        0
+      ],
+      "movement": {
+        "original_graph_copy_bytes": 32,
+        "scheduled_copy_bytes": 32,
+        "added_copy_bytes": 0,
+        "partition_added_copy_bytes": 0,
+        "spill_added_copy_bytes": 0
+      },
+      "candidate_requests": 14,
+      "beta": [
+        {
+          "stream": "linked/global/legacy",
+          "beta": 1,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 1,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 1,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 2,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 2,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 2,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 3,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 3,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 3,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 4,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 4,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 4,
+          "objective": [
+            6,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        }
+      ]
+    },
+    {
+      "case": "cross_fanout",
+      "input_sha256": "535263368e4d58ef15dc78abbac03533f124af09ffb85750c10c8dea4bbbdf5b",
+      "plan": {
+        "node_to_subgraph": {
+          "4": 0,
+          "8": 1,
+          "12": 2
+        },
+        "core_schedules": [
+          [
+            0,
+            1,
+            2
+          ],
+          []
+        ]
+      },
+      "objective": [
+        14,
+        0
+      ],
+      "movement": {
+        "original_graph_copy_bytes": 64,
+        "scheduled_copy_bytes": 64,
+        "added_copy_bytes": 0,
+        "partition_added_copy_bytes": 0,
+        "spill_added_copy_bytes": 0
+      },
+      "candidate_requests": 14,
+      "beta": [
+        {
+          "stream": "linked/global/legacy",
+          "beta": 1,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 1,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 1,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 2,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 2,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 2,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 3,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 3,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 3,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 4,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 4,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 4,
+          "objective": [
+            14,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        }
+      ]
+    },
+    {
+      "case": "memory_interleaved",
+      "input_sha256": "7e6201381a95a3caa4c06602d1e44dcb1e027a572fe6c96dd561f990fedd7fac",
+      "plan": {
+        "node_to_subgraph": {
+          "4": 0,
+          "6": 0,
+          "13": 1,
+          "15": 1
+        },
+        "core_schedules": [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ]
+      },
+      "objective": [
+        2204,
+        0
+      ],
+      "movement": {
+        "original_graph_copy_bytes": 120240,
+        "scheduled_copy_bytes": 120240,
+        "added_copy_bytes": 0,
+        "partition_added_copy_bytes": 0,
+        "spill_added_copy_bytes": 0
+      },
+      "candidate_requests": 26,
+      "beta": [
+        {
+          "stream": "linked/global/legacy",
+          "beta": 1,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/legacy",
+          "beta": 1,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 1,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/commit",
+          "beta": 1,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 1,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/tail",
+          "beta": 1,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "first",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 2,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/legacy",
+          "beta": 2,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 2,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/commit",
+          "beta": 2,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 2,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/tail",
+          "beta": 2,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 3,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/legacy",
+          "beta": 3,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 3,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/commit",
+          "beta": 3,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 3,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/component_grouped/tail",
+          "beta": 3,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": null
+        },
+        {
+          "stream": "linked/global/legacy",
+          "beta": 4,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/component_grouped/legacy",
+          "beta": 4,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/global/commit",
+          "beta": 4,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/component_grouped/commit",
+          "beta": 4,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/global/tail",
+          "beta": 4,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        },
+        {
+          "stream": "linked/component_grouped/tail",
+          "beta": 4,
+          "objective": [
+            2204,
+            0
+          ],
+          "relation": "equal",
+          "stop_reason": "MAX_BETA"
+        }
+      ]
+    }
+  ]
+}

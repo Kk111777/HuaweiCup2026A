@@ -1,0 +1,96 @@
+[
+  {
+    "case": "minimal",
+    "cores": 2,
+    "identical_plan": true,
+    "identical_objective": true,
+    "objective": [
+      6,
+      0
+    ],
+    "candidate_requests": 14,
+    "old_official_calls": 2,
+    "new_official_calls": 2,
+    "old_seconds": 0.4220000000204891,
+    "new_seconds": 0.48399999999674037,
+    "cache": {
+      "prefix_misses": 1,
+      "prefix_builds": 1,
+      "prefix_hits": 27,
+      "profile_misses": 2,
+      "profile_builds": 2,
+      "exact_misses": 2,
+      "official_evaluations": 1,
+      "profile_hits": 26,
+      "exact_hits": 13,
+      "plan_score_hits": 13,
+      "legality_replacements": 13,
+      "payload_bytes": 2597,
+      "entries": 6,
+      "max_bytes": 67108864
+    }
+  },
+  {
+    "case": "cross_fanout",
+    "cores": 2,
+    "identical_plan": true,
+    "identical_objective": true,
+    "objective": [
+      14,
+      0
+    ],
+    "candidate_requests": 14,
+    "old_official_calls": 3,
+    "new_official_calls": 3,
+    "old_seconds": 0.6089999999967404,
+    "new_seconds": 0.6399999999557622,
+    "cache": {
+      "prefix_misses": 2,
+      "prefix_builds": 2,
+      "prefix_hits": 26,
+      "profile_misses": 3,
+      "profile_builds": 3,
+      "exact_misses": 4,
+      "official_evaluations": 2,
+      "profile_hits": 25,
+      "exact_hits": 12,
+      "plan_score_hits": 12,
+      "legality_replacements": 12,
+      "payload_bytes": 5664,
+      "entries": 11,
+      "max_bytes": 67108864
+    }
+  },
+  {
+    "case": "memory_interleaved",
+    "cores": 2,
+    "identical_plan": true,
+    "identical_objective": true,
+    "objective": [
+      2204,
+      0
+    ],
+    "candidate_requests": 26,
+    "old_official_calls": 4,
+    "new_official_calls": 2,
+    "old_seconds": 0.9370000000344589,
+    "new_seconds": 0.48399999999674037,
+    "cache": {
+      "prefix_misses": 4,
+      "prefix_builds": 4,
+      "prefix_hits": 48,
+      "profile_misses": 2,
+      "profile_builds": 2,
+      "exact_misses": 25,
+      "official_evaluations": 1,
+      "profile_hits": 50,
+      "exact_hits": 25,
+      "equivalent_score_hits": 23,
+      "legality_replacements": 25,
+      "plan_score_hits": 2,
+      "payload_bytes": 7746,
+      "entries": 9,
+      "max_bytes": 67108864
+    }
+  }
+]

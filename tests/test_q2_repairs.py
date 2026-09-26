@@ -98,7 +98,7 @@ class EncodingTests(unittest.TestCase):
             plan=encode_atomic(g,3,draft.operation_core,draft.commit_order)
             bundle=prefix_for(g,plan)
             assert_compute_fidelity(g,bundle,draft.operation_core,draft.commit_order)
-            self.assertEqual(sum(map(len,draft.search_blocks)),len(g.ids))
+            self.assertEqual(sum(map(len,draft.construction_blocks_ops)),len(g.ids))
     def test_components_no_cross_computation_transfers(self):
         g,_=graph_fixture(1,3,shared=True);core=component_core_map(g,3)
         plan=component_block_plan(g,3,core);bundle=prefix_for(g,plan)

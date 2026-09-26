@@ -65,10 +65,18 @@ def encode_candidate(g, cores, draft, encoding):
 
 def validate_fidelity(g, bundle, candidate):
     intended = candidate.intended_order
-    reference = candidate.draft.commit_order if intended is None else intended
+    reference = candidate.draft.commit_order if intended is None and candidate.draft is not None else intended
+    if reference is None:
+        return dict(policy=candidate.encoding, required=False, compute_fidelity_verified=None, differences=[])
     expected = [[] for _ in candidate.plan['core_schedules']]
+    core = plan_core_map(g, candidate.plan)
+    if intended is not None:
+        try:
+            validate_order(g, core, intended, len(expected))
+        except ValueError as error:
+            raise AssertionError(f'invalid intended computation order: {error}') from error
     for v in reference:
-        expected[candidate.draft.operation_core[v]].append(g.ids[v])
+        expected[core[v]].append(g.ids[v])
     differences = []
     for k, c in bundle['cores'].items():
         actual = [o for o in c['seq'] if o in g.dense]
@@ -89,7 +97,7 @@ def realized_blocks(g, plan, bundle, draft, max_operations=32):
     Never move an sgid across another block or split a submitted sgid. Large
     indivisible sgids are allowed. Legacy winners use actual execution, not commit.
     """
-    logical = {v: i for i, block in enumerate(draft.search_blocks) for v in block}
+    logical = {v: i for i, block in enumerate(draft.construction_blocks_ops) for v in block}
     result = {}
     for k, core in bundle['cores'].items():
         members = {}
