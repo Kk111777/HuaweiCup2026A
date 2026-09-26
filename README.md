@@ -276,7 +276,7 @@ python src/solve_problem2_optimized.py solve official/data/case_004.json --cores
 
 双方均可提交、审核和合并 PR。免费个人私有仓库采用团队约定，不将审核规则描述为平台强制保护。
 
-详细协作指南和 PR 模板由首个协作配置 PR 加入，合并前可在该 PR 分支阅读。
+详细操作见 [协作指南](CONTRIBUTING.md)，创建 PR 时会提供修改内容、验证结果和复现说明模板。
 
 ## 在 Codex 中操作
 
