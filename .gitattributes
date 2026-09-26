@@ -40,3 +40,6 @@ results/q2_repair_full_20260926/*.csv -text linguist-generated=true whitespace=c
 results/q2_repair_full_20260926/*.json -text linguist-generated=true whitespace=cr-at-eol
 results/q2_repair_full_20260926/*.txt -text linguist-generated=true whitespace=cr-at-eol
 results/q2_repair_full_20260926/*.sha256 -text linguist-generated=true whitespace=cr-at-eol
+
+# Preserve byte-for-byte Q1 official results and their SHA-256 manifests.
+results/q1_structure_100cases_20260926/** -text linguist-generated=true whitespace=cr-at-eol

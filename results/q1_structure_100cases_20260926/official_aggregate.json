@@ -1,0 +1,62 @@
+{
+  "status": "complete",
+  "verified": 400,
+  "expected": 400,
+  "by_cores": {
+    "2": {
+      "verified": 100,
+      "expected": 100,
+      "mean_official_speedup": 2.090408553958776,
+      "mean_algorithm_core_wall_seconds": 123.56568679098156,
+      "mean_final_scoring_seconds": 4.670418184996816
+    },
+    "3": {
+      "verified": 100,
+      "expected": 100,
+      "mean_official_speedup": 2.9397471034068516,
+      "mean_algorithm_core_wall_seconds": 128.26647947701042,
+      "mean_final_scoring_seconds": 3.030613182996167
+    },
+    "4": {
+      "verified": 100,
+      "expected": 100,
+      "mean_official_speedup": 3.68661697531104,
+      "mean_algorithm_core_wall_seconds": 132.32469487100607,
+      "mean_final_scoring_seconds": 4.009177200001432
+    },
+    "5": {
+      "verified": 100,
+      "expected": 100,
+      "mean_official_speedup": 4.296547372966779,
+      "mean_algorithm_core_wall_seconds": 128.02524760699364,
+      "mean_final_scoring_seconds": 6.030534776001004
+    }
+  },
+  "algorithm_batch_wall_seconds": 8678.505671499996,
+  "mean_algorithm_case_wall_seconds": 513.7488175740023,
+  "final_scoring_batch_wall_seconds": 466.8932100000093,
+  "final_scoring_included_in_algorithm_time": false,
+  "frozen_plans_and_original_metrics_unchanged": true,
+  "source_signature": "56d675be6d62c065a5679e1708c79cc61ed74b37ada5fd3ea94dbe281ab1de71",
+  "algorithm_cases_over_600s": [
+    "case_014",
+    "case_018",
+    "case_025",
+    "case_040",
+    "case_041",
+    "case_058",
+    "case_062",
+    "case_063",
+    "case_072",
+    "case_082",
+    "case_083",
+    "case_087",
+    "case_088",
+    "case_091",
+    "case_092"
+  ],
+  "algorithm_cases_over_900s": [],
+  "algorithm_hard_timeout_cases": [],
+  "failures": [],
+  "note": "All reported scores are independent official evaluations of the frozen final plans. No optimization, plan replacement, or solver-time reassignment occurred. No plots were generated."
+}
