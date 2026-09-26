@@ -1,0 +1,11 @@
+{
+  "status": "SUCCESS_VERIFIED",
+  "verified_rows": 100,
+  "requested_rows": 100,
+  "missing_pairs": [],
+  "artifact_hashes_verified": 1008,
+  "failures": [],
+  "workers": 2,
+  "elapsed_seconds": 286.2010158330013,
+  "completed_at": "2026-09-26T22:47:26.487381+00:00"
+}
