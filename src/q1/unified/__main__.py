@@ -11,8 +11,8 @@ def main():
     p.add_argument('--cores', type=int, nargs='+', required=True, choices=[2,3,4,5])
     p.add_argument('--output', required=True)
     p.add_argument('--parameters', help='Optional search parameter JSON; official config remains separate')
-    p.add_argument('--seconds', type=float, default=600,
-        help='Total target seconds for this graph and all requested core counts combined')
+    p.add_argument('--seconds', type=float, default=None,
+        help='Override configured case target; extension/guard scale with configured ratios')
     a = p.parse_args()
     if len(set(a.cores)) != len(a.cores):
         p.error('duplicate core counts')

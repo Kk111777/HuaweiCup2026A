@@ -7,6 +7,8 @@ import shutil
 from pathlib import Path
 import sys
 import time
+import tempfile
+import hashlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
@@ -15,6 +17,7 @@ from q1 import official
 from q1.unified.api import solve_case, source_signature, default_parameters
 from q1.unified.io import read, write, digest
 from scheduling.registry import resolve_problem
+from scheduling.configuration import intermediate_artifacts, resolve_time_budget
 from problem_1_baseline import output_lock
 
 
@@ -30,8 +33,9 @@ def main():
         dest='report_baseline_archive',type=Path,
         help='Validated singlecore archive used only after solving to report speedups; never solver input')
     p.add_argument('--archive-repo-root',type=Path)
-    p.add_argument('--seconds',type=float,default=600,
-        help='Target wall-clock budget for ONE CASE and ALL requested core counts combined')
+    p.add_argument('--parameters',type=Path,help='Search, output and case-budget configuration JSON')
+    p.add_argument('--seconds',type=float,default=None,
+        help='Override configured case target; extension/guard scale with configured ratios')
     p.add_argument('--resume',action='store_true')
     p.add_argument('--reuse-verified-run',type=Path,nargs='*',default=[])
     a=p.parse_args()
@@ -39,11 +43,28 @@ def main():
     if len(set(a.cases))!=len(a.cases):p.error('duplicate cases')
     if len(set(a.cores))!=len(a.cores):p.error('duplicate core counts')
     a.output.mkdir(parents=True,exist_ok=True)
-    with output_lock(a.output):
+    a.parameters = read(a.parameters) if a.parameters else default_parameters()
+    diagnostics = intermediate_artifacts(a.parameters)
+    a.seconds = resolve_time_budget(a.parameters,a.seconds)['target_seconds']
+    if not diagnostics and (a.resume or a.reuse_verified_run):
+        p.error('plan-only output does not contain verification metadata needed for resume/reuse')
+    if not diagnostics and any(a.output.iterdir()):
+        p.error('plan-only output directory must be empty; existing files are preserved')
+    # A stable external lock coordinates both output modes without leaving an
+    # extra file in a plan-only output directory. Never unlink a shared lock.
+    key = hashlib.sha256(str(a.output.resolve()).casefold().encode()).hexdigest()
+    lock_dir = Path(tempfile.gettempdir())/'q1-benchmark-locks'/key
+    lock_dir.mkdir(parents=True,exist_ok=True)
+    with output_lock(lock_dir):
         return run(a)
 
 
 def run(a):
+    parameters = getattr(a,'parameters',None) or default_parameters()
+    diagnostics = intermediate_artifacts(parameters)
+    def save(path, value):
+        if diagnostics:
+            write(path, value)
     paths=[(a.data/f'case_{i:03d}.json').resolve() for i in a.cases]
     # Local batch scheduling only: start large independent inputs early to
     # reduce the tail. This does not affect a solver's candidate decisions.
@@ -66,7 +87,7 @@ def run(a):
         test_baseline_cache=False,report_baseline_archive=bool(baseline),target_seconds=a.seconds,
         budget_scope='case_all_cores',singlecore_in_solver=False,
         note='All core counts share the case budget. Singlecore results are optional reporting-only denominators; no historical time is charged.')
-    write(a.output/'benchmark.json',manifest)
+    save(a.output/'benchmark.json',manifest)
     def reusable(folder,path):
         required=('summary.json','request.json','verified.json','plan.json','evaluation.json')
         if not all((folder/name).is_file() for name in required):return False
@@ -86,7 +107,7 @@ def run(a):
     def case_contract(path):
         return dict(source_signature=signature,**identity,graph_sha256=digest(path),
             config_sha256=digest(a.config),cores=a.cores,seconds=a.seconds,
-            parameters=default_parameters(),budget_scope='case_all_cores',singlecore_in_solver=False)
+            parameters=parameters,budget_scope='case_all_cores',singlecore_in_solver=False)
     def reusable_case(folder,path):
         # This stamp is only emitted by the all-core runner. Old per-core runs
         # cannot be combined into a result under the new case-wide budget.
@@ -130,7 +151,7 @@ def run(a):
                     raise ValueError('attempt archival escaped the output directory')
                 archived.parent.mkdir(parents=True,exist_ok=True)
                 shutil.move(str(folder.resolve()),str(archived))
-            result=solve_case(path,a.config,a.cores,folder,seconds=a.seconds)
+            result=solve_case(path,a.config,a.cores,folder,seconds=a.seconds,parameters=parameters)
         rows=[]
         for item in result['rows']:
             cores=item['cores']
@@ -143,13 +164,13 @@ def run(a):
                 item['baseline']=baseline[path.stem]
                 item['speedup']=baseline[path.stem]['cycles']/item['makespan'] if item.get('makespan') else None
             item['baseline_reporting_only']=path.stem in baseline
-            write(folder/f'N{cores}'/'summary.json',item)
+            save(folder/f'N{cores}'/'summary.json',item)
             row=dict(item,case=path.stem,reused=reused)
             rows.append(row)
             print(json.dumps({k:row.get(k) for k in ('case','cores','status','makespan','score_source','wall_seconds','accounted_wall_seconds','cpu_seconds','hard_timeout','reused')}),flush=True)
         result=dict(result,rows=[{k:v for k,v in row.items() if k not in ('case','reused')} for row in rows])
-        write(folder/'summary.json',result)
-        write(folder/'benchmark_case.json',case_contract(path))
+        save(folder/'summary.json',result)
+        save(folder/'benchmark_case.json',case_contract(path))
         case_row=dict({k:v for k,v in result.items() if k!='rows'},case=path.stem,reused=reused)
         print(json.dumps(dict(case=path.stem,scope='all_cores',status=result['status'],
             wall_seconds=result['wall_seconds'],hard_timeout=result.get('hard_timeout',False)),ensure_ascii=False),flush=True)
@@ -162,23 +183,25 @@ def run(a):
                 result_rows,case_row=future.result()
                 rows.extend(result_rows);case_rows.append(case_row)
             except Exception as e:errors.append(dict(case=jobs[future].stem,error=str(e)))
-            write(a.output/'results.json',dict(status='running',rows=rows,case_rows=case_rows,errors=errors))
+            save(a.output/'results.json',dict(status='running',rows=rows,case_rows=case_rows,errors=errors))
     rows.sort(key=lambda r:(r['case'],r['cores']))
     case_rows.sort(key=lambda r:r['case'])
     fields=['case','cores','status','makespan','score_source','speedup','wall_seconds','accounted_wall_seconds',
         'cpu_seconds','cached_baseline_charge_seconds','exceeded_target','extended','exceeded_extension',
         'hard_timeout','timed_out_phase','history_stop','local_test_cache','reused','budget_scope','baseline_reporting_only']
-    with (a.output/'timings.csv').open('w',encoding='utf-8-sig',newline='') as stream:
-        w=csv.DictWriter(stream,fieldnames=fields,extrasaction='ignore');w.writeheader();w.writerows(rows)
+    if diagnostics:
+        with (a.output/'timings.csv').open('w',encoding='utf-8-sig',newline='') as stream:
+            w=csv.DictWriter(stream,fieldnames=fields,extrasaction='ignore');w.writeheader();w.writerows(rows)
     case_fields=['case','status','wall_seconds','cpu_seconds','shared_preparation_seconds',
         'target_seconds','extension_seconds','hard_limit_seconds','exceeded_target','extended',
         'exceeded_extension','hard_timeout','coverage_complete','budget_scope','reused','source_signature']
-    with (a.output/'case_timings.csv').open('w',encoding='utf-8-sig',newline='') as stream:
-        w=csv.DictWriter(stream,fieldnames=case_fields,extrasaction='ignore');w.writeheader();w.writerows(case_rows)
+    if diagnostics:
+        with (a.output/'case_timings.csv').open('w',encoding='utf-8-sig',newline='') as stream:
+            w=csv.DictWriter(stream,fieldnames=case_fields,extrasaction='ignore');w.writeheader();w.writerows(case_rows)
     expected=len(paths)*len(a.cores)
     successful=sum(r['status']=='ok' for r in rows)
     complete=not errors and len(rows)==expected and len(case_rows)==len(paths) and all(r.get('coverage_complete') for r in case_rows)
-    write(a.output/'results.json',dict(status='complete' if complete else 'incomplete',rows=rows,case_rows=case_rows,
+    save(a.output/'results.json',dict(status='complete' if complete else 'incomplete',rows=rows,case_rows=case_rows,
         coverage_complete=complete,expected_results=expected,successful_results=successful,
         hard_timeouts=sum(r.get('hard_timeout',False) for r in rows),
         case_hard_timeouts=sum(r.get('hard_timeout',False) for r in case_rows),

@@ -2,14 +2,16 @@
 from collections import defaultdict
 from pathlib import Path
 from time import perf_counter, process_time
-import math
 import traceback
+import tempfile
+import shutil
 
 from .budget import run_bounded, SearchBudget, CaseSliceBudget
 from .engine import search
 from .io import read, write, digest, ROOT
 from .service import SearchServices
 from .registry import resolve_problem
+from .configuration import intermediate_artifacts, resolve_time_budget
 
 
 def default_parameters(problem='q1'):
@@ -52,7 +54,18 @@ def _case_worker(request, output, started, single=False, problem=None):
     cpu_started = process_time()
     timing, rows = {}, {}
     active_core, active_phase = None, 'input'
-    case_budget = SearchBudget(request['seconds'], started)
+    limits = request['time_budget']
+    case_budget = SearchBudget(request['seconds'], started,
+        extension=limits['extension_seconds'], hard=limits['hard_limit_seconds'])
+    diagnostics = intermediate_artifacts(request['parameters'])
+
+    def diagnostic(path, value):
+        if diagnostics:
+            write(path, value)
+
+    def save_search(folder, history):
+        # The supervisor only reads this field for timeout accounting.
+        write(folder/'search.json', history if diagnostics else {'extended': history.get('extended', False)})
 
     def phase(name, core=None):
         nonlocal active_phase, active_core
@@ -81,7 +94,7 @@ def _case_worker(request, output, started, single=False, problem=None):
         approximation = prediction.create_estimator(model, settings_dict,
             request['parameters'].get('evaluation', {}))
         cost_model, generation_costs = prediction.create_cost_model(model), defaultdict(list)
-        write(output/'features.json', features)
+        diagnostic(output/'features.json', features)
         timing.update(model_seconds=perf_counter()-t, singlecore_seconds=0.,
             shared_preparation_seconds=perf_counter()-started,
             shared_preparation_cpu_seconds=process_time()-cpu_started)
@@ -91,9 +104,9 @@ def _case_worker(request, output, started, single=False, problem=None):
             folder = _folder(output, cores, single)
             folder.mkdir(parents=True, exist_ok=True)
             row = rows[cores] = _base_row(cores, request)
-            write(folder/'request.json', dict(request, cores=cores, case_cores=request['cores']))
-            write(folder/'baseline.json', row['baseline'])
-            write(folder/'features.json', features)
+            diagnostic(folder/'request.json', dict(request, cores=cores, case_cores=request['cores']))
+            diagnostic(folder/'baseline.json', row['baseline'])
+            diagnostic(folder/'features.json', features)
             phase('structural_seed', cores)
             t, c = perf_counter(), process_time()
             plan, seed_meta = problem.proposals.seed(model, cores, settings)
@@ -107,9 +120,9 @@ def _case_worker(request, output, started, single=False, problem=None):
             elapsed, cpu = perf_counter()-t, process_time()-c
             write(folder/'checkpoint.json', dict(plan=plan, result=result,
                 wall_seconds=elapsed, cpu_seconds=cpu, case_elapsed_seconds=perf_counter()-started))
-            write(folder/'plan.json', plan)
-            write(folder/'evaluation.json', result)
-            write(folder/'structural_seed.json', seed_meta)
+            diagnostic(folder/'plan.json', plan)
+            diagnostic(folder/'evaluation.json', result)
+            diagnostic(folder/'structural_seed.json', seed_meta)
             row.update(status='seed_ready', makespan=result['makespan'],
                 score_source=result.get('evaluation_source', 'official'),
                 wall_seconds=elapsed, accounted_wall_seconds=elapsed, cpu_seconds=cpu,
@@ -144,7 +157,7 @@ def _case_worker(request, output, started, single=False, problem=None):
                     raise ValueError('approximate checkpoint cannot be certified')
                 if official_best[0] is None or objective(value)<official_best[0]:
                     official_best[0] = objective(value)
-                    write(folder/'official_checkpoint.json', dict(plan=plan,result=value,
+                    diagnostic(folder/'official_checkpoint.json', dict(plan=plan,result=value,
                         wall_seconds=seed_seconds+perf_counter()-search_start,
                         cpu_seconds=seed_cpu+process_time()-search_cpu))
 
@@ -153,14 +166,14 @@ def _case_worker(request, output, started, single=False, problem=None):
                 if path.exists():
                     saved = read(path)
                     if plan_digest(saved['plan']) == plan_digest(plan):
-                        write(folder/'rejected_checkpoints'/f'{plan_digest(plan)}.json',
+                        diagnostic(folder/'rejected_checkpoints'/f'{plan_digest(plan)}.json',
                               dict(saved, official_rejected=True))
                         path.unlink()
                         for name in ('plan.json', 'evaluation.json'):
                             (folder/name).unlink(missing_ok=True)
 
             service = SearchServices(model,settings,problem=problem,checkpoint=checkpoint,verified=verified,rejected=rejected,
-                save=lambda h: write(folder/'search.json',h),
+                save=lambda h: save_search(folder,h),
                 progress=lambda e: phase(e.get('phase') or e.get('action') or e['event'],cores))
             service.shared_case = True
             service.approximation, service.cost_model = approximation, cost_model
@@ -187,7 +200,7 @@ def _case_worker(request, output, started, single=False, problem=None):
                         cpu_seconds=seed_cpu+process_time()-search_cpu,
                         history_stop='no_valid_checkpoint', officially_evaluated_final=False)
                     row['timing']['search_seconds'] = elapsed
-                    write(folder/'construction.json',constructor.records)
+                    diagnostic(folder/'construction.json',constructor.records)
                     write(folder/'summary.json',row)
                     continue
                 saved = read(folder/'checkpoint.json')
@@ -205,11 +218,11 @@ def _case_worker(request, output, started, single=False, problem=None):
                 officially_evaluated_final=value.get('evaluation_source')!='approximate')
             row['timing']['search_seconds'] = elapsed
             row['speedup_source'] = row['score_source']
-            write(folder/'plan.json',plan)
-            write(folder/'evaluation.json',value)
+            diagnostic(folder/'plan.json',plan)
+            diagnostic(folder/'evaluation.json',value)
             write(folder/'checkpoint.json',dict(plan=plan,result=value,wall_seconds=row['wall_seconds'],
                 cpu_seconds=row['cpu_seconds'],case_elapsed_seconds=perf_counter()-started))
-            write(folder/'construction.json',constructor.records)
+            diagnostic(folder/'construction.json',constructor.records)
             write(folder/'summary.json',row)
 
         if source_signature(problem)!=request['source_signature']:
@@ -226,22 +239,46 @@ def _case_worker(request, output, started, single=False, problem=None):
 
 def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem="q1",_locked=False):
     problem = resolve_problem(problem)
+    parameters = problem.default_parameters() if parameters is None else parameters
+    limits = resolve_time_budget(parameters, seconds)
+    if intermediate_artifacts(parameters):
+        return _run_case_files(graph,config,cores,output,limits,parameters,single,problem,_locked)
+    if problem.case_runtime is not None:
+        raise ValueError('minimal artifacts require a backend using the shared case worker')
+    output = Path(output).resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    if any(output.iterdir()):
+        raise ValueError('output directory must be empty; use verified case-level resume')
+    # Durable checkpoints still protect results if the supervisor kills a
+    # worker. They remain private and are cleaned after final-plan recovery.
+    with tempfile.TemporaryDirectory(prefix='q1-checkpoints-') as temporary:
+        result = _run_case_files(graph,config,cores,temporary,limits,parameters,single,problem)
+        for row in result['rows']:
+            source = _folder(Path(temporary),row['cores'],single)/'plan.json'
+            if source.exists() and row.get('makespan') is not None:
+                target = _folder(output,row['cores'],single)/'plan.json'
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source,target)
+        return result
+
+
+def _run_case_files(graph,config,cores,output,limits,parameters,single=False,problem="q1",_locked=False):
+    problem = resolve_problem(problem)
     started = perf_counter()
+    seconds = limits['target_seconds']
     cores = list(cores)
     if not cores or len(set(cores))!=len(cores) or any(type(n)is not int or n not in problem.supported_cores for n in cores):
         raise ValueError(f'cores must be distinct members of {problem.supported_cores}')
-    if not math.isfinite(seconds) or not 0<seconds<=600:
-        raise ValueError('case target seconds must be in (0,600]')
     graph,config,output = Path(graph).resolve(),Path(config).resolve(),Path(output).resolve()
     output.mkdir(parents=True,exist_ok=True)
     if problem.case_runtime is not None and not _locked:
         from problem_1_baseline import output_lock
         with output_lock(output):
-            return _run_case(graph,config,cores,output,seconds,parameters,single,problem,True)
+            return _run_case_files(graph,config,cores,output,limits,parameters,single,problem,True)
     if any(path.name != '.run.lock' or not _locked for path in output.iterdir()):
         raise ValueError('output directory must be empty; use verified case-level resume')
     request = dict(graph=str(graph),config=str(config),cores=cores,seconds=seconds,
-        parameters=problem.default_parameters() if parameters is None else parameters,
+        parameters=parameters, time_budget=limits,
         problem_id=problem.id,backend_version=problem.version,
         graph_sha256=digest(graph),config_sha256=digest(config),source_signature=source_signature(problem),
         budget_scope='case_all_cores',baseline_policy=(
@@ -250,7 +287,7 @@ def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem=
     telemetry = {}
     worker = problem.case_runtime.worker if problem.case_runtime is not None else _case_worker
     expired = run_bounded(worker,(request,str(output),started,single,problem),
-                          started+seconds*2,telemetry=telemetry)
+                          started+limits['hard_limit_seconds'],telemetry=telemetry)
     if problem.case_runtime is not None:
         return problem.case_runtime.recover(request, output, started, single, expired, telemetry)
     elapsed = perf_counter()-started
@@ -303,9 +340,9 @@ def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem=
         rows=rows,cores=cores,coverage_complete=coverage,wall_seconds=elapsed,accounted_wall_seconds=elapsed,
         cpu_seconds=telemetry.get('cpu_seconds',outcome.get('cpu_seconds')),
         shared_preparation_seconds=timing.get('shared_preparation_seconds'),timing=timing,
-        target_seconds=seconds,extension_seconds=seconds*1.5,hard_limit_seconds=seconds*2,
+        target_seconds=seconds,extension_seconds=limits['extension_seconds'],hard_limit_seconds=limits['hard_limit_seconds'],
         exceeded_target=elapsed>seconds,extended=outcome.get('extended',progress.get('case_budget',{}).get('extended',False)),
-        exceeded_extension=elapsed>seconds*1.5,hard_timeout=expired,
+        exceeded_extension=elapsed>limits['extension_seconds'],hard_timeout=expired,
         source_signature=request['source_signature'],problem_id=problem.id,backend_version=problem.version,budget_scope='case_all_cores',
         baseline_policy='not_required_for_search',baseline_seconds=0.,parallel_solver=False)
     if outcome.get('error'):
@@ -316,6 +353,6 @@ def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem=
     return result
 
 
-def solve_case(graph,config,cores,output,*,seconds=600,parameters=None,problem="q1"):
+def solve_case(graph,config,cores,output,*,seconds=None,parameters=None,problem="q1"):
     """All requested core counts share ONE case budget and one computing worker."""
     return _run_case(graph,config,cores,output,seconds,parameters,problem=problem)
