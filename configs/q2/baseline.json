@@ -1,0 +1,50 @@
+{
+  "algorithm_version": "Q2-Baseline-Handoff-1.0",
+  "construction": {
+    "scope_modes": [
+      "global",
+      "component_grouped"
+    ],
+    "betas": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "shortlist_k": 8,
+    "accept_zero_core_advantage": true,
+    "deduplicate_equivalent_execution_inputs": true,
+    "baseline_selection": "first_officially_valid_after_cheap_ranking",
+    "cheap_rank_fields": [
+      "proxy_J",
+      "base_copy_bytes",
+      "profile_peak_scaled",
+      "mode_order",
+      "beta",
+      "plan_signature"
+    ]
+  },
+  "enhancement": {
+    "enabled": true,
+    "objective": "max_normalized_no_spill_peak",
+    "window_subgraphs": 8,
+    "max_windows": 32,
+    "keep_original_on_equal_peak": true,
+    "apply_incomplete_window": false,
+    "release_swap_fastpath": false,
+    "full_evaluate_each_window": false
+  },
+  "runtime": {
+    "wall_budget_seconds": 600,
+    "final_verification_reserve_seconds": 60,
+    "workers": 1,
+    "recheck_written_plan": true,
+    "debug_trace": false
+  },
+  "validation": {
+    "verify_official_hashes": true,
+    "strict_official_config": true,
+    "no_unverified_output": true,
+    "check_step1_sequence_roundtrip": true
+  }
+}

@@ -15,37 +15,12 @@ import traceback
 from time import perf_counter
 
 from common.baseline import calculate_speedup, load_baseline_catalog
+from common.artifacts import normalized, atomic_text, write_json, file_hash
 
 from . import official
 from .graph import GraphIndex
 from .partition import BETAS, SHORTLIST_SIZE
 from .solver import initialize, InitializationError
-
-
-def normalized(value):
-    return json.loads(json.dumps(value, sort_keys=True, allow_nan=False))
-
-
-def atomic_text(path: Path, value: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + f".{os.getpid()}.tmp")
-    try:
-        temporary.write_text(value, encoding="utf-8")
-        temporary.replace(path)
-    finally:
-        temporary.unlink(missing_ok=True)
-
-
-def write_json(path: Path, value) -> None:
-    atomic_text(path, json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
-
-
-def file_hash(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def provenance(graph_path: Path, config_path: Path, baseline: dict | None = None, *,
@@ -61,7 +36,7 @@ def provenance(graph_path: Path, config_path: Path, baseline: dict | None = None
         "solver_sha256": {p.name: file_hash(p) for p in sorted(Path(__file__).parent.glob("*.py"))},
         "official_sha256": {p.name: file_hash(p) for p in sorted(official.CODE.glob("*.py"))},
         "shared_sha256": {name: file_hash(official.ROOT / name) for name in (
-            "src/common/baseline.py", "src/problem_1_baseline.py", "src/solve_problem1.py")},
+            "src/common/baseline.py", "src/common/artifacts.py", "src/problem_1_baseline.py", "src/solve_problem1.py")},
         "python": platform.python_version(), "python_implementation": platform.python_implementation(),
     }
     if baseline is not None:

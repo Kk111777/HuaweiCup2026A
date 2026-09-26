@@ -1,9 +1,9 @@
 <h1 align="center">HuaweiCup2026A · 多核任务划分与调度</h1>
 <p align="center">操作—张量 DAG 上的 Task 构造、多原则分层改进与基座专项优化</p>
 <p align="center"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12%2B-blue"> <img alt="Standard library" src="https://img.shields.io/badge/dependencies-standard_library-green"></p>
-<p align="center"><a href="#第一问模型谱系">模型谱系</a> · <a href="#项目目录">目录</a> · <a href="#问题一第二版基于严格剪枝的多原则候选方案分层改进策略">第二版</a> · <a href="#问题一第三版基座专用优化模型">第三版</a> · <a href="#日常协作">协作</a></p>
+<p align="center"><a href="#第一问模型谱系">模型谱系</a> · <a href="#项目目录">目录</a> · <a href="#问题一第二版基于严格剪枝的多原则候选方案分层改进策略">第二版</a> · <a href="#问题一第三版基座专用优化模型">第三版</a> · <a href="docs/q2/baseline.md">问题二新基座</a> · <a href="#日常协作">协作</a></p>
 
-本项目研究华为杯题目中的多核调度：将原始计算图划分为 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；它们共用官方程序和单核参照，各自的搜索与评价规则单独记录。
+本项目研究华为杯题目中的多核调度：划分原始计算图的子图、按场景组织 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；第二问实现了联动生长与窗口缓存排序的新基座。各自的搜索与评价规则单独记录。
 
 私有仓库由 `Kk111777` 与 `Zysishuiyears` 通过任务分支和 PR 协作维护；基础环境为 Python 3.12，程序仅依赖标准库。赛题图是算子调度工作负载，求解过程不实际执行神经网络矩阵运算。
 
@@ -33,30 +33,35 @@ HuaweiCup2026A/
 ├─ src/
 │  ├─ problem_1_baseline.py       # 官方单核参照入口
 │  ├─ solve_problem1.py           # V2 子命令 / V3 默认图路径入口
+│  ├─ solve_problem2.py           # Q2 solve / batch / verify
 │  ├─ common/baseline.py          # 基线归档校验及加速比计算
+│  ├─ common/artifacts.py         # 原子写入、JSON 和 SHA-256
+│  ├─ q2/                        # Q2 增量构造、Step1 前缀、窗口 DP 与官方复核
 │  └─ q1/
 │     ├─ graph.py, model.py       # 共享图模型与基座索引
 │     ├─ partition.py, solver.py # V1 TaskGrowth 构造及初始化择优
 │     ├─ schedule.py, allocation.py, official.py  # 调度与官方适配
-│     ├─ reference_cli.py, run.py # V1 参考运行及公共产物函数
+│     ├─ reference_cli.py, run.py # V1 参考运行，兼容导出公共产物函数
 │     ├─ stage2/                 # V2：诊断、邻域、严格下界、三层搜索
 │     ├─ unified/                # V3：统一构造、预算、评估服务与控制器
 │     └─ improvement/            # V3：结构候选、近似评价与局部改进
 ├─ configs/
 │  ├─ q1/stage2.json             # V2 搜索预算、规模及剪枝开关
+│  ├─ q2/                        # Q2 算法参数与已审官方 SHA-256
 │  └─ unified.json               # V3 既有配置路径，保留兼容性
 ├─ tools/reference_problem1.py   # V1 的显式命令行入口
 ├─ scripts/run_unified_100.ps1   # V3 既有批量实验入口
 ├─ official/                    # 原版评估代码、配置；原始图留本地
 ├─ docs/q1/                     # initialization / stage2 / unified 三版说明
-├─ tests/                       # 共享基础、V1/V2/V3 回归与边界验证
+├─ docs/q2/                     # 设计原稿、实现使用与有限验收
+├─ tests/                       # 共享基础、Q1 回归、Q2 独立 oracle 与边界验证
 ├─ results/
 │  ├─ problem_1_singlecore/      # 已发布单核参照，固定保留
 │  └─ q1_adaptive_100cases_20260925/ # V1 完整百例归档
 └─ outputs/                     # 各版本实验目录，Git 忽略
 ```
 
-目录沿用已验证的导入和运行路径，共享基座保持一份实现，V2 和 V3 的搜索模块分别归位。不存在的第二、三问模块不提前建空目录。具体接口与实验归档约定见[项目结构说明](docs/architecture.md)。
+目录沿用已验证的导入和运行路径，Q1 共享基座保持一份实现，V2 和 V3 的搜索模块分别归位；Q2 独立实现 Scene B 的构造与排序，第三问尚无实现。具体接口与实验归档约定见[项目结构说明](docs/architecture.md)。
 
 ## 开始使用
 
@@ -212,6 +217,20 @@ python src/solve_problem1.py path/to/new_graph.json --config official/data/confi
 详见[彩色分层架构、模块归属、调用与时间口径](docs/q1/unified.md)。新成绩与逐例耗时写入新实验目录；旧版两管线择优的成绩不代表本版本。
 
 原 `initialize` 保留为串行基座对照 API。旧命令行移到 `tools/reference_problem1.py` / `q1.reference_cli`，其中候选并发被禁止。历史公式说明见 [初始化算法](docs/q1/initialization.md)，其中旧入口和并发说明以本页与统一架构文档为准。
+
+## 问题二：联动生长与精确窗口缓存排序新基座
+
+Q2 将每核全部子图合成一个 Task，跨核 COPY 等待 500 cycles。先用持续核心状态、四类短名单和增量试放构造至多八个方案，经廉价排序选择首个官方有效的 B0；再固定子图成员和核心归属，以至多 32 个、宽度至多 8 的子集 DP 窗口优化无换出归一化缓存峰值。增强方案 B1 只有在官方 `(makespan, added_copy_bytes)` 严格改善时才被保留。最终方案落盘重读，并用原版官方 CLI 全字段复评后才发布。
+
+```powershell
+# python 指向 Python 3.12；先运行单例
+python src/solve_problem2.py solve official/data/case_001.json --cores 2 --output-dir outputs/q2_single
+
+# 显式限定六个冒烟组合，默认串行；不会扩展到其他 case
+python src/solve_problem2.py batch --data-dir official/data --cases case_001 case_067 case_086 --cores 2 5 --workers 1 --wall-seconds 90 --verification-reserve 15 --output-dir outputs/q2_smoke
+```
+
+默认预算为每 case/N 600 秒，预留 60 秒复核；单核分子读取并校验现有固定归档。续跑须使用相同来源和参数并显式加 `--resume`，自定义小图可用 `--without-baseline`。本地仅进行了小图验收和六组合冒烟，没有运行 100×4 全量实验。运行、输出、工程优化与实测边界见[Q2 实现与验收](docs/q2/baseline.md)，完整算法约定见[设计原稿](docs/q2/design.md)。
 
 ## 日常协作
 
