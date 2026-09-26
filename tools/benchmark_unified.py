@@ -30,7 +30,7 @@ def main():
         dest='report_baseline_archive',type=Path,
         help='Validated singlecore archive used only after solving to report speedups; never solver input')
     p.add_argument('--archive-repo-root',type=Path)
-    p.add_argument('--seconds',type=float,default=480,
+    p.add_argument('--seconds',type=float,default=600,
         help='Target wall-clock budget for ONE CASE and ALL requested core counts combined')
     p.add_argument('--resume',action='store_true')
     p.add_argument('--reuse-verified-run',type=Path,nargs='*',default=[])

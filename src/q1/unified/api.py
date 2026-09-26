@@ -9,13 +9,13 @@ from scheduling.io import read, write, digest, ROOT
 from .. import official
 
 
-def solve_case(graph, config, cores, output, *, seconds=480, parameters=None):
+def solve_case(graph, config, cores, output, *, seconds=600, parameters=None):
     """Preserve the Q1 API and its single shared case budget."""
     return _solve_case(graph, config, cores, output, seconds=seconds,
                        parameters=parameters, problem='q1')
 
 
-def solve_file(graph,config,cores,output,*,seconds=480,parameters=None,
+def solve_file(graph,config,cores,output,*,seconds=600,parameters=None,
                local_test_baseline_archive=None,archive_repo_root=None,_verified_test_record=None):
     """One-count compatibility API. Use solve_case for a shared four-count budget.
 

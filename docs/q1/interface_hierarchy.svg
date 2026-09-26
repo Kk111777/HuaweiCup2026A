@@ -27,7 +27,7 @@
   </defs>
   <rect width="1600" height="1200" fill="#fbfcfe"/>
   <text x="60" y="65" class="title">调度框架：接口层级与扩展边界</text>
-  <text x="60" y="104" class="subtitle">调用方式兼容 · 单后端装配 · 整 case 共用 480 秒目标预算 · 近似探索 / 最终官方最优</text>
+  <text x="60" y="104" class="subtitle">调用方式兼容 · 单后端装配 · 整 case 共用 600 秒目标预算 · 官方与近似结果保留来源</text>
 
   <rect x="60" y="134" width="20" height="20" rx="4" fill="#526781"/>
   <text x="91" y="151" class="small">公共框架</text>
@@ -60,7 +60,7 @@
 
   <rect x="88" y="446" width="620" height="92" rx="12" class="public"/>
   <text x="109" y="480" class="heading">api · budget · io</text>
-  <text x="109" y="513" class="body">整 case 480 秒预算 / 进程监督 / 检查点输出</text>
+  <text x="109" y="513" class="body">整 case 600 秒预算 / 进程监督 / 检查点输出</text>
   <path d="M708 492 H777" class="line"/>
   <rect x="789" y="446" width="721" height="92" rx="12" class="public"/>
   <text x="810" y="480" class="heading">engine · service</text>

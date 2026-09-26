@@ -63,11 +63,11 @@ class ApproximateAcceptanceTests(unittest.TestCase):
         with patch('time.perf_counter',return_value=9.8), \
              patch.object(service,'evaluate') as evaluate:
             budget=SearchBudget(10,started=0);budget.shared_case=True
-            with self.assertRaisesRegex(ValueError, 'no valid plan with official'):
-                search(graph,2,service.settings_dict,params,10,service,
-                    seed=(split,predicted),budget=budget)
+            _,result,history=search(graph,2,service.settings_dict,params,10,service,
+                seed=(split,predicted),budget=budget)
         evaluate.assert_not_called()
-        self.assertEqual(service.history['final_candidate_check']['status'],'no_valid_plan')
+        self.assertEqual(result['evaluation_source'],'approximate')
+        self.assertEqual(history['final_candidate_check']['status'],'insufficient_time')
 
     def test_shared_growth_receives_finite_window_after_checkpoint(self):
         raw,graph,seed,split,value=self.fixture()
@@ -166,13 +166,14 @@ class ApproximateAcceptanceTests(unittest.TestCase):
         with patch.object(service,'evaluate',return_value=(None,dict(status='failed',seconds=.01,
                 error='timed out',timed_out=True,timeout_seconds=1))), \
              patch.object(service,'reject') as reject:
-            with self.assertRaisesRegex(ValueError, 'no valid plan with official'):
-                search(graph,2,service.settings_dict,params,10,service,
-                    seed=(split,prediction),budget=budget)
+            plan,result,history=search(graph,2,service.settings_dict,params,10,service,
+                seed=(split,prediction),budget=budget)
         reject.assert_not_called()
-        self.assertEqual(service.history['invalid_plans'],{})
+        self.assertEqual(plan,split)
+        self.assertEqual(result['evaluation_source'],'approximate')
+        self.assertEqual(history['invalid_plans'],{})
 
-    def test_no_time_for_official_restores_certified_checkpoint(self):
+    def test_no_time_for_official_keeps_approximate_checkpoint(self):
         raw,graph,seed,split,value=self.fixture();clock=[0.];saved=[]
         class Constructor:
             def next(self):clock[0]=1199.5;return 'growth_split',split,1
@@ -184,12 +185,11 @@ class ApproximateAcceptanceTests(unittest.TestCase):
             plan,result,history=search(graph,2,service.settings_dict,params,600,service,
                 seed=(seed,value),started=0,constructor=Constructor())
         evaluate.assert_not_called()
-        self.assertEqual(plan,seed)
-        self.assertNotEqual(result.get('evaluation_source'),'approximate')
+        self.assertEqual(plan,split)
+        self.assertEqual(result['evaluation_source'],'approximate')
         self.assertEqual(saved[-1],(plan,result))
-        self.assertTrue(any(r.get('evaluation_source')=='approximate' for _,r in saved))
-        self.assertEqual(result['makespan'],value['makespan'])
-        self.assertEqual(history['best_official']['plan_digest'],plan_digest(seed))
+        self.assertEqual(history['final_candidate_check']['retained_source'],'approximate')
+        self.assertLess(result['makespan'],value['makespan'])
 
     def test_official_correction_reranks_and_overwrites_optimistic_checkpoint(self):
         raw,graph,seed,split,value=self.fixture();saved=[]
@@ -222,7 +222,7 @@ class ApproximateAcceptanceTests(unittest.TestCase):
             model.observe(split,result)
         self.assertIsNone(result['data_movement_bytes']['spill_added_copy_bytes'])
 
-    def test_elapsed_time_does_not_interrupt_generated_batch_before_closing_calibration(self):
+    def test_elapsed_time_triggers_official_calibration_before_batch_is_full(self):
         raw,graph,seed,split,value=self.fixture();clock=[0.]
         service=SearchServices(graph,SETTINGS);service.baseline_seconds=100
         measured=official.evaluate(raw,split,SETTINGS)
@@ -236,7 +236,7 @@ class ApproximateAcceptanceTests(unittest.TestCase):
             search(graph,2,service.settings_dict,params,600,service,seed=(seed,value),started=0)
         self.assertEqual(evaluate.call_count,1)
         exact=[r for r in service.history['records'] if r['evaluation_source']=='official']
-        self.assertEqual(exact[0]['requested_reason'],'initial_round_end')
+        self.assertEqual(exact[0]['requested_reason'],'periodic')
 
     def test_offline_replay_preserves_prediction_and_records_realized_score(self):
         raw,graph,seed,split,value=self.fixture()

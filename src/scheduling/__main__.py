@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--config', required=True, help='Official hardware configuration')
     parser.add_argument('--parameters', help='Search parameters JSON; defaults come from the backend')
     parser.add_argument('--cores', type=int, nargs='+', required=True)
-    parser.add_argument('--seconds', type=float, default=480,
+    parser.add_argument('--seconds', type=float, default=600,
                         help='Total target for this graph and ALL requested core counts; extension is case-wide')
     parser.add_argument('--output', required=True)
     args = parser.parse_args()

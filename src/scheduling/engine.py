@@ -1,6 +1,6 @@
 """Shared search coordinator; problem semantics and algorithms are injected.
 
-Search rounds reserve a closing official evaluation; only certified results are returned.
+The search order and thresholds are inherited unchanged from the Q1 controller.
 Execution, proposal generation, plan identity and prediction belong to explicit
 backend bindings; this module imports no problem implementation.
 """
@@ -9,7 +9,7 @@ from copy import deepcopy
 import time
 from .budget import SearchBudget
 from .contracts import ProblemDefinition
-from .configuration import apply_structure_overrides, late_official_gain_fraction
+from .configuration import apply_structure_overrides
 
 def search(graph, cores, settings, params, seconds, services, *, problem, seed=None, started=None, constructor=None, budget=None):
     if not isinstance(problem, ProblemDefinition):
@@ -67,81 +67,19 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
     if 'structure_overrides' in params:
         params = apply_structure_overrides(params, problem.proposals.controlled_parameters)
     generation_costs = getattr(services, 'generation_costs', defaultdict(list))
-    round_admissions = []
-    exploration_closed = False
-    minimum_official_checks = options.get('minimum_official_checks', 2)
-    if type(minimum_official_checks) is not int or minimum_official_checks not in (1, 2):
-        raise ValueError('evaluation.minimum_official_checks must be 1 or 2')
-    minimum_completion_attempted = False
-    minimum_grace = []
-    minimum_round_grace = []
-    late_gain_threshold = late_official_gain_fraction(params)
-    late_official_checks = []
-    measured_official_costs = {}
-
-    def completed_official_checks():
-        extra_seed = int(seed_is_official and seed is not None and plan_digest(seed[0]) not in verified_scores)
-        return len(verified_scores) + extra_seed
-
-    def generation_estimate(phase):
-        observed = generation_costs.get(phase, [])
-        return (max(observed[-3:])*1.2 if observed else
-                controls['generation_seconds_prior'][phase] if controls else 1.)
-
-    def screening_estimate():
-        recent = [r['seconds'] for r in records if r.get('evaluation_source') == 'approximate'][-6:]
-        return max(.05, max(recent, default=.05)) * (policy.interval if policy else 1)
-
-    def closing_reserve():
-        # Recompute for the CURRENT partition: a merge can make official work dearer.
-        plan = best_plan if best_plan is not None else (staged[1] if staged else None)
-        predicted = cost_of(plan) if plan is not None else 0.
-        return 1.25 * max(predicted, budget.timeout_floor) + 1.
-
-    def grant_minimum_round(required, phase):
-        # Reserve generation AND a closing calibration, once, within the same
-        # case extension. No fresh budget is created for this opportunity.
-        if (minimum_round_grace or minimum_completion_attempted or
-                not 0 < completed_official_checks() < minimum_official_checks):
-            return False
-        parent = getattr(budget, 'parent', None)
-        available = min(budget.extension-budget.elapsed(), budget.hard-budget.elapsed()-.05)
-        if parent is not None:
-            available = min(available, parent.extension-parent.elapsed(),
-                            parent.hard-parent.elapsed()-.05)
-        if required >= available or not services.can_continue():
-            return False
-        budget.extended = True
-        if parent is not None and parent.target-parent.elapsed() < required:
-            parent.extended = True
-        minimum_round_grace.append(dict(phase=phase, required_seconds=required,
-            available_seconds=available, note='One complete generation-screening-calibration opportunity.'))
-        return True
-
-    def admit_round(phase, *, close_on_failure=True):
-        nonlocal exploration_closed
-        if exploration_closed or not services.can_continue():
-            return False
-        generation = generation_estimate(phase)
-        screening, reserve = screening_estimate(), closing_reserve()
-        required = generation + screening + reserve
-        allowed = budget.can_start(required)
-        if not allowed:
-            allowed = grant_minimum_round(required, phase)
-        round_admissions.append(dict(phase=phase, elapsed_seconds=budget.elapsed(),
-            generation_seconds=generation, screening_seconds=screening,
-            official_reserve_seconds=reserve, required_seconds=required,
-            remaining_seconds=window_remaining(), allowed=allowed))
-        if not allowed and close_on_failure:
-            exploration_closed = True
-            budget.stop_reason = 'insufficient_complete_round_time'
-        return allowed
 
     def window_remaining():
         return max(0., (budget.extension if budget.extended else budget.target)-budget.elapsed())
 
     def can_generate(phase):
-        return admit_round(phase)
+        if not shared_case:
+            return can_explore()
+        observed = generation_costs.get(phase, [])
+        estimate = (max(observed[-3:])*1.2 if observed else
+                    controls['generation_seconds_prior'][phase])
+        # Retain a screening/calibration window after candidate generation.
+        return (services.can_continue() and budget.can_start(estimate+1.) and
+                estimate < window_remaining()*.6)
 
     def generation_observed(phase, elapsed):
         phase_seconds[phase] += elapsed
@@ -151,11 +89,11 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
     def can_construct():
         # The shared constructor checks its own cooperative deadline. It can
         # start without first completing an unbounded graph-size estimate.
-        return can_explore() and admit_round('construction', close_on_failure=False)
+        return (can_explore() and window_remaining() > 3.) if shared_case else can_explore()
 
     def construct(fraction=.6):
         phase_started = time.perf_counter()
-        proposal = (constructor.next(seconds=max(0., min(window_remaining()*fraction, window_remaining()-closing_reserve()-screening_estimate())))
+        proposal = (constructor.next(seconds=max(0.,window_remaining()*fraction))
                     if shared_case else constructor.next())
         generation_observed('construction',time.perf_counter()-phase_started)
         return proposal
@@ -164,33 +102,12 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         key = plan_digest(plan)
         if key not in complexities:
             complexities[key] = plan_complexity(graph, plan)
-        if key in measured_official_costs:
-            return 1.35 * measured_official_costs[key]
         return cost_model.predict(complexities[key])
 
-    def can_screen():
-        # An already generated batch is cheap to screen. Do not let a changing
-        # structural official-cost forecast terminate it after its first item.
-        if exploration_closed or not services.can_continue():
-            return False
-        reserve = 1.25 * max(budget.costs[-3:], default=.05) + 1.
-        remaining = min(window_remaining(), budget.hard-budget.elapsed()-.05)
-        parent = getattr(budget, 'parent', None)
-        if parent is not None:
-            remaining = min(remaining, parent.hard-parent.elapsed()-.05)
-        return remaining > screening_estimate() + reserve
-
     def can_explore():
-        nonlocal exploration_closed
-        if exploration_closed or not services.can_continue():
-            return False
-        # If no certified state exists, bootstrap/recovery still gets a chance.
-        required = closing_reserve() + screening_estimate() if best_official_state else .01
-        if not budget.can_start(required):
-            exploration_closed = True
-            budget.stop_reason = 'insufficient_calibration_time'
-            return False
-        return True
+        # Approximation remains useful when a previous expensive official call
+        # would not fit. Admission is checked against each proposed partition.
+        return services.can_continue() and budget.can_start(.01)
 
     if seed is not None:
         best_plan, best_result = seed
@@ -224,16 +141,6 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
                    "in_flight_evaluation": in_flight,
                    "calibration_interval_seconds": calibration_interval_seconds,
                    "phase_seconds": dict(phase_seconds), "final_candidate_check": final_check,
-                   "round_admissions": round_admissions,
-                   "output_policy": "best_official",
-                   "minimum_official_checks": minimum_official_checks,
-                   "completed_official_checks": completed_official_checks(),
-                   "minimum_calibration_grace": minimum_grace,
-                   "minimum_round_grace": minimum_round_grace,
-                   "late_official_gain_fraction": late_gain_threshold,
-                   "late_official_checks": late_official_checks,
-                   "best_official": ({"plan_digest": best_official_state['digest'],
-                       "objective": list(best_official_state['objective'])} if best_official_state else None),
                    "staged_candidate": ({"action": staged[0], "estimated_cycles": staged[3],
                                          "plan_digest": plan_digest(staged[1])} if staged else None),
                    "proxy_mode": CHEAP_PROXY_MODE,
@@ -303,79 +210,23 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
             best_plan = best_result = None
 
     def verify(name, plan, proxy, *, estimate_cycles=None, reason="direct"):
-        nonlocal best_plan, best_result, states, best_generated, best_initial, calibration_seed, in_flight, last_official_at, staged, minimum_completion_attempted, exploration_closed
+        nonlocal best_plan, best_result, states, best_generated, best_initial, calibration_seed, in_flight, last_official_at, staged
         digest = plan_digest(plan)
-        if digest in invalid_digests or late_official_checks:
+        if digest in invalid_digests:
             return False
         estimate = max(budget.costs[-3:], default=0)
         if not services.can_continue():
             return False
         initial_probe = policy is not None and policy.calls == 0
         predicted_cost = cost_of(plan)
-        minimum_attempt = False
-        late_entry = None
         if policy:
             remaining = budget.hard - budget.elapsed() - .05
             reserve = 1.
-            if shared_case:
-                budget.can_start(predicted_cost + reserve)
             soft_remaining = (budget.extension if budget.extended else budget.target) - budget.elapsed()
             available = remaining if initial_probe and reason=='bootstrap_completion' and not shared_case else soft_remaining
-            normal_admission = (remaining > 0 and available >= predicted_cost + reserve
-                                and (not shared_case or budget.can_start(predicted_cost+reserve)))
-            # Give one distinct post-seed proposal a real calibration opportunity.
-            # A structural wall-time forecast is advisory, not proof it cannot finish.
-            known = digest in verified_scores or (best_official_state and best_official_state['digest']==digest)
-            reference_cycles = best_official_state['result']['makespan'] if best_official_state else None
-            gain = ((reference_cycles-estimate_cycles)/reference_cycles
-                    if reference_cycles and estimate_cycles is not None else None)
-            significant = (late_gain_threshold is not None and gain is not None
-                           and gain >= late_gain_threshold
-                           and not known and reason in {'initial_round_end', 'local_round_end', 'final'})
-            if not normal_admission and significant:
-                parent = getattr(budget, 'parent', None)
-                floor = 1.25 * max(budget.costs[-3:], default=.05) + reserve
-                grace_remaining = remaining
-                if parent is not None:
-                    grace_remaining = min(grace_remaining, parent.extension-parent.elapsed(),
-                                          parent.hard-parent.elapsed()-.05)
-                if grace_remaining >= floor:
-                    late_entry = dict(plan_digest=digest, reason=reason,
-                        official_reference_cycles=reference_cycles, estimated_cycles=estimate_cycles,
-                        predicted_gain_fraction=gain, threshold=late_gain_threshold,
-                        predicted_official_seconds=predicted_cost,
-                        observed_cost_floor_seconds=floor, available_seconds=grace_remaining)
-                    late_official_checks.append(late_entry)
-                    exploration_closed = True
-                    budget.extended = True
-                    if parent is not None:
-                        parent.extended = True
-                    budget.stop_reason = 'significant_gain_final_verification'
-                    available = soft_remaining = grace_remaining
-            needs_second = (0 < completed_official_checks() < minimum_official_checks
-                            and not known and not minimum_completion_attempted)
-            if not normal_admission and late_entry is None and needs_second:
-                parent = getattr(budget, 'parent', None)
-                # A low-gain proposal does not get an unbounded cost override
-                # just to reach two checks. Only the significant-gain final
-                # opportunity above may override the structural forecast.
-                floor = max(1.25 * max(budget.costs[-3:], default=.05), predicted_cost) + reserve
-                grace_remaining = min(budget.extension-budget.elapsed(), remaining)
-                if parent is not None:
-                    grace_remaining = min(grace_remaining, parent.extension-parent.elapsed(),
-                                          parent.hard-parent.elapsed()-.05)
-                if grace_remaining >= floor and services.can_continue():
-                    budget.extended = True
-                    if parent is not None and parent.target-parent.elapsed() < floor:
-                        parent.extended = True
-                    available = soft_remaining = grace_remaining
-                    minimum_attempt = True
-                    minimum_completion_attempted = True
-                    minimum_grace.append(dict(plan_digest=digest, reason=reason,
-                        predicted_official_seconds=predicted_cost, available_seconds=available,
-                        observed_cost_floor_seconds=floor,
-                        note='Minimum-check opportunity requires the predicted official cost to fit the extension.'))
-            if not normal_admission and not minimum_attempt and late_entry is None:
+            if remaining <= 0 or available < predicted_cost + reserve:
+                return False
+            if shared_case and not budget.can_start(predicted_cost+reserve):
                 return False
         elif not budget.can_start(estimate):
             return False
@@ -398,19 +249,11 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         record.update(predicted_official_seconds=predicted_cost, evaluator_complexity=complexity,
                       cost_prediction_source=cost_model.metadata()['source'])
         cost_model.observe(complexity, record)
-        if value is not None and not record.get('cache_hit'):
-            measured_official_costs[digest] = record['seconds']
-        if late_entry is not None:
-            late_entry.update(status=record['status'], seconds=record.get('seconds', 0),
-                official_cycles=value['makespan'] if value else None,
-                improved_official=bool(value and objective(value) < best_official_state['objective']))
         if policy:
             policy.observe(record, estimate_cycles, value["makespan"] if value else None)
         phase_seconds["official_evaluation"] += record.get("seconds", 0)
         budget.observe(previous_result, value, record)
-        record.update(minimum_calibration_attempt=minimum_attempt,
-                      significant_gain_final_attempt=late_entry is not None,
-                      validation_reason="initial_probe" if initial_probe else reason,
+        record.update(validation_reason="initial_probe" if initial_probe else reason,
                       requested_reason=reason,
                       estimated_makespan_cycles=estimate_cycles)
         if estimate_cycles is not None and value:
@@ -446,8 +289,6 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         records.append(record)
         if value is not None:
             verified_scores[digest] = {"makespan": value["makespan"]}
-            record['official_makespan_cycles'] = value['makespan']
-            record['official_objective'] = list(objective(value))
             candidate_objective = list(objective(value))
             if name not in ("same_core_incumbent", "fewer_core_fallback"):
                 if best_generated is None or candidate_objective < best_generated:
@@ -478,12 +319,6 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         if staged is None:
             return False
         name, plan, proxy, estimated = staged
-        if plan_digest(plan) in verified_scores:
-            staged = None
-            screened_since_check = 0
-            if reason == 'final':
-                final_check = dict(status='already_verified')
-            return False
         before = len(records)
         improved = verify(name, plan, proxy, estimate_cycles=estimated, reason=reason)
         if len(records) > before:
@@ -497,7 +332,7 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         save_search()
         return improved
 
-    def attempt(name, plan, proxy, *, batch=False):
+    def attempt(name, plan, proxy):
         nonlocal model, staged, screened_since_check, calibration_seed
         digest = plan_digest(plan)
         if digest in invalid_digests:
@@ -506,7 +341,7 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
             if constructor is not None and digest in verified_scores:
                 constructor.observe(name, verified_scores[digest])
             return False
-        if not (can_screen() if batch else can_explore()):
+        if not can_explore():
             return False
         validate_plan(graph, plan, cores)
         seen.add(digest)
@@ -526,7 +361,7 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         estimated, detail = model.estimate(plan, reference)
         phase_seconds["approximate_evaluation"] += detail["seconds"]
         improved = accept_approximate(name,plan,estimated,detail)
-        if not batch and cost_of(plan) <= policy.threshold and staged is None:
+        if cost_of(plan) <= policy.threshold and staged is None:
             improved = verify(name,plan,proxy,estimate_cycles=estimated) or improved
             save_search()
             return improved
@@ -543,7 +378,7 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
             staged = (name, plan, proxy, estimated)
         screened_since_check += 1
         save_search()
-        if not batch and (screened_since_check >= policy.interval or budget.elapsed()-last_official_at >= calibration_interval_seconds):
+        if screened_since_check >= policy.interval or budget.elapsed()-last_official_at >= calibration_interval_seconds:
             return flush_staged("periodic") or improved
         return improved
 
@@ -564,7 +399,7 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         # Start with the actual multi-core proposal, not a costly single-core
         # run. The first official call obeys this core's fair budget slice.
         staged = ('structural_seed', best_plan, cheap_plan_proxy(graph,best_plan,settings),best_result['makespan'])
-        if budget.can_start(cost_of(best_plan) + 1.):
+        if cost_of(best_plan) < window_remaining()*.4:
             flush_staged('structural_seed')
     shared_construction_started = False
     if shared_case and constructor is not None and can_construct():
@@ -576,8 +411,6 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
         if candidate is not None:
             initial_names.add(candidate[0])
             attempt(*candidate)
-            if adaptive:
-                flush_staged("construction_round_end")
     # Large graphs are screened before committing to a possibly expensive first
     # official evaluation. Every proposal still enters this one controller.
     bootstrap_candidates = []
@@ -642,13 +475,8 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
                                         or (time.perf_counter() - initial_started > seconds * .45
                                             and (not adaptive or index >= 4))):
             break
-        batch = adaptive and best_official_state is not None
-        if batch and not can_screen():
-            break
-        attempt(*candidate, batch=batch)
+        attempt(*candidate)
         pending.pop(0)
-    if adaptive:
-        flush_staged("initial_round_end")
     stale = 0
     exhausted = set()
     for round_no in range(params["max_rounds"]):
@@ -722,31 +550,20 @@ def search(graph, cores, settings, params, seconds, services, *, problem, seed=N
             if not by_kind[kind]:
                 del by_kind[kind]
         for name, plan, proxy in ordered:
-            batch = adaptive and best_official_state is not None
-            if batch and not can_screen():
-                break
-            improved |= attempt(name, plan, proxy, batch=batch)
+            improved |= attempt(name, plan, proxy)
             evaluated += 1
-            if evaluated >= params["official_per_round"] or not (can_screen() if batch else can_explore()):
+            if evaluated >= params["official_per_round"] or not can_explore():
                 break
-        if adaptive:
-            improved |= flush_staged("local_round_end")
         stale = 0 if improved else stale + 1
         if not evaluated:
             if not pending and all((s["digest"], k) in exhausted for s in states for k in range(3)):
                 break
     if adaptive:
         flush_staged("final")
-    # Exploration estimates are saved, but may never become the submitted answer.
-    if best_official_state is not None:
-        best_plan, best_result = best_official_state['plan'], best_official_state['result']
-        services.checkpoint(best_plan, best_result)
-    else:
-        best_plan = best_result = None
     if best_result is None:
         final_check = dict(status='no_valid_plan',invalid_plans=len(invalid_digests))
         save_search()
-        raise ValueError(f"no valid plan with official evaluation within {seconds:.1f}s; officially rejected {len(invalid_digests)} plans")
+        raise ValueError(f"no valid plan within {seconds:.1f}s; officially rejected {len(invalid_digests)} plans")
     search_seconds = time.perf_counter() - started
     budget.can_start()
     save_search()

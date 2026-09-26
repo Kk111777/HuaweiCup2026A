@@ -182,9 +182,7 @@ class UnifiedTests(unittest.TestCase):
             else:
                 self.assertGreater(len(service.approximation.calibration),0)
             checked.append(cores)
-            measured = official.evaluate(graph.raw, seed[0], SETTINGS)
-            service.on_verified(seed[0], measured)
-            return seed[0], measured, dict(stop_reason='test')
+            return *seed,dict(stop_reason='test')
         with tempfile.TemporaryDirectory() as d:
             d=Path(d);graph=d/'graph.json';write(graph,graph_of(12,shared=False))
             with patch('scheduling.api.run_bounded',side_effect=in_process), \

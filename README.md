@@ -24,7 +24,7 @@ flowchart LR
 
 **模型编号表示方法关系，不按上传顺序编号。** V1 的默认自适应基座在 [`04634a2` / PR #4](https://github.com/Kk111777/HuaweiCup2026A/pull/4) 合入，完整 400 组合结果由 PR #5 归档；V3 在 [`6352e01` / PR #6](https://github.com/Kk111777/HuaweiCup2026A/pull/6) 先行合入，V2 随后由 PR #7 补齐。本次更新 V3 的结构驱动求解与接口。V2 与 V3 是从 V1 发展的两条路线，不构成 V1 → V2 → V3 的逐级叠加，也不把 V2 的三层搜索自动接入 V3。
 
-V2 的候选接受依据是完整官方目标 `(makespan, added_copy_bytes)` 严格字典序改善，最终方案落盘后再次官方复评。V3 允许近似改进更新探索状态，最终仅输出本次搜索的官方最优方案；独立评分在搜索结束后进行。版本编号不代表逐例成绩优劣；三版比较必须使用相同 case 集合、核数与官方评分口径。
+V2 的候选接受依据是完整官方目标 `(makespan, added_copy_bytes)` 严格字典序改善，最终方案落盘后再次官方复评。V3 保持既有的近似接纳与官方校准规则，输出须区分 `score_source` 并按其说明独立重放。版本编号不代表逐例成绩优劣；三版比较必须使用相同 case 集合、核数与官方评分口径。
 
 ## 项目目录
 
@@ -207,17 +207,15 @@ python src/solve_problem1.py improve-batch --initial-root results/q1_adaptive_10
 
 第三版将协作者的 Task 生长策略与个人的结构候选、局部改进及区域重构放入同一个搜索控制器，共用图模型、方案校验、调度内核、官方评估服务和预算。第三版内部没有两个独立求解管线及最终择优汇合点；第二版仍由自己的显式子命令调用。
 
-当前统一入口允许近似改进更新探索状态，每轮预留官方收尾核验时间，最终仅输出本次搜索历史官方最优方案。时间不足时，预测相对官方最优改善至少 3% 的候选可申请每核一次额外核验，仍受整 case 期限约束；实测变差或失败保留原官方最优。独立评分在输出固定后完整重放官方，不反馈搜索，其耗时不计入搜索预算。架构与接口规则见 [统一说明](docs/q1/unified.md)。
+当前统一入口允许近似改进立即覆盖方案；官方评估在时间充足时按批次或计时间隔校准。来不及核验时保留近似结果，`score_source` 标明来源；离线重放另存真实评分，不改写原始预测值。架构与接口规则见 [统一说明](docs/q1/unified.md)。
 
 ```powershell
-python src/solve_problem1.py path/to/new_graph.json --config official/data/config.txt --cores 2 3 4 5 --seconds 480 --output outputs/new_graph
+python src/solve_problem1.py path/to/new_graph.json --config official/data/config.txt --cores 2 3 4 5 --seconds 600 --output outputs/new_graph
 ```
 
-输入可为任意名称的合法新图。一张图的全部请求核数共享 480 秒目标预算，包含预处理、搜索内官方调用及输出；保留有条件延至 720 秒、已启动工作最多至 960 秒的项目保护机制。求解不先运行官方单核，固定单核结果仅在报告层用作加速比分子。单图内各核数和候选均串行，本地批量测试可显式并发不同 case。
+输入可为任意名称的合法新图。一张图的全部请求核数共享 600 秒目标预算，包含预处理、搜索内官方调用及输出；保留有条件延至 900 秒、已启动工作最多至 1200 秒的项目保护机制。求解不先运行官方单核，固定单核结果仅在报告层用作加速比分母。单图内各核数和候选均串行，本地批量测试可显式并发不同 case。
 
 公共框架以 `PlanSemantics / ExecutionModel / PredictionModel / ProposalSet` 四组接口绑定 Q1；旧 `q1.unified` 导入路径保持兼容，新增 `scheduling.api.solve_case(..., problem='q1')` 与 `python -m scheduling --problem q1 ...`。后续 Q3 需实现相应语义、执行/预测与候选模块再注册，目前尚未接入。接口层级图与调用示例见 [接口说明](docs/q1/interfaces.md)，最终要求核对、搬运字段修复及验证见 [合并前复核](docs/q1/merge_review.md)，初次发布与历史成绩取舍见 [验收说明](docs/q1/modular_validation.md)。
-
-统一配置为 [`configs/unified.json`](configs/unified.json)：`artifacts.intermediate=true` 开启中间数据，`false` 仅保留最终方案、官方评估结果和摘要。`evaluation.minimum_official_checks=2` 保留预算可容纳的第二次不同候选核验机会，设为 `1` 关闭；`evaluation.late_official_gain_fraction=0.03` 控制显著改进额外核验，设为 `null` 关闭。独立评分工具为 [`tools/score_unified_case.py`](tools/score_unified_case.py)，参数和示例见统一说明。最新五例分层验证及限制见 [V3 官方最优输出验收](docs/q1/v3_official_validation.md)。
 
 详见[彩色分层架构、模块归属、调用与时间口径](docs/q1/unified.md)。新成绩与逐例耗时写入新实验目录；旧版两管线择优的成绩不代表本版本。
 

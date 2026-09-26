@@ -4,10 +4,6 @@ from pathlib import Path
 from time import perf_counter, process_time
 import math
 import traceback
-import shutil
-import tempfile
-
-from .configuration import intermediate_artifacts
 
 from .budget import run_bounded, SearchBudget, CaseSliceBudget
 from .engine import search
@@ -53,10 +49,6 @@ def _case_worker(request, output, started, single=False, problem=None):
     semantics, execution, prediction = problem.semantics, problem.execution, problem.prediction
     validate_plan, objective, plan_digest = semantics.validate, semantics.objective, semantics.key
     output = Path(output)
-    diagnostics = intermediate_artifacts(request['parameters'])
-    def diagnostic(path, value):
-        if diagnostics:
-            write(path, value)
     cpu_started = process_time()
     timing, rows = {}, {}
     active_core, active_phase = None, 'input'
@@ -89,7 +81,7 @@ def _case_worker(request, output, started, single=False, problem=None):
         approximation = prediction.create_estimator(model, settings_dict,
             request['parameters'].get('evaluation', {}))
         cost_model, generation_costs = prediction.create_cost_model(model), defaultdict(list)
-        diagnostic(output/'features.json', features)
+        write(output/'features.json', features)
         timing.update(model_seconds=perf_counter()-t, singlecore_seconds=0.,
             shared_preparation_seconds=perf_counter()-started,
             shared_preparation_cpu_seconds=process_time()-cpu_started)
@@ -99,9 +91,9 @@ def _case_worker(request, output, started, single=False, problem=None):
             folder = _folder(output, cores, single)
             folder.mkdir(parents=True, exist_ok=True)
             row = rows[cores] = _base_row(cores, request)
-            diagnostic(folder/'request.json', dict(request, cores=cores, case_cores=request['cores']))
-            diagnostic(folder/'baseline.json', row['baseline'])
-            diagnostic(folder/'features.json', features)
+            write(folder/'request.json', dict(request, cores=cores, case_cores=request['cores']))
+            write(folder/'baseline.json', row['baseline'])
+            write(folder/'features.json', features)
             phase('structural_seed', cores)
             t, c = perf_counter(), process_time()
             plan, seed_meta = problem.proposals.seed(model, cores, settings)
@@ -117,7 +109,7 @@ def _case_worker(request, output, started, single=False, problem=None):
                 wall_seconds=elapsed, cpu_seconds=cpu, case_elapsed_seconds=perf_counter()-started))
             write(folder/'plan.json', plan)
             write(folder/'evaluation.json', result)
-            diagnostic(folder/'structural_seed.json', seed_meta)
+            write(folder/'structural_seed.json', seed_meta)
             row.update(status='seed_ready', makespan=result['makespan'],
                 score_source=result.get('evaluation_source', 'official'),
                 wall_seconds=elapsed, accounted_wall_seconds=elapsed, cpu_seconds=cpu,
@@ -161,14 +153,14 @@ def _case_worker(request, output, started, single=False, problem=None):
                 if path.exists():
                     saved = read(path)
                     if plan_digest(saved['plan']) == plan_digest(plan):
-                        diagnostic(folder/'rejected_checkpoints'/f'{plan_digest(plan)}.json',
+                        write(folder/'rejected_checkpoints'/f'{plan_digest(plan)}.json',
                               dict(saved, official_rejected=True))
                         path.unlink()
                         for name in ('plan.json', 'evaluation.json'):
                             (folder/name).unlink(missing_ok=True)
 
             service = SearchServices(model,settings,problem=problem,checkpoint=checkpoint,verified=verified,rejected=rejected,
-                save=lambda h: diagnostic(folder/'search.json',h),
+                save=lambda h: write(folder/'search.json',h),
                 progress=lambda e: phase(e.get('phase') or e.get('action') or e['event'],cores))
             service.shared_case = True
             service.approximation, service.cost_model = approximation, cost_model
@@ -188,17 +180,17 @@ def _case_worker(request, output, started, single=False, problem=None):
                 status = 'ok'
             except Exception as error:
                 row.update(error=str(error),traceback=traceback.format_exc())
-                if not (folder/'official_checkpoint.json').exists():
+                if not (folder/'checkpoint.json').exists():
                     elapsed = perf_counter()-search_start
                     row.update(status='failed_no_solution', makespan=None, score_source=None,
                         wall_seconds=seed_seconds+elapsed, accounted_wall_seconds=seed_seconds+elapsed,
                         cpu_seconds=seed_cpu+process_time()-search_cpu,
                         history_stop='no_valid_checkpoint', officially_evaluated_final=False)
                     row['timing']['search_seconds'] = elapsed
-                    diagnostic(folder/'construction.json',constructor.records)
+                    write(folder/'construction.json',constructor.records)
                     write(folder/'summary.json',row)
                     continue
-                saved = read(folder/'official_checkpoint.json')
+                saved = read(folder/'checkpoint.json')
                 plan,value = saved['plan'],saved['result']
                 history,status = dict(stop_reason='search_failed_with_checkpoint'),'failed_with_checkpoint'
             elapsed = perf_counter()-search_start
@@ -217,7 +209,7 @@ def _case_worker(request, output, started, single=False, problem=None):
             write(folder/'evaluation.json',value)
             write(folder/'checkpoint.json',dict(plan=plan,result=value,wall_seconds=row['wall_seconds'],
                 cpu_seconds=row['cpu_seconds'],case_elapsed_seconds=perf_counter()-started))
-            diagnostic(folder/'construction.json',constructor.records)
+            write(folder/'construction.json',constructor.records)
             write(folder/'summary.json',row)
 
         if source_signature(problem)!=request['source_signature']:
@@ -232,7 +224,7 @@ def _case_worker(request, output, started, single=False, problem=None):
             cpu_seconds=process_time()-cpu_started,worker_wall_seconds=perf_counter()-started))
 
 
-def _run_case_impl(graph,config,cores,output,seconds,parameters,single=False,problem="q1"):
+def _run_case(graph,config,cores,output,seconds,parameters,single=False,problem="q1"):
     problem = resolve_problem(problem)
     started = perf_counter()
     cores = list(cores)
@@ -271,12 +263,6 @@ def _run_case_impl(graph,config,cores,output,seconds,parameters,single=False,pro
         elif row['status'] in ('seed_ready','not_started'):
             row.update(status='budget_exhausted_with_checkpoint' if checkpoint else 'no_solution',
                        history_stop='case_hard_limit' if expired else 'case_worker_failed')
-        # All exits, including interruption and exceptions, use a certified answer.
-        certified = read(folder/'official_checkpoint.json') if (folder/'official_checkpoint.json').exists() else None
-        if checkpoint and checkpoint['result'].get('evaluation_source') != 'approximate':
-            if certified is None or problem.semantics.objective(checkpoint['result']) < problem.semantics.objective(certified['result']):
-                certified = checkpoint
-        checkpoint = certified
         if checkpoint:
             write(folder/'plan.json',checkpoint['plan'])
             write(folder/'evaluation.json',checkpoint['result'])
@@ -284,16 +270,6 @@ def _run_case_impl(graph,config,cores,output,seconds,parameters,single=False,pro
                        score_source=checkpoint['result'].get('evaluation_source','official'))
             row['officially_evaluated_final'] = row['score_source']=='official'
             row['speedup_source'] = row['score_source']
-            row['final_selection'] = dict(policy='best_official',
-                plan_digest=problem.semantics.key(checkpoint['plan']),
-                objective=list(problem.semantics.objective(checkpoint['result'])))
-        else:
-            # The directory was empty on entry: these can only be our seed artifacts.
-            for name in ('plan.json', 'evaluation.json'):
-                (folder/name).unlink(missing_ok=True)
-            row.update(status='failed_no_solution', makespan=None, score_source=None,
-                officially_evaluated_final=False, speedup_source=None,
-                final_selection=dict(policy='best_official', reason='no_official_solution'))
         rows.append(row)
     # Account for time spent in an interrupted operation, not just its last checkpoint.
     if expired and progress.get('cores') in cores:
@@ -332,29 +308,6 @@ def _run_case_impl(graph,config,cores,output,seconds,parameters,single=False,pro
     return result
 
 
-def solve_case(graph,config,cores,output,*,seconds=480,parameters=None,problem="q1"):
+def solve_case(graph,config,cores,output,*,seconds=600,parameters=None,problem="q1"):
     """All requested core counts share ONE case budget and one computing worker."""
     return _run_case(graph,config,cores,output,seconds,parameters,problem=problem)
-
-
-def _run_case(graph, config, cores, output, seconds, parameters, single=False, problem='q1'):
-    definition = resolve_problem(problem)
-    parameters = definition.default_parameters() if parameters is None else parameters
-    enabled = intermediate_artifacts(parameters)
-    if enabled:
-        return _run_case_impl(graph, config, cores, output, seconds, parameters, single, definition)
-    # Checkpoints are needed for process supervision/recovery, but are private and
-    # temporary in submission mode. No diagnostic history is written in this mode.
-    output = Path(output).resolve()
-    output.mkdir(parents=True, exist_ok=True)
-    if any(output.iterdir()):
-        raise ValueError('output directory must be empty; use verified case-level resume')
-    with tempfile.TemporaryDirectory(prefix='q1-runtime-') as temporary:
-        runtime = Path(temporary)
-        result = _run_case_impl(graph, config, cores, runtime, seconds, parameters, single, definition)
-        for source in runtime.rglob('*.json'):
-            if source.name in {'plan.json', 'evaluation.json', 'summary.json', 'case_summary.json'}:
-                destination = output / source.relative_to(runtime)
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, destination)
-        return result

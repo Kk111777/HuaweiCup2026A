@@ -1,13 +1,11 @@
 {
-  "description": "整case共享预算；每轮预留官方校准时间，近似方案可保存探索，最终只输出历史官方最优方案。",
+  "description": "基于宏观结构感知的候选扩展与联合优化：整case共享预算，近似与官方结果均可接纳，官方在时间允许时校准。",
   "evaluation": {
     "mode": "adaptive",
     "full_cost_fraction": 0.01,
     "approximate_batch_size": 6,
     "task_cache_operations": 100000,
-    "plan_cache_entries": 24,
-    "minimum_official_checks": 2,
-    "late_official_gain_fraction": 0.03
+    "plan_cache_entries": 24
   },
   "seed": 0,
   "near_critical_fraction": 0.05,
@@ -23,22 +21,7 @@
   "official_per_round": 4,
   "max_cuts_per_task": 8,
   "memory_merges": 128,
-  "stage_widths": [
-    4,
-    8,
-    16,
-    32
-  ],
-  "stage_batches": [
-    1,
-    2
-  ],
-  "memory_soft_factors": {
-    "short": 0.9,
-    "ordinary": 0.8,
-    "complex": 0.7
-  },
-  "artifacts": {
-    "intermediate": true
-  }
+  "stage_widths": [4, 8, 16, 32],
+  "stage_batches": [1, 2],
+  "memory_soft_factors": {"short": 0.9, "ordinary": 0.8, "complex": 0.7}
 }

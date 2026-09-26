@@ -14,7 +14,7 @@ _SUPERVISED = False
 
 
 class SearchBudget:
-    """默认480秒目标，延长至720秒，保护期限960秒；均按传入目标缩放。"""
+    """600 秒停止开新工作；近期改进可延至 900，已启动工作至多 1200。"""
 
     def __init__(self, target, started=None):
         if not math.isfinite(target) or not 0 < target <= 600:
@@ -85,7 +85,7 @@ class CaseSliceBudget(SearchBudget):
 
     All public limits are relative to this slice's start, as in SearchBudget.
     Unused time returns to the case; gains may extend the case, never create four
-    independent target/extension/protection budgets.
+    independent 600/900/1200-second budgets.
     """
     shared_case = True
 
