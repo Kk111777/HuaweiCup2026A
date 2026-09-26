@@ -49,3 +49,10 @@ results/q1_stage2_100cases_20260926/** -text linguist-generated=true whitespace=
 
 # Preserve Q2 validation evidence and byte-based SHA-256 manifests.
 docs/q2/validation/** -text linguist-generated=true whitespace=cr-at-eol
+
+# Preserve Q3 golden fixtures, source reference and published artifact hashes.
+src/q3/runtime.py -text whitespace=cr-at-eol
+tests/fixtures/q3/** -text linguist-generated=true whitespace=cr-at-eol
+docs/q3/model_reference.md -text whitespace=cr-at-eol
+results/q3_full_20260927/** -text linguist-generated=true whitespace=cr-at-eol
+results/q3_full_20260927/figures/*.svg -text linguist-generated=true whitespace=-blank-at-eol,cr-at-eol

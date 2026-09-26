@@ -1,0 +1,24 @@
+{
+  "status": "PASSED",
+  "checked_at": "2026-09-26T18:05:02.244767+00:00",
+  "cases": 100,
+  "groups": 500,
+  "plan_zip_members": 500,
+  "full_local_artifacts_verified": 8668,
+  "full_local_artifact_bytes": 9799055039,
+  "runtime_source_hashes_unchanged": true,
+  "original_run_info_sha256": "44d4522171433a23c75c45358c570e5143bcf630015a461b88e8f5ffaa48b1e6",
+  "full_run_audit_sha256": "232da9df8d1a13cc82178d63b9528ec8208f33f01f421ce1c372e4995bf8006f",
+  "plan_archive_sha256": "3bf35ccf811892ac9e421b6977713f3ca9737198d955ac2d69eb485410bbc322",
+  "strictly_faster_than_seed": 263,
+  "stop_reasons": {
+    "stagnation": 241,
+    "candidate_limit": 66,
+    "case_time_budget": 167,
+    "evaluation_timeout": 26
+  },
+  "sources": {
+    "fixed_singlecore": 100,
+    "published_q2": 400
+  }
+}

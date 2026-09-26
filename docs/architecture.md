@@ -11,9 +11,11 @@ HuaweiCup2026A/
 │  ├─ problem_1_baseline.py           # 稳定的单核参照入口
 │  ├─ solve_problem1.py               # V2 improve 子命令 / V3 默认图路径入口
 │  ├─ solve_problem2.py               # Q2 solve / batch / verify
+│  ├─ solve_problem3.py               # Q3 solve / batch / verify / report
 │  ├─ common/baseline.py              # 基线读取、来源校验与加速比
 │  ├─ common/artifacts.py             # 无问题语义的原子产物写入与哈希
 │  ├─ q2/                            # Scene B 增量构造、内存证书、窗口 DP、完整复核
+│  ├─ q3/                            # 固定 Q2 输入、L2 搜索及独立官方复评
 │  └─ q1/
 │     ├─ graph.py, model.py           # 共享图模型与基座特征索引
 │     ├─ partition.py, solver.py      # V1 构造策略与初始化择优
@@ -42,10 +44,11 @@ HuaweiCup2026A/
 | V2 | `python src/solve_problem1.py improve ...` / `improve-batch ...`；或配置 `PYTHONPATH=src` 后 `python -m q1.stage2 ...` | [分层改进](q1/stage2.md) |
 | V3 | `python src/solve_problem1.py graph.json --config ... --cores 4 --output ...` | [统一搜索](q1/unified.md) |
 | Q2 新基座 | `python src/solve_problem2.py solve ...` / `batch ...` / `verify ...` | [状态与评价接口](q2/interfaces.md)、[算法修复](q2/repair.md) |
+| Q3 | `python src/solve_problem3.py solve ...` / `batch ...` / `verify ...` / `report ...` | [运行说明](../README_Q3.md)、[实现](q3/implementation.md)、[全量验收](q3/validation.md) |
 
 不复制三个版本的基座或官方代码。V2 使用 V3 已接入的共享 `GraphIndex`，保持自身状态、候选、剪枝与精确接受逻辑；V3 的算法模块与配置在本次接入中保持原样。V1 的当前参考实现按 V3 已有约定仅允许 `candidate_jobs=1`，历史并行版本可从提交 `04634a2` 检出。已有原始 V1 归档可直接供 V2 读取。
 
-第二问由 `q2/` 独立实现，配置位于 `configs/q2/`；第三问尚无实现。V3 的现有配置路径保留，避免为了目录外观变更其运行接口。历史实验目录、归档指纹和官方代码不随展示调整搬动。
+第二问由 `q2/` 独立实现，配置位于 `configs/q2/`；第三问由 `q3/` 和 `configs/q3/` 提供独立入口，复用 Q2 2.1 的准备/状态/容量接口并调用官方 Q3 事件仿真。缺少 Q2 最终输入时先自动生成；既有结果核对来源后冻结为比较基准。V3 的现有配置路径保留，历史实验目录、归档指纹和官方代码不随展示调整搬动。
 
 第二问的官方语义与模块复用依据见早期[工程准备与源码审计](q2/engineering.md)，当前接口见[Q2 2.1](q2/interfaces.md)，验证见[有限测试报告](q2/interfaces_validation.md)。Q2 不调用 Q1 的 Task 划分、核心分配和 Task 等待模型；复用 `common.baseline`、输出锁，以及从 `q1.run` 原样抽出的四个产物工具函数。`q1.run` 保留兼容导入，并将新公共文件纳入来源哈希，因此旧源码产物不能冒充本次源码的续跑结果。
 
@@ -53,7 +56,7 @@ Q2 2.1 保留2.0按构造／范围／编码独立维护的 β 流，官方时间
 
 三版输出分别指定 `outputs/q1_v1`、`outputs/q1_v2`、`outputs/q1_v3` 等目录，不能让不同求解器写入同一实验目录。源码、参数和运行环境均进入各自来源记录；Git 接入后的字节指纹与服务器旧运行包不同，不能把旧产物重新标成新源码产生的结果。
 
-`official/` 保持原始布局和字节不变。不同问题的评估器分开调用；第二问已核对固定单核分子的题面与源码口径，默认经 `common.baseline` 校验后只读复用，不能以 Q2 的 N=1 优化结果替换。第三问接入时仍须单独核对语义。
+`official/` 保持原始布局和字节不变。不同问题的评估器分开调用；第二问已核对固定单核分子的题面与源码口径，默认经 `common.baseline` 校验后只读复用，不能以 Q2 的 N=1 优化结果替换。第三问采用同核数固定 Q2 时间 T2 与最终 Q3 时间 T3 比较，并单列同一 Q2 方案启用 L2 的 T2→3；500 组官方复评和指标口径见[Q3 验收记录](q3/validation.md)。
 
 ## 基线读取接口
 

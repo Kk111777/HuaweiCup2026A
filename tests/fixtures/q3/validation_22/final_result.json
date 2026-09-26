@@ -1,0 +1,372 @@
+{
+  "scene": "B",
+  "problem": 3,
+  "cache_mode": "read_only",
+  "makespan": 9361,
+  "num_cores": 2,
+  "bandwidth_bytes_per_cycle": 60,
+  "cache_capacity_bytes": 1048576,
+  "cache_bandwidth_bytes_per_cycle": 250,
+  "cache_stats": {
+    "copy_in_hits": 2,
+    "copy_in_misses": 3,
+    "hit_bytes": 180000,
+    "miss_bytes": 270000,
+    "hits": 2,
+    "accesses": 5,
+    "hit_rate": 0.4
+  },
+  "cache_events": [
+    {
+      "time": 0,
+      "event": "miss",
+      "tensor_id": 3,
+      "size_bytes": 90000,
+      "core_id": 0,
+      "op_id": 27,
+      "op": "COPY_IN"
+    },
+    {
+      "time": 0,
+      "event": "miss",
+      "tensor_id": 6,
+      "size_bytes": 90000,
+      "core_id": 1,
+      "op_id": 33,
+      "op": "COPY_IN"
+    },
+    {
+      "time": 3000,
+      "event": "insert",
+      "tensor_id": 3,
+      "size_bytes": 90000,
+      "used_bytes": 90000,
+      "evicted_tensor_ids": [],
+      "core_id": 0,
+      "op_id": 27
+    },
+    {
+      "time": 3000,
+      "event": "insert",
+      "tensor_id": 6,
+      "size_bytes": 90000,
+      "used_bytes": 180000,
+      "evicted_tensor_ids": [],
+      "core_id": 1,
+      "op_id": 33
+    },
+    {
+      "time": 3000,
+      "event": "hit",
+      "tensor_id": 6,
+      "size_bytes": 90000,
+      "core_id": 0,
+      "op_id": 31,
+      "op": "COPY_IN"
+    },
+    {
+      "time": 3000,
+      "event": "miss",
+      "tensor_id": 9,
+      "size_bytes": 90000,
+      "core_id": 1,
+      "op_id": 35,
+      "op": "COPY_IN"
+    },
+    {
+      "time": 4500,
+      "event": "insert",
+      "tensor_id": 9,
+      "size_bytes": 90000,
+      "used_bytes": 270000,
+      "evicted_tensor_ids": [],
+      "core_id": 1,
+      "op_id": 35
+    },
+    {
+      "time": 4500,
+      "event": "hit",
+      "tensor_id": 3,
+      "size_bytes": 90000,
+      "core_id": 1,
+      "op_id": 29,
+      "op": "COPY_IN"
+    }
+  ],
+  "cache_final_entries": [
+    {
+      "tensor_id": 3,
+      "size_bytes": 90000
+    },
+    {
+      "tensor_id": 6,
+      "size_bytes": 90000
+    },
+    {
+      "tensor_id": 9,
+      "size_bytes": 90000
+    }
+  ],
+  "cache_used_bytes_final": 270000,
+  "capacity_bytes": {
+    "L1": 524288,
+    "UB": 131072
+  },
+  "memory_peak_by_core": {
+    "0": {
+      "L1": 180000,
+      "UB": 16
+    },
+    "1": {
+      "L1": 180000,
+      "UB": 32
+    }
+  },
+  "step3_by_core": {
+    "0": {
+      "local_makespan": 9001,
+      "memory_dependency_count": 0,
+      "pipe_op_counts": {
+        "PIPE_MTE2": 2,
+        "PIPE_MTE3": 1,
+        "PIPE_M": 1,
+        "PIPE_V": 0
+      }
+    },
+    "1": {
+      "local_makespan": 5703,
+      "memory_dependency_count": 0,
+      "pipe_op_counts": {
+        "PIPE_MTE2": 3,
+        "PIPE_MTE3": 3,
+        "PIPE_M": 3,
+        "PIPE_V": 0
+      }
+    }
+  },
+  "cross_core_copy_delay_cycles": 500,
+  "cross_task_traffic": 0,
+  "data_movement_bytes": {
+    "original_graph_copy_bytes": 270064,
+    "scheduled_copy_bytes": 450064,
+    "added_copy_bytes": 180000,
+    "partition_added_copy_bytes": 180000,
+    "spill_added_copy_bytes": 0
+  },
+  "task_count": 2,
+  "task_dependencies": [],
+  "cross_core_transfers": [],
+  "per_core_timeline": [
+    {
+      "core_id": 0,
+      "tasks": [
+        {
+          "task_id": 0,
+          "subgraph_ids": [
+            1
+          ],
+          "start": 0,
+          "end": 9361,
+          "duration": 9361
+        }
+      ],
+      "subgraphs": [
+        {
+          "subgraph_id": 1,
+          "start": 0,
+          "end": 9361,
+          "duration": 9361
+        }
+      ],
+      "ops": [
+        {
+          "task_id": 0,
+          "op_id": 27,
+          "op": "COPY_IN",
+          "subgraph_id": 1,
+          "pipe": "PIPE_MTE2",
+          "start": 0,
+          "end": 3000,
+          "duration": 3000,
+          "memory_path": "DDR",
+          "cache_hit": false,
+          "cache_tensor_id": 3
+        },
+        {
+          "task_id": 0,
+          "op_id": 31,
+          "op": "COPY_IN",
+          "subgraph_id": 1,
+          "pipe": "PIPE_MTE2",
+          "start": 3000,
+          "end": 3360,
+          "duration": 360,
+          "memory_path": "CACHE_READ",
+          "cache_hit": true,
+          "cache_tensor_id": 6
+        },
+        {
+          "task_id": 0,
+          "op_id": 14,
+          "op": "MATMUL",
+          "subgraph_id": 1,
+          "pipe": "PIPE_M",
+          "start": 3360,
+          "end": 9360,
+          "duration": 6000
+        },
+        {
+          "task_id": 0,
+          "op_id": 39,
+          "op": "COPY_OUT",
+          "subgraph_id": 1,
+          "pipe": "PIPE_MTE3",
+          "start": 9360,
+          "end": 9361,
+          "duration": 1,
+          "memory_path": "DDR"
+        }
+      ]
+    },
+    {
+      "core_id": 1,
+      "tasks": [
+        {
+          "task_id": 1,
+          "subgraph_ids": [
+            2,
+            3,
+            0
+          ],
+          "start": 0,
+          "end": 5801,
+          "duration": 5801
+        }
+      ],
+      "subgraphs": [
+        {
+          "subgraph_id": 2,
+          "start": 0,
+          "end": 4901,
+          "duration": 4901
+        },
+        {
+          "subgraph_id": 3,
+          "start": 4900,
+          "end": 5001,
+          "duration": 101
+        },
+        {
+          "subgraph_id": 0,
+          "start": 4500,
+          "end": 5801,
+          "duration": 1301
+        }
+      ],
+      "ops": [
+        {
+          "task_id": 1,
+          "op_id": 33,
+          "op": "COPY_IN",
+          "subgraph_id": 2,
+          "pipe": "PIPE_MTE2",
+          "start": 0,
+          "end": 3000,
+          "duration": 3000,
+          "memory_path": "DDR",
+          "cache_hit": false,
+          "cache_tensor_id": 6
+        },
+        {
+          "task_id": 1,
+          "op_id": 35,
+          "op": "COPY_IN",
+          "subgraph_id": 2,
+          "pipe": "PIPE_MTE2",
+          "start": 3000,
+          "end": 4500,
+          "duration": 1500,
+          "memory_path": "DDR",
+          "cache_hit": false,
+          "cache_tensor_id": 9
+        },
+        {
+          "task_id": 1,
+          "op_id": 18,
+          "op": "MATMUL",
+          "subgraph_id": 2,
+          "pipe": "PIPE_M",
+          "start": 4500,
+          "end": 4900,
+          "duration": 400
+        },
+        {
+          "task_id": 1,
+          "op_id": 29,
+          "op": "COPY_IN",
+          "subgraph_id": 0,
+          "pipe": "PIPE_MTE2",
+          "start": 4500,
+          "end": 4860,
+          "duration": 360,
+          "memory_path": "CACHE_READ",
+          "cache_hit": true,
+          "cache_tensor_id": 3
+        },
+        {
+          "task_id": 1,
+          "op_id": 22,
+          "op": "MATMUL",
+          "subgraph_id": 3,
+          "pipe": "PIPE_M",
+          "start": 4900,
+          "end": 5000,
+          "duration": 100
+        },
+        {
+          "task_id": 1,
+          "op_id": 41,
+          "op": "COPY_OUT",
+          "subgraph_id": 2,
+          "pipe": "PIPE_MTE3",
+          "start": 4900,
+          "end": 4901,
+          "duration": 1,
+          "memory_path": "DDR"
+        },
+        {
+          "task_id": 1,
+          "op_id": 10,
+          "op": "MATMUL",
+          "subgraph_id": 0,
+          "pipe": "PIPE_M",
+          "start": 5000,
+          "end": 5800,
+          "duration": 800
+        },
+        {
+          "task_id": 1,
+          "op_id": 43,
+          "op": "COPY_OUT",
+          "subgraph_id": 3,
+          "pipe": "PIPE_MTE3",
+          "start": 5000,
+          "end": 5001,
+          "duration": 1,
+          "memory_path": "DDR"
+        },
+        {
+          "task_id": 1,
+          "op_id": 37,
+          "op": "COPY_OUT",
+          "subgraph_id": 0,
+          "pipe": "PIPE_MTE3",
+          "start": 5800,
+          "end": 5801,
+          "duration": 1,
+          "memory_path": "DDR"
+        }
+      ]
+    }
+  ]
+}

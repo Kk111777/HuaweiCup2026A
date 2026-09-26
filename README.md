@@ -3,9 +3,9 @@
 <p align="center"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12%2B-blue"> <img alt="Standard library" src="https://img.shields.io/badge/dependencies-standard_library-green"></p>
 <p align="center"><a href="#第一问模型谱系">模型谱系</a> · <a href="#项目目录">目录</a> · <a href="#问题一第二版基于严格剪枝的多原则候选方案分层改进策略">第二版</a> · <a href="#问题一第三版基于宏观结构感知的候选扩展与联合优化算法">第三版</a> · <a href="docs/q2/repair.md">问题二新基座</a> · <a href="#日常协作">协作</a></p>
 
-本项目研究华为杯题目中的多核调度：划分原始计算图的子图、按场景组织 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；第二问保留修复新基座，并新增[基座优化模型](docs/q2/OPTIMIZED_MODEL.md)。各自的搜索与评价规则单独记录。
+本项目研究华为杯题目中的多核调度：划分原始计算图的子图、按场景组织 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；第二问保留修复新基座，并新增[基座优化模型](docs/q2/OPTIMIZED_MODEL.md)；第三问提供[基于固定 Q2 输入的 L2 优化与完整复现工程](README_Q3.md)。各自的搜索与评价规则单独记录。
 
-私有仓库由 `Kk111777` 与 `Zysishuiyears` 通过任务分支和 PR 协作维护；基础环境为 Python 3.12，程序仅依赖标准库。赛题图是算子调度工作负载，求解过程不实际执行神经网络矩阵运算。
+私有仓库由 `Kk111777` 与 `Zysishuiyears` 通过任务分支和 PR 协作维护；基础环境为 Python 3.12，求解器依赖标准库，Q3 报告制图额外使用可选的 matplotlib。赛题图是算子调度工作负载，求解过程不实际执行神经网络矩阵运算。
 
 ## 第一问模型谱系
 
@@ -37,10 +37,12 @@ HuaweiCup2026A/
 │  ├─ solve_problem1.py           # V2 子命令 / V3 默认图路径入口
 │  ├─ solve_problem2.py           # Q2 solve / batch / verify
 │  ├─ solve_problem2_optimized.py # Q2 优化 solve / batch / replay
+│  ├─ solve_problem3.py           # Q3 solve / batch / verify / report
 │  ├─ common/baseline.py          # 基线归档校验及加速比计算
 │  ├─ common/artifacts.py         # 原子写入、JSON 和 SHA-256
 │  ├─ scheduling/                # V3 公共编排、四组问题接口、预算与评估服务
 │  ├─ q2/                        # Q2 增量构造、Step1 前缀、窗口 DP 与官方复核
+│  ├─ q3/                        # Q2 自动衔接、L2 精确搜索及独立复评
 │  └─ q1/
 │     ├─ graph.py, model.py       # 共享图模型与基座索引
 │     ├─ partition.py, solver.py # V1 TaskGrowth 构造及初始化择优
@@ -58,15 +60,17 @@ HuaweiCup2026A/
 ├─ official/                    # 原版评估代码、配置；原始图留本地
 ├─ docs/q1/                     # initialization / stage2 / unified 三版说明
 ├─ docs/q2/                     # 设计原稿、实现使用与有限验收
+├─ docs/q3/                     # 实现、参考模型及百例验收
 ├─ tests/                       # 共享基础、Q1 回归、Q2 独立 oracle 与边界验证
 ├─ results/
 │  ├─ problem_1_singlecore/      # 已发布单核参照，固定保留
 │  ├─ q1_adaptive_100cases_20260925/ # V1 完整百例归档
-│  └─ q1_stage2_100cases_20260926/ # V2 百例最终汇总、择优来源与运行报告
+│  ├─ q1_stage2_100cases_20260926/ # V2 百例最终汇总、择优来源与运行报告
+│  └─ q3_full_20260927/           # Q3 百例 500 个方案、指标及图表
 └─ outputs/                     # 各版本实验目录，Git 忽略
 ```
 
-目录沿用已验证的导入和运行路径，Q1 共享基座保持一份实现，V2 和 V3 的搜索模块分别归位；Q2 独立实现 Scene B 的构造与排序，第三问尚无实现。具体接口与实验归档约定见[项目结构说明](docs/architecture.md)。
+目录沿用已验证的导入和运行路径，Q1 共享基座保持一份实现，V2 和 V3 的搜索模块分别归位；Q2 独立实现 Scene B 的构造与排序，Q3 通过独立入口复用 Q2 准备和状态接口。具体接口与实验归档约定见[项目结构说明](docs/architecture.md)。
 
 ## 开始使用
 
@@ -223,7 +227,7 @@ python src/solve_problem1.py path/to/new_graph.json --config official/data/confi
 
 同一配置的 `artifacts.intermediate` 默认true；设为false时，输出目录只保留各核数的 `plan.json`，恢复必需的临时检查点在返回后清理。API仍返回运行指标，关闭输出不改变候选生成和方案选择规则。此时不生成批测汇总或续跑元数据，详见[配置说明](docs/q1/unified.md#输出开关与时间预算)。
 
-公共框架以 `PlanSemantics / ExecutionModel / PredictionModel / ProposalSet` 四组接口绑定 Q1；旧 `q1.unified` 导入路径保持兼容，新增 `scheduling.api.solve_case(..., problem='q1')` 与 `python -m scheduling --problem q1 ...`。后续 Q3 需实现相应语义、执行/预测与候选模块再注册，目前尚未接入。接口层级图与调用示例见 [接口说明](docs/q1/interfaces.md)，最终要求核对、搬运字段修复及验证见 [合并前复核](docs/q1/merge_review.md)，初次发布与历史成绩取舍见 [验收说明](docs/q1/modular_validation.md)。
+公共框架以 `PlanSemantics / ExecutionModel / PredictionModel / ProposalSet` 四组接口绑定 Q1；旧 `q1.unified` 导入路径保持兼容，新增 `scheduling.api.solve_case(..., problem='q1')` 与 `python -m scheduling --problem q1 ...`。该框架目前仅注册 Q1；Q3 使用下述独立入口及 Q2 准备接口。接口层级图与调用示例见 [接口说明](docs/q1/interfaces.md)，最终要求核对、搬运字段修复及验证见 [合并前复核](docs/q1/merge_review.md)，初次发布与历史成绩取舍见 [验收说明](docs/q1/modular_validation.md)。
 
 详见[彩色分层架构、模块归属、调用与时间口径](docs/q1/unified.md)。新成绩与逐例耗时写入新实验目录；旧版两管线择优的成绩不代表本版本。
 
@@ -261,6 +265,19 @@ python src/solve_problem2_optimized.py solve official/data/case_004.json --cores
 见[数学与流程说明](docs/q2/OPTIMIZED_MODEL.md)、[接口和运行命令](docs/q2/OPTIMIZED_INTERFACES.md)、[四组有限验收及 Q1v3 对照](docs/q2/OPTIMIZED_ACCEPTANCE.md)。本轮只做组件回归和四组有限试跑，没有运行100×4或消融，也没有全量优于 Q1v3 的结论。
 
 **原Q2 1.1新基座存在已知算法问题，现已归档。** 原始完整源码、固定提交和问题说明保存在[旧版归档](archive/q2/baseline_1_1_known_issues/README.md)，不删除历史代码；后续问题二实验默认使用2.1接口版，算法延续2.0修复新基座。
+
+## 问题三：固定 Q2 输入与 L2 缓存优化
+
+Q3 直接读取已验证的 Q2 最终方案和成绩；缺少对应输入时，自动调用 `src/solve_problem2.py`，再继续 Q3。复用 Q2 Repair 2.1 的准备与状态接口，按官方 `(makespan, added_copy_bytes)` 严格接受改进，最终文件由未修改的官方 CLI 独立复评。
+
+```powershell
+python src/solve_problem3.py solve official/data/case_016.json --cores 1 2 3 4 5 --output-dir outputs/q3_case016
+python src/solve_problem3.py batch --data-dir official/data --cores 1 2 3 4 5 --workers 8 --output-dir outputs/q3_full
+```
+
+默认每张图所有请求核数共享 600 秒 Q3 预算，Q2 自动生成用时单列。制图需安装 `requirements-q3.txt`，或用 `--no-plots` 运行纯标准库流程。具体输入、续跑和复评方法见 [Q3 运行说明](README_Q3.md)。
+
+[正式百例归档](results/q3_full_20260927/README.md)包含 500/500 组已验证方案及逐组指标；263 组相对初始 L2 方案提速、237 组时间持平。每核平均总加速比为 1.058105、1.006514、1.012185、1.024626、1.041054。预算截断和一组相对无 L2 基准略慢的例外均保留，见[验收记录](docs/q3/validation.md)。
 
 ## 日常协作
 
