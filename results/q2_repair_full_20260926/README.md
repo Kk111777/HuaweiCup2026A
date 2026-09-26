@@ -30,15 +30,18 @@
 
 运行环境为 macOS arm64、Python 3.12.14，`workers=4`；每组墙钟预算 600 秒，初始保留 60 秒用于最终复评。`workers` 是电脑上的并行进程数，2–5 核是**模拟的 NPU 核数**。算法默认自适应 β。随机种子不适用；预算截断点可能随机器负载变化，因此重跑的搜索完成度和周期数可能不同。
 
-从赛题附件准备 `official/data/case_001.json` 至 `case_100.json`，用 [`input_sha256.txt`](input_sha256.txt) 核对，再从仓库根目录执行：
+当前 `main` 的默认求解器已升级为 Q2 2.1。要**重新运行本归档的 Q2 2.0 算法**，须使用指向源码提交 `11501c5` 的 `q2-baseline-2.0` 标签。先从赛题附件准备 `official/data/case_001.json` 至 `case_100.json`，用 [`input_sha256.txt`](input_sha256.txt) 核对，再从当前仓库根目录建立独立检出并运行：
 
 ```bash
-python src/solve_problem2.py batch --data-dir official/data --cores 2 3 4 5 \
+Q2_DATA_DIR="$(pwd)/official/data"
+git worktree add ../HuaweiCup2026A-q2-2.0 q2-baseline-2.0
+cd ../HuaweiCup2026A-q2-2.0
+python src/solve_problem2.py batch --data-dir "$Q2_DATA_DIR" --cores 2 3 4 5 \
   --workers 4 --algorithm-config configs/q2/baseline.json \
   --output-dir outputs/q2_reproduction
 ```
 
-只复评一份已发布方案时，先解压压缩包，再使用官方适配入口；复评后的 `makespan` 可与 `details.csv` 对照：
+若只需**复评已发布方案**，可留在含本归档的当前仓库根目录，先解压压缩包，再使用官方适配入口；复评后的 `makespan` 可与 `details.csv` 对照：
 
 ```bash
 python -m zipfile -e results/q2_repair_full_20260926/plans.zip outputs/q2_published_plans
