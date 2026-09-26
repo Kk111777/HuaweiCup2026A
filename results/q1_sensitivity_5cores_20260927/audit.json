@@ -1,0 +1,7 @@
+{
+  "status": "SUCCESS_VERIFIED",
+  "verified_rows": 100,
+  "requested_rows": 100,
+  "missing_pairs": [],
+  "artifact_hashes_verified": 1008
+}
