@@ -1,0 +1,63 @@
+{
+  "algorithm_version": "Q2-Optimized-3.0",
+  "segments": [
+    {
+      "workers": 3,
+      "outcome": "interrupted_to_increase_parallelism",
+      "reused_complete_cases": [
+        "case_014",
+        "case_025",
+        "case_072",
+        "case_076",
+        "case_087",
+        "case_091"
+      ],
+      "interrupted_cases": [
+        "case_062",
+        "case_079",
+        "case_085"
+      ],
+      "archived_at": "2026-09-27 00:07:12+0800"
+    },
+    {
+      "workers": 10,
+      "outcome": "interrupted_after_measuring_about_30_percent_candidate_wall_time_slowdown_vs_3_workers",
+      "reused_complete_cases": [
+        "case_014",
+        "case_025",
+        "case_072",
+        "case_076",
+        "case_087",
+        "case_091"
+      ],
+      "interrupted_cases": [
+        "case_016",
+        "case_028",
+        "case_041",
+        "case_054",
+        "case_058",
+        "case_062",
+        "case_079",
+        "case_084",
+        "case_085",
+        "case_092"
+      ],
+      "archived_at": "2026-09-27 00:09:54+0800"
+    },
+    {
+      "workers": 6,
+      "outcome": "interrupted_by_host_reboot_2026-09-27_01-24-22_CST",
+      "reused_complete_cases": 38,
+      "interrupted_cases": [
+        "case_007",
+        "case_021",
+        "case_073",
+        "case_077",
+        "case_086",
+        "case_089"
+      ],
+      "archived_at": "2026-09-27 01:29:28+0800"
+    }
+  ],
+  "next_workers": 6
+}

@@ -1,0 +1,117 @@
+{
+  "algorithm_version": "Q2-Optimized-3.0",
+  "source_commit": "29747d80dac80a45a7902af35e2aa58b526ebbf6",
+  "cases": 100,
+  "groups": 400,
+  "official_independent_replays_ok": 400,
+  "exact_search_replay_mismatches": 0,
+  "overall": {
+    "groups": 400,
+    "mean_speedup": 3.1859403148009617,
+    "search_complete": 80,
+    "baseline_guard_complete": 331,
+    "v2_mean_speedup": 3.064609565528648,
+    "vs_v2": {
+      "wins": 223,
+      "ties": 168,
+      "losses": 9
+    },
+    "q1v3_mean_speedup": 3.2533300014108613,
+    "vs_q1v3": {
+      "wins": 162,
+      "ties": 26,
+      "losses": 212
+    }
+  },
+  "per_core": {
+    "2": {
+      "groups": 100,
+      "mean_speedup": 2.0832510200728787,
+      "search_complete": 22,
+      "baseline_guard_complete": 82,
+      "v2_mean_speedup": 2.038161526079028,
+      "vs_v2": {
+        "wins": 50,
+        "ties": 47,
+        "losses": 3
+      },
+      "q1v3_mean_speedup": 2.090408553958776,
+      "vs_q1v3": {
+        "wins": 43,
+        "ties": 8,
+        "losses": 49
+      }
+    },
+    "3": {
+      "groups": 100,
+      "mean_speedup": 2.880824467485811,
+      "search_complete": 19,
+      "baseline_guard_complete": 83,
+      "v2_mean_speedup": 2.7755968495764374,
+      "vs_v2": {
+        "wins": 58,
+        "ties": 40,
+        "losses": 2
+      },
+      "q1v3_mean_speedup": 2.9397471034068516,
+      "vs_q1v3": {
+        "wins": 43,
+        "ties": 6,
+        "losses": 51
+      }
+    },
+    "4": {
+      "groups": 100,
+      "mean_speedup": 3.5948024204281603,
+      "search_complete": 20,
+      "baseline_guard_complete": 83,
+      "v2_mean_speedup": 3.4527341723679053,
+      "vs_v2": {
+        "wins": 56,
+        "ties": 42,
+        "losses": 2
+      },
+      "q1v3_mean_speedup": 3.68661697531104,
+      "vs_q1v3": {
+        "wins": 38,
+        "ties": 8,
+        "losses": 54
+      }
+    },
+    "5": {
+      "groups": 100,
+      "mean_speedup": 4.184883351216998,
+      "search_complete": 19,
+      "baseline_guard_complete": 83,
+      "v2_mean_speedup": 3.9919457140912207,
+      "vs_v2": {
+        "wins": 59,
+        "ties": 39,
+        "losses": 2
+      },
+      "q1v3_mean_speedup": 4.296547372966779,
+      "vs_q1v3": {
+        "wins": 38,
+        "ties": 4,
+        "losses": 58
+      }
+    }
+  },
+  "search_stop_reasons": {
+    "PROPOSALS_EXHAUSTED": 80,
+    "CASE_TARGET_LIMIT": 261,
+    "CASE_EXTENSION_LIMIT": 59
+  },
+  "budget": {
+    "target_seconds_per_case_all_cores": 600.0,
+    "conditional_extension_seconds": 900.0,
+    "hard_protection_seconds": 1200.0,
+    "mean_case_wall_seconds": 630.0817176833589,
+    "max_case_wall_seconds": 902.1958683338016,
+    "cases_exceeded_target": 85,
+    "cases_exceeded_extension": 16,
+    "cases_extended": 17,
+    "cases_hard_timeout": 0
+  },
+  "comparison_scope": "Same inputs, simulated core counts, fixed single-core denominators and official evaluator; historical V2 has a separate 600 s budget per case/core, while V3 shares 600 s per case. Not a matched-time comparison."
+}
