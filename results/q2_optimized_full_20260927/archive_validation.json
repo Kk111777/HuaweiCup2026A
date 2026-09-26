@@ -1,0 +1,12 @@
+{
+  "status": "PASSED",
+  "cases": 100,
+  "groups": 400,
+  "independent_official_replays_verified": 400,
+  "exact_score_mismatches": 0,
+  "official_added_copy_mismatches": 0,
+  "local_artifacts_hashed": 3200,
+  "local_artifact_bytes_hashed": 3016502877,
+  "plan_zip_members_rechecked": 400,
+  "plans_zip_sha256": "474e779932839c252f6a605a6af3dabd0a27953169846adeb17f01667cb3beb2"
+}
