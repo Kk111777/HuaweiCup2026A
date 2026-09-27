@@ -51,16 +51,16 @@
 - Q3 的固定 Q2 方案优化，以及继承完整 Q1/Q2 方案的 Q3v3。
 - 按版本保存的方案、指标和实验记录；各版结果见[实验结果](#results)。
 
-### 研究脉络：从缓存调度到多核协同
+### 研究脉络：从核内调度到多核协同
 
-本项目延续 [2025 华为杯 Cache-NPU 调度项目](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) 对 **DAG、片上存储与数据搬运协同优化** 的研究方向。
+本项目与 [2025 华为杯 Cache-NPU 调度项目](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) 均研究 **缓存约束下的计算图调度与数据搬运优化**，通过协调执行顺序、片上数据驻留与内存分配，提高数据复用效率。
 
 | 项目 | 工作负载 | 主要决策 |
 |---|---|---|
 | [2025 Cache-NPU Scheduling](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) | 6 个 SIMD/NPU 图，覆盖 FlashAttention、Matmul、Conv | 拓扑执行序列、连续地址分配、SPILL 选择与流水压缩 |
 | **2026 Multicore NPU Scheduling** | 100 个操作—张量 DAG，三个官方执行场景 | 子图划分、核心分配、Task 顺序、容量排序与共享 L2 复用 |
 
-研究重点从缓存压力下的图执行与内存分配，扩展到多核任务边界、共享带宽竞争和 L2 数据复用。两年项目分别使用自己的输入格式、约束及评估器，结果按各自定义解读。
+2025 项目聚焦核内操作调度、存储分配与 SPILL 优化；2026 项目在这一基础上扩展到跨核任务划分、核心分配、共享带宽竞争与 L2 缓存复用。研究脉络由 **核内调度走向多核协同**，缓存与数据搬运优化贯穿两个项目。
 
 <a id="quick-start"></a>
 ## 快速开始
