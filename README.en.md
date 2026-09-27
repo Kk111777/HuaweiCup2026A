@@ -51,16 +51,16 @@ Official `makespan` is measured in **cycles**, and traffic in **bytes**. Search 
 - Q3 optimization of frozen Q2 plans, and Q3v3 initialized from complete Q1/Q2 plans.
 - Versioned plans, metrics, and experiment records, summarized in [Results](#results).
 
-### Research Line: From Cache Scheduling to Multicore Coordination
+### Research Line: From Intra-Core Scheduling to Multicore Coordination
 
-This project continues the [2025 Huawei Cup Cache-NPU Scheduling project](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling)'s research direction: **joint optimization of DAG execution, on-chip memory, and data movement**.
+Both this project and the [2025 Huawei Cup Cache-NPU Scheduling project](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) study **computation-graph scheduling and data-movement optimization under cache constraints**, coordinating execution order, on-chip data residency, and memory allocation to improve data reuse.
 
 | Project | Workloads | Main decisions |
 |---|---|---|
 | [2025 Cache-NPU Scheduling](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) | 6 SIMD/NPU graphs spanning FlashAttention, Matmul, and Conv | Topological execution order, contiguous address allocation, SPILL selection, and pipeline compression |
 | **2026 Multicore NPU Scheduling** | 100 operation–tensor DAGs under three official execution scenarios | Partitioning, core assignment, Task order, capacity ordering, and shared L2 reuse |
 
-The focus expands from graph execution and allocation under cache pressure to multicore Task boundaries, shared-bandwidth contention, and L2 reuse. Each year's project has its own input format, constraints, and evaluator; results are interpreted within their respective definitions.
+The 2025 project focuses on intra-core operation scheduling, memory allocation, and SPILL optimization. The 2026 project extends this foundation to partitioning tasks across cores, core assignment, shared-bandwidth contention, and L2 cache reuse. The research progresses **from intra-core scheduling to multicore coordination**, with cache and data-movement optimization running through both projects.
 
 <a id="quick-start"></a>
 ## Quick Start
