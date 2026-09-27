@@ -19,7 +19,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-q3.txt
 ```
 
-将正式原图置于 `official/data/case_001.json` 至 `case_100.json`。原图不纳入 Git，但可包含在本地复现包中。官方代码和配置通过 `configs/q2/official_sha256.json` 校验，不允许修改带宽、Cache 容量或官方调度逻辑。只有最终报告需要 matplotlib；可用 `--no-plots` 运行纯标准库流程。
+正式原图已随仓库提供于 `official/data/case_001.json` 至 `case_100.json`；原版题面与逐字节校验见[数据说明](docs/data.md)。官方代码和配置通过 `configs/q2/official_sha256.json` 校验，不允许修改带宽、Cache 容量或官方调度逻辑。只有最终报告需要 matplotlib；可用 `--no-plots` 运行纯标准库流程。
 
 ## 直接运行
 

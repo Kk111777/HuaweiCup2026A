@@ -8,7 +8,7 @@
 
 ## 运行
 
-Python 3.12，求解器仅使用标准库。准备同一赛题的 `official/data/case_*.json`；输入图不随Git归档。
+Python 3.12，求解器仅使用标准库。原版题面与 `official/data/case_*.json` 已随仓库提供，先按[数据说明](docs/data.md)校验。
 
 ```powershell
 python src/solve_q3v3.py official/data/case_014.json --cores 3 --warm-start path/to/q1_plan.json --q2-warm-start path/to/q2_plan.json --objective cycles-traffic --seconds 120 --max-evaluations 64 --evaluation-timeout 600 --workers 1 --output-dir outputs/q3v3_new
@@ -32,4 +32,4 @@ Q3v3内核支持已有完整单核JSON的N=1优化，但当前CLI不会自动生
 
 详细公式、容量约束、算法流程、模块接口与限制见[算法说明](docs/q3v3_memory_traffic.md)。
 
-本次Git提交只包含代码、测试代码和说明文件，不包含原图、划分JSON、候选结果、实验归档、日志或虚拟环境。
+Q3v3 原代码发布只包含代码、测试和说明。当前仓库已另外纳入官方题面与输入图；本模型的完整实验方案、候选结果及日志仍不包含在该次发布中。
