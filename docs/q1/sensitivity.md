@@ -88,7 +88,7 @@ python tools/report_q1_sensitivity.py --output-dir outputs/q1_sensitivity --allo
 | `audit.json`、`report_manifest.json` | 审计结果与报告产物哈希 |
 | `runs/<case>/N<n>/` | 全部候选、自适应原生记录、5 份方案、官方结果/Trace/日志、完成清单 |
 
-图中的阴影不是置信区间。20 张图的分层样本不等于全部 100 张图；显式 smoke 更不应作为正式灵敏度结论。代码与配置可上传 GitHub，`outputs/`、赛题原图及本机绝对路径记录留在实验产物中，不随代码提交。
+图中的阴影不是置信区间。20 张图的分层样本不等于全部 100 张图；显式 smoke 更不应作为正式灵敏度结论。官方原图已随仓库提供，见[数据说明](../data.md)。新的 `outputs/` 和本机路径记录留在本地；已完成的 5 核样本实验见[正式归档](../../results/q1_sensitivity_5cores_20260927/README.md)。
 
 ## 验证
 

@@ -46,8 +46,11 @@ temp/
 *.swo
 ~$*
 
-# Official inputs stay local; keep official code, docs and config.txt versioned.
-/official/data/case_*.json
+# Official PDF and data are versioned under official/; duplicate source packages stay local.
+# Direct official CLI calls may place generated files beside the input graph.
+/official/data/*_res.json
+/official/data/*_trace.json
+/official/data/*_log.txt
 /通用神经网络处理器下的多核调度问题  附件.zip
 /通用神经网络处理器下的多核调度问题.pdf
 

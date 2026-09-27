@@ -1,21 +1,24 @@
 # 项目结构与基线复用
 
-程序按问题组织，结果按实验归档。第一问保留三版模型：V1 TaskGrowth 基座；V2“基座 + 基于严格剪枝的多原则候选方案分层改进策略”；V3 基座专用优化模型。V2/V3 是从 V1 派生的两条路线，发布顺序不是算法依赖顺序。总览见 [README 模型谱系](../README.md#第一问模型谱系)。
+程序按问题组织，结果按实验归档。第一问保留三版模型：V1 TaskGrowth 基座；V2“基座 + 基于严格剪枝的多原则候选方案分层改进策略”；V3 基座专用优化模型。V2/V3 是从 V1 派生的两条路线，发布顺序不是算法依赖顺序。总览见 [README 模型谱系](../README.md#models)；三问算法与结果入口见[文档索引](README.md)。
 
 ## 文件树与职责
 
 ```text
 HuaweiCup2026A/
-├─ official/                         # 官方程序、说明和配置；计算图本地准备
+├─ official/                         # 原版题面、100 例计算图、官方程序、说明和配置
 ├─ src/
 │  ├─ problem_1_baseline.py           # 稳定的单核参照入口
 │  ├─ solve_problem1.py               # V2 improve 子命令 / V3 默认图路径入口
-│  ├─ solve_problem2.py               # Q2 solve / batch / verify
+│  ├─ solve_problem2.py               # Q2 基座 solve / batch / verify
+│  ├─ solve_problem2_optimized.py     # Q2 v3 solve / batch / replay
 │  ├─ solve_problem3.py               # Q3 solve / batch / verify / report
+│  ├─ solve_q3v3.py                   # Q3v3 完整方案继承与时间/搬运折衷
 │  ├─ common/baseline.py              # 基线读取、来源校验与加速比
 │  ├─ common/artifacts.py             # 无问题语义的原子产物写入与哈希
 │  ├─ q2/                            # Scene B 增量构造、内存证书、窗口 DP、完整复核
 │  ├─ q3/                            # 固定 Q2 输入、L2 搜索及独立官方复评
+│  ├─ q3v3/                          # 容量重排、L2 窗口及联合搜索
 │  └─ q1/
 │     ├─ graph.py, model.py           # 共享图模型与基座特征索引
 │     ├─ partition.py, solver.py      # V1 构造策略与初始化择优
@@ -44,7 +47,9 @@ HuaweiCup2026A/
 | V2 | `python src/solve_problem1.py improve ...` / `improve-batch ...`；或配置 `PYTHONPATH=src` 后 `python -m q1.stage2 ...` | [分层改进](q1/stage2.md) |
 | V3 | `python src/solve_problem1.py graph.json --config ... --cores 4 --output ...` | [统一搜索](q1/unified.md) |
 | Q2 新基座 | `python src/solve_problem2.py solve ...` / `batch ...` / `verify ...` | [状态与评价接口](q2/interfaces.md)、[算法修复](q2/repair.md) |
+| Q2 v3 | `python src/solve_problem2_optimized.py solve ...` / `batch ...` / `replay ...` | [优化模型](q2/OPTIMIZED_MODEL.md)、[接口](q2/OPTIMIZED_INTERFACES.md) |
 | Q3 | `python src/solve_problem3.py solve ...` / `batch ...` / `verify ...` / `report ...` | [运行说明](../README_Q3.md)、[实现](q3/implementation.md)、[全量验收](q3/validation.md) |
+| Q3v3 | `python src/solve_q3v3.py graph.json ...` | [运行说明](../README_Q3V3.md)、[算法](q3v3_memory_traffic.md) |
 
 不复制三个版本的基座或官方代码。V2 使用 V3 已接入的共享 `GraphIndex`，保持自身状态、候选、剪枝与精确接受逻辑；V3 的算法模块与配置在本次接入中保持原样。V1 的当前参考实现按 V3 已有约定仅允许 `candidate_jobs=1`，历史并行版本可从提交 `04634a2` 检出。已有原始 V1 归档可直接供 V2 读取。
 
@@ -52,7 +57,7 @@ HuaweiCup2026A/
 
 第二问的官方语义与模块复用依据见早期[工程准备与源码审计](q2/engineering.md)，当前接口见[Q2 2.1](q2/interfaces.md)，验证见[有限测试报告](q2/interfaces_validation.md)。Q2 不调用 Q1 的 Task 划分、核心分配和 Task 等待模型；复用 `common.baseline`、输出锁，以及从 `q1.run` 原样抽出的四个产物工具函数。`q1.run` 保留兼容导入，并将新公共文件纳入来源哈希，因此旧源码产物不能冒充本次源码的续跑结果。
 
-Q2 2.1 保留2.0按构造／范围／编码独立维护的 β 流，官方时间持平继续、严格增加停止；真实顺序、容量修复及显式1.1对照见[算法设计](q2/repair.md)。状态独立于构造来源，近似搜索快照与正式发布分离；本轮没有近似模型或Q2公共优化后端。Q1实现和历史归档保持原样。
+Q2 2.1 保留2.0按构造／范围／编码独立维护的 β 流，官方时间持平继续、严格增加停止；真实顺序、容量修复及显式1.1对照见[算法设计](q2/repair.md)。状态独立于构造来源，近似搜索快照与正式发布分离；独立 Q2 v3 在 `q2/optimized/` 提供优化后端，复用 `scheduling/` 公共框架，详见[版本关系](q2/VERSIONS.md)。
 
 三版输出分别指定 `outputs/q1_v1`、`outputs/q1_v2`、`outputs/q1_v3` 等目录，不能让不同求解器写入同一实验目录。源码、参数和运行环境均进入各自来源记录；Git 接入后的字节指纹与服务器旧运行包不同，不能把旧产物重新标成新源码产生的结果。
 
@@ -76,7 +81,7 @@ Q2 2.1 保留2.0按构造／范围／编码独立维护的 β 流，官方时间
 
 归档必须位于 `repo_root` 内；输入与官方材料可通过参数指定其他位置。一次批量加载后，将各 case 的记录传给 worker，避免每个 worker 重复校验约 469 MiB 的完整归档。接口只读，不复制或覆盖基线。
 
-从仓库根目录执行以下 PowerShell 示例；先按根 README 准备官方计算图：
+从仓库根目录执行以下 PowerShell 示例；先按[数据说明](data.md)核对仓库内的官方计算图：
 
 ```powershell
 @'

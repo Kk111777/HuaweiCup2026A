@@ -1,318 +1,255 @@
-<h1 align="center">HuaweiCup2026A · 多核任务划分与调度</h1>
-<p align="center">操作—张量 DAG 上的 Task 构造、多原则分层改进与基座专项优化</p>
-<p align="center"><img alt="Python 3.12+" src="https://img.shields.io/badge/Python-3.12%2B-blue"> <img alt="Standard library" src="https://img.shields.io/badge/dependencies-standard_library-green"></p>
-<p align="center"><a href="#第一问模型谱系">模型谱系</a> · <a href="#项目目录">目录</a> · <a href="#问题一第二版基于严格剪枝的多原则候选方案分层改进策略">第二版</a> · <a href="#问题一第三版基于宏观结构感知的候选扩展与联合优化算法">第三版</a> · <a href="docs/q2/repair.md">问题二新基座</a> · <a href="#日常协作">协作</a></p>
+<h1 align="center">2026 华为杯 · 多核 NPU 图调度</h1>
+<p align="center"><strong>面向 NPU 计算图的多核调度与存储优化</strong></p>
+<p align="center"><b>简体中文</b> · <a href="README.en.md">English</a></p>
+<p align="center">
+  <a href="https://github.com/Kk111777/HuaweiCup2026A"><img alt="GitHub repository" src="https://img.shields.io/badge/GitHub-Repository-black"></a>
+  <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-blue">
+  <img alt="Standard-library solvers" src="https://img.shields.io/badge/Solvers-standard_library-green">
+  <img alt="NPU scheduling" src="https://img.shields.io/badge/Domain-NPU_Scheduling-purple">
+  <img alt="100 DAG workloads" src="https://img.shields.io/badge/Workloads-100_DAGs-orange">
+</p>
+<p align="center">
+  <a href="#overview">问题概览</a> · <a href="#quick-start">快速开始</a> ·
+  <a href="#models">模型演进</a> · <a href="#results">实验结果</a> ·
+  <a href="docs/README.md">文档索引</a> · <a href="docs/data.md">题面与数据</a>
+</p>
 
-本项目研究华为杯题目中的多核调度：划分原始计算图的子图、按场景组织 Task，决定核心分配与执行顺序，在依赖、片上容量和共享 DDR 带宽约束下，以官方模拟周期评价方案。第一问现保留基座、第二版和第三版三套模型；第二问保留修复新基座，并新增[基座优化模型](docs/q2/OPTIMIZED_MODEL.md)；第三问提供[基于固定 Q2 输入的 L2 优化与完整复现工程](README_Q3.md)。各自的搜索与评价规则单独记录。
+本项目研究 **NPU 计算图上的多核调度与存储协同优化**：给定操作—张量 DAG，在依赖、片上容量与共享带宽约束下，联合决定子图划分、核心分配和执行顺序，优化模拟周期与数据搬运。
 
-私有仓库由 `Kk111777` 与 `Zysishuiyears` 通过任务分支和 PR 协作维护；基础环境为 Python 3.12，求解器依赖标准库，Q3 报告制图额外使用可选的 matplotlib。赛题图是算子调度工作负载，求解过程不实际执行神经网络矩阵运算。
+大语言模型的高效执行需要同时处理计算与数据供给。Attention、线性投影和前馈网络中的操作具有先后依赖，中间张量占用有限的快速存储；执行顺序会改变张量的存活时间与复用机会，而切分计算以增加并行度，也可能带来更多通信和内存换入换出。对系统而言，**在哪里计算、按什么顺序计算、让哪些数据保持驻留**，是相互影响的决策。
 
-## 第一问模型谱系
+这与 LLM 系统中的几个研究方向形成了自然联系。**IO 感知算子优化**关注计算与搬运的共同成本：[FlashAttention](https://arxiv.org/abs/2205.14135) 通过分块减少 HBM 与片上 SRAM 之间的读写。**存储分层与 offloading**关注容量受限时的数据放置和访问计划：[FlexGen](https://proceedings.mlr.press/v202/sheng23a.html) 协调 GPU、CPU 与磁盘资源来支持高吞吐 LLM 推理。**图编译与自动并行化**则研究如何将带依赖的计算映射到执行资源：[Alpa](https://arxiv.org/abs/2201.12023) 在大模型分布式训练中联合规划算子内与算子间并行。这些工作的具体系统和尺度各异，共同说明了计算图结构、存储容量和通信代价需要协同考虑。
 
-第一问 V1 基座的 [β 灵敏度分析](docs/q1/sensitivity.md)提供固定 β=1/2/3/4 与默认自适应策略的配对实验，包含分层抽样、独立官方复评、续跑和报告绘图；默认 20 张图 × 2/5 核，共 200 份方案。
+本项目将这一研究视角落实为可检查的图论与组合优化问题。三个赛题场景依次研究 **多 Task 划分与调度、核内存储共享、共享 L2 缓存复用**，以启发式构造、局部搜索、动态规划和官方事件模拟评价不同策略。项目源于华为杯 A 题《通用神经网络处理器下的多核调度问题》，使用其 100 张原始计算图；与上述研究的联系在于调度和存储决策的结构，当前结果衡量官方模型中的模拟周期与搬运量，不直接衡量真实 LLM 的 token 吞吐或端到端时延。
 
-已固定 V3 的 [100 case 全量官方结果](results/q1_structure_100cases_20260926/README.md)包含 400 份最终方案、独立官方评价、搬运量及算法/评分分离计时。2/3/4/5 核平均官方加速比分别为 2.090409×、2.939747×、3.686617×、4.296547×；对应 PR #11 的结构驱动版本，不包含已撤回的 PR #13 机制。
+仓库所有者为 [Kk111777](https://github.com/Kk111777)，协作者为 [Zysishuiyears](https://github.com/Zysishuiyears)。代码与实验由团队通过任务分支和 PR 协作维护；各归档保留具体源码与贡献来源。
 
-| 版本 | 模型与关系 | 代码与命令 |
+### 结果速览
+
+| 图划分与调度 · Q1 V3 | 片上存储优化 · Q2 v3 | L2 复用 · 已发布 Q3 |
+|:---:|:---:|:---:|
+| **4.297×** 平均加速比 | **4.185×** 平均加速比 | **500 / 500** 官方复评通过 |
+| 100 图 · 5 核 · 相对固定单核 | 100 图 · 5 核 · 相对固定单核 | 100 图 · 1–5 核 · 冻结 Q2 对照 |
+
+[查看各版完整结果、预算与来源](#results)
+
+<a id="overview"></a>
+## 问题概览
+
+输入为 `ops`、`tensors`、`edges` 构成的 DAG。方案通过 `node_to_subgraph` 划分计算操作，通过 `core_schedules` 指定各核上的子图次序；官方程序进一步生成核内调度、容量约束与事件时间线。
+
+| 问题 | 执行模型 | 优化重点 |
 |---|---|---|
-| 第一版 V1 | TaskGrowth 基座：双作用域、自适应 β、官方预分析与核心列表分配 | `q1/partition.py`、`solver.py`；`python tools/reference_problem1.py solve ...` |
-| **第二版 V2** | **基座 + 基于严格剪枝的多原则候选方案分层改进策略**：先取得 V1 的最终方案，再按五原则、三层搜索严格改善官方目标 | `q1/stage2/`；`python src/solve_problem1.py improve ...` 或 `improve-batch ...` |
-| 第三版 V3 | 基于宏观结构感知的候选扩展与联合优化算法：TaskGrowth 构造与结构候选、近似评估、局部改进和多状态搜索整合到统一控制器 | `scheduling/`、`q1/unified/`、`q1/improvement/`；`python src/solve_problem1.py graph.json --config ... --cores 2 3 4 5 --output ...` |
+| Q1：多 Task 调度 | 每个子图形成一个 Task，存在同核／跨核前驱等待 | 子图边界、核心负载、Task 顺序与 DDR 竞争 |
+| Q2：核内共享存储 | 同一核心的子图合并为一个 Task，跨核通过 COPY 通信 | 联动划分与分核、核内顺序、L1/UB 容量与 spill |
+| Q3：共享 L2 缓存 | 在 Q2 的执行模型上增加只读 FIFO L2 | 数据复用窗口、容量重排、周期与搬运折衷 |
+
+官方输出 `makespan` 的单位是 **cycles**，搬运量的单位是 **bytes**。搜索可使用近似模型；正式结果以对应问题的官方评估为准。实现分别提供：
+
+- Q1 的 TaskGrowth 基座、严格剪枝分层改进，以及结构感知联合搜索。
+- Q2 的修复基座、容量窗口排序和独立优化模型。
+- Q3 的固定 Q2 方案优化，以及继承完整 Q1/Q2 方案的 Q3v3。
+- 按版本保存的方案、指标、来源哈希和验证记录；归档具体覆盖范围见[实验结果](#results)。
+
+### 研究脉络：从缓存调度到多核协同
+
+本项目延续 [2025 华为杯 Cache-NPU 调度项目](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) 对 **DAG、片上存储与数据搬运协同优化** 的研究方向。
+
+| 项目 | 工作负载 | 主要决策 |
+|---|---|---|
+| [2025 Cache-NPU Scheduling](https://github.com/Zysishuiyears/2025Huaweicup_Cachenpuscheduling) | 6 个 SIMD/NPU 图，覆盖 FlashAttention、Matmul、Conv | 拓扑执行序列、连续地址分配、SPILL 选择与流水压缩 |
+| **2026 Multicore NPU Scheduling** | 100 个操作—张量 DAG，三个官方执行场景 | 子图划分、核心分配、Task 顺序、容量排序与共享 L2 复用 |
+
+研究重点从缓存压力下的图执行与内存分配，扩展到多核任务边界、共享带宽竞争和 L2 数据复用。两年项目分别使用自己的输入格式、约束及评估器，结果按各自定义解读。
+
+<a id="quick-start"></a>
+## 快速开始
+
+### 环境与输入
+
+使用 **Python 3.12**。求解器只依赖标准库；Q3 报告绘图可选安装 `requirements-q3.txt`。仓库目前为私有仓库，需要访问权限。
+
+```bash
+git clone https://github.com/Kk111777/HuaweiCup2026A.git
+cd HuaweiCup2026A
+python --version
+python -m venv .venv
+```
+
+后续 `python` 指向 Python 3.12 环境；Windows 可直接使用 `.\.venv\Scripts\python.exe`，macOS/Linux 可用 `.venv/bin/python`，无需修改系统环境。详见[环境说明](docs/environment.md)。
+
+[原版题面 PDF](official/通用神经网络处理器下的多核调度问题.pdf)、100 张原始计算图和原始配置已随仓库提供。首次运行先按[数据说明](docs/data.md)核对 `official/inputs.sha256`；无需另找附件或手动改动官方参数。
+
+### 单图运行
+
+以下示例均从仓库根目录执行，使用不同输出目录。先运行所需的一条；`--cores 2` 表示模拟两个 NPU 核心。
+
+```bash
+# Q1 V3：结构感知联合搜索
+python src/solve_problem1.py official/data/case_001.json --config official/data/config.txt --cores 2 --seconds 600 --output outputs/demo_q1
+
+# Q2 v3：基座优化模型
+python src/solve_problem2_optimized.py solve official/data/case_001.json --cores 2 --seconds 600 --output outputs/demo_q2
+
+# Q3：复用已归档的 Q2 输入，关闭可选绘图
+python src/solve_problem3.py solve official/data/case_001.json --cores 2 --no-plots --output-dir outputs/demo_q3
+```
+
+Q1/Q2 v3 的默认预算是每图所有请求核数共享 600 秒目标，另有 900 秒条件延长与 1200 秒保护；这不是每个核数各有 600 秒。Q3 默认每图共享 600 秒，缺失 Q2 输入时的生成时间单列。主机并发参数 `--workers` / `--jobs` 与模拟核数 `--cores` 含义不同。
+
+旧版入口、Q3v3 的完整方案起点和输出格式见下方模型表及[文档索引](docs/README.md)。重新搜索受版本、预算和机器负载影响；只核对已发布成绩时，使用各结果归档中的**独立复评命令**。
+
+<a id="models"></a>
+<a id="第一问模型谱系"></a>
+## 模型演进与方法
+
+### Q1：Task 构造与多核调度
+
+| 模型 | 方法与关系 | 入口与说明 |
+|---|---|---|
+| V1 | 全局／分量范围的就绪节点生长，自适应 β，官方核内预分析与列表分核 | `tools/reference_problem1.py solve`；[基座](docs/q1/initialization.md) |
+| V2 | 从 V1 最终方案出发，按五类诊断原则生成候选，进行排程、拆分／合并和局部联合三层搜索 | `src/solve_problem1.py improve`；[分层改进](docs/q1/stage2.md) |
+| V3 | 复用 TaskGrowth，整合结构候选、近似评价、局部重构与多状态搜索 | `src/solve_problem1.py graph.json`；[统一搜索](docs/q1/unified.md) |
 
 ```mermaid
 flowchart LR
-    O[官方程序与单核参照] --> V1[第一版：TaskGrowth 基座]
-    V1 -->|最终方案作为起点| V2[第二版：多原则候选与严格剪枝分层改进]
-    V1 -->|复用构造组件并整合搜索| V3[第三版：宏观结构感知的候选扩展与联合优化]
+    V1["Q1 V1 · TaskGrowth"] -->|"最终方案"| V2["Q1 V2 · 严格剪枝分层改进"]
+    V1 -->|"构造组件"| V3["Q1 V3 · 结构感知联合搜索"]
 ```
 
-**模型编号表示方法关系，不按上传顺序编号。** V1 的默认自适应基座在 [`04634a2` / PR #4](https://github.com/Kk111777/HuaweiCup2026A/pull/4) 合入，完整 400 组合结果由 PR #5 归档；V3 在 [`6352e01` / PR #6](https://github.com/Kk111777/HuaweiCup2026A/pull/6) 先行合入，V2 随后由 PR #7 补齐。本次更新 V3 的结构驱动求解与接口。V2 与 V3 是从 V1 发展的两条路线，不构成 V1 → V2 → V3 的逐级叠加，也不把 V2 的三层搜索自动接入 V3。
+V2 接受候选 $p'$ 的条件为
 
-V2 的候选接受依据是完整官方目标 `(makespan, added_copy_bytes)` 严格字典序改善，最终方案落盘后再次官方复评。V3 保持既有的近似接纳与官方校准规则，输出须区分 `score_source` 并按其说明独立重放。版本编号不代表逐例成绩优劣；三版比较必须使用相同 case 集合、核数与官方评分口径。
+$$
+\bigl(T(p'), B_{\mathrm{added}}(p')\bigr)
+<_{\mathrm{lex}}
+\bigl(T(p), B_{\mathrm{added}}(p)\bigr),
+$$
 
-## 项目目录
+其中 $T$ 为官方总周期，$B_{\mathrm{added}}$ 为额外搬运量。接受后重新诊断，从第一层继续；严格下界只排除其适用条件内不能改善的分支。
+
+V2/V3 是 V1 的两条派生路线。V3 允许近似接纳并进行官方校准，原始 `score_source` 可能不同；正式百例成绩统一采用冻结方案后的独立官方复评。三个模型均不声称全局最优。
+
+### Q2：联动划分、分核与容量排序
+
+| 版本 | 方法与状态 | 入口与说明 |
+|---|---|---|
+| 1.1 | 早期新基座，存在已知算法问题，保留作历史对照 | [旧版归档](archive/q2/baseline_1_1_known_issues/README.md) |
+| 2.0 / 2.1 | 修复基座：联动生长、顺序保真编码、整分量同核候选及容量窗口 DP；2.1 补齐复用接口 | `src/solve_problem2.py solve`；[修复设计](docs/q2/repair.md) |
+| v3 | 在基座组件上加入粗／细事件模型、重排、迁核、块调整与容量修复的统一搜索 | `src/solve_problem2_optimized.py solve`；[优化模型](docs/q2/OPTIMIZED_MODEL.md) |
 
 ```text
-HuaweiCup2026A/
-├─ src/
-│  ├─ problem_1_baseline.py       # 官方单核参照入口
-│  ├─ solve_problem1.py           # V2 子命令 / V3 默认图路径入口
-│  ├─ solve_problem2.py           # Q2 solve / batch / verify
-│  ├─ solve_problem2_optimized.py # Q2 优化 solve / batch / replay
-│  ├─ solve_problem3.py           # Q3 solve / batch / verify / report
-│  ├─ common/baseline.py          # 基线归档校验及加速比计算
-│  ├─ common/artifacts.py         # 原子写入、JSON 和 SHA-256
-│  ├─ scheduling/                # V3 公共编排、四组问题接口、预算与评估服务
-│  ├─ q2/                        # Q2 增量构造、Step1 前缀、窗口 DP 与官方复核
-│  ├─ q3/                        # Q2 自动衔接、L2 精确搜索及独立复评
-│  └─ q1/
-│     ├─ graph.py, model.py       # 共享图模型与基座索引
-│     ├─ partition.py, solver.py # V1 TaskGrowth 构造及初始化择优
-│     ├─ schedule.py, allocation.py, official.py  # 调度与官方适配
-│     ├─ reference_cli.py, run.py # V1 参考运行，兼容导出公共产物函数
-│     ├─ stage2/                 # V2：诊断、邻域、严格下界、三层搜索
-│     ├─ unified/                # V3：Q1 适配器、结构特征、候选与兼容入口
-│     └─ improvement/            # V3：结构候选、近似评价与局部改进
-├─ configs/
-│  ├─ q1/stage2.json             # V2 搜索预算、规模及剪枝开关
-│  ├─ q2/                        # Q2 算法参数与已审官方 SHA-256
-│  └─ unified.json               # V3 既有配置路径，保留兼容性
-├─ tools/reference_problem1.py   # V1 的显式命令行入口
-├─ scripts/run_unified_100.ps1   # V3 既有批量实验入口
-├─ official/                    # 原版评估代码、配置；原始图留本地
-├─ docs/q1/                     # initialization / stage2 / unified 三版说明
-├─ docs/q2/                     # 设计原稿、实现使用与有限验收
-├─ docs/q3/                     # 实现、参考模型及百例验收
-├─ tests/                       # 共享基础、Q1 回归、Q2 独立 oracle 与边界验证
-├─ results/
-│  ├─ problem_1_singlecore/      # 已发布单核参照，固定保留
-│  ├─ q1_adaptive_100cases_20260925/ # V1 完整百例归档
-│  ├─ q1_stage2_100cases_20260926/ # V2 百例最终汇总、择优来源与运行报告
-│  └─ q3_full_20260927/           # Q3 百例 500 个方案、指标及图表
-└─ outputs/                     # 各版本实验目录，Git 忽略
+构造／范围／编码流分别维护 β
+    → 生成并验证候选 → 官方反馈决定继续或停止
+    → 发生 spill 时尝试容量窗口排序
+    → 按官方 (cycles, added_copy_bytes) 择优
+    → 最终方案落盘、重读、独立官方复评
 ```
 
-目录沿用已验证的导入和运行路径，Q1 共享基座保持一份实现，V2 和 V3 的搜索模块分别归位；Q2 独立实现 Scene B 的构造与排序，Q3 通过独立入口复用 Q2 准备和状态接口。具体接口与实验归档约定见[项目结构说明](docs/architecture.md)。
+自适应 β 遇到周期持平或下降时继续，严格增加时停止。窗口 DP 的局部精确性不等于整图最优。v3 通过精确成绩确认接受；若当次基座保底未完成，则不具备完整基座不退化保证。工程编号 v3 对应问题二的第二个数学模型，详见[版本与固定标签](docs/q2/VERSIONS.md)。
 
-## 开始使用
+### Q3：L2 优化与周期／搬运折衷
 
-先接受私有仓库邀请，再克隆项目：
+| 模型 | 起点与目标 | 入口与说明 |
+|---|---|---|
+| 已发布 Q3 | 冻结 Q2 方案，在 Q3 下评价并搜索；按官方周期、额外搬运量严格接受 | `src/solve_problem3.py`；[运行说明](README_Q3.md) |
+| Q3v3 | 继承完整 Q1/Q2／可选旧 Q3 方案，重新按 Q3 评价；容量重排、L2 窗口与联合搜索 | `src/solve_q3v3.py`；[运行说明](README_Q3V3.md) |
 
-```powershell
-git clone https://github.com/Kk111777/HuaweiCup2026A.git
-cd HuaweiCup2026A
-```
+Q3v3 默认工程目标为
 
-已有本地项目的成员在现有目录继续工作，不需要重复克隆。环境准备见 [Python 环境说明](docs/environment.md)。
+$$
+J(p)=\frac{T(p)}{T_{\mathrm{ref}}}
++0.05\left(0.75\frac{D(p)}{D_{\mathrm{ref}}}
++0.25\frac{A(p)}{A_{\mathrm{ref}}}\right),
+\qquad T(p)\leq 1.01\,T_{\mathrm{fastest}}.
+$$
 
-## 问题一：单 Task、单核基线
+$D$ 为实际 DDR 字节，$A$ 为额外 COPY 字节，正归一化分母由起点固定；$T_{\mathrm{fastest}}$ 是已发现可行方案的最快周期。该偏好允许最多 1% 的周期退让以减少搬运，并另存纯最快方案；它不是官方加权评分，也不以未知全局最优为基准。公式与边界见[完整算法](docs/q3v3_memory_traffic.md)。
 
-### 准备官方材料
+<a id="results"></a>
+## 实验结果与证据
 
-将赛题 PDF 和附件压缩包保留在项目根目录。首次准备时，用 Python 3.12 将附件完整解压到 `official/`：
+### Q1 / Q2：相对固定单核参照
 
-```powershell
-python -m zipfile -e "通用神经网络处理器下的多核调度问题  附件.zip" official
-```
+对每个核数 $N$，先计算同图比值，再对 100 张图取算术平均：
 
-`official/` 中的代码、说明和 `data/config.txt` 保持原样。已有官方材料时不要用不同版本覆盖；正式输入应为 `data/case_001.json` 至 `data/case_100.json`。约 253 MB 的原始计算图、压缩包和 PDF 不纳入 Git，其他成员需自行从同一附件准备数据。
+$$
+\overline{S}_N=\frac{1}{100}\sum_{i=1}^{100}
+\frac{T_{\mathrm{single}}(i)}{T_{\mathrm{official}}(i,N)}.
+$$
 
-### 计算口径
+| 模型与结果归档 | 2 核 | 3 核 | 4 核 | 5 核 | 覆盖 |
+|---|---:|---:|---:|---:|---|
+| [Q1 V1](results/q1_adaptive_100cases_20260925/README.md) | 1.832685 | 2.463278 | 2.933060 | 3.338753 | 400 组 |
+| [Q1 V2](results/q1_stage2_100cases_20260926/README.md) | 1.921852 | 2.587793 | 3.102977 | 3.551904 | 400 组指标 |
+| [Q1 V3](results/q1_structure_100cases_20260926/README.md) | 2.090409 | 2.939747 | 3.686617 | 4.296547 | 400 组 |
+| [Q2 Repair 2.0](results/q2_repair_full_20260926/README.md) | 2.038162 | 2.775597 | 3.452734 | 3.991946 | 400 组 |
+| [Q2 v3](results/q2_optimized_full_20260927/README.md) | 2.083251 | 2.880824 | 3.594802 | 4.184883 | 400 组 |
 
-官方 `singlecore_evaluate.py` 将全部非 `COPY_IN`/`COPY_OUT` 操作映射到子图 0，采用 `core_schedules=[[0]]`。边界 COPY、缓存换入换出、四条 Pipe 的调度与共享 DDR 带宽模拟全部由官方代码完成；不使用随机切图示例生成基线。
+这些是各版已发布的历史实验，**不是相同搜索预算的受控排名**：
 
-最终耗时取结果 JSON 顶层的 **`makespan`，单位为 cycles**。`step3_by_task` 中的 `local_makespan` 只用于核内排布，不能替代最终指标。一个核心仍可以并行执行不同 Pipe；这里的单核指模拟的 NPU 核心数量。Python 实际运行秒数另记为 `runtime_seconds`，不用于加速比。
+| 模型 | 源码身份与预算／证据边界 |
+|---|---|
+| Q1 V1 | `04634a2`；原生自适应 β 扫描，400 份方案与官方产物已归档 |
+| Q1 V2 | 服务器源码指纹见归档协议；多轮历史／补跑逐例择优，基础搜索 1800 秒并有选择性加时；未发布全部最终方案和 Trace |
+| Q1 V3 | 固定主线 `7471470`、运行工作区 `93be2aa`，附源码快照；每图跨核数共享 600/900/1200 秒预算，400 组独立复评 |
+| Q2 Repair 2.0 | `11501c5`，标签 `q2-baseline-2.0`；每图每核数各 600 秒，400 组通过复评，其中 16 组搜索提前结束 |
+| Q2 v3 | `29747d8`；每图跨核数共享 600/900/1200 秒预算，400 组通过复评；80 组提案耗尽，331 组完成当次基座保底 |
 
-固定配置为 L1=524288 bytes、UB=131072 bytes、DDR=60 bytes/cycle，同核 Task 等待 100 cycles、跨核前驱等待 1000 cycles。本基线仅有一个从 0 时刻启动的 Task，不发生 Task 间等待；缓存不足时仍允许官方程序插入 Spill。入口通过 SHA-256 检查附件配置，不能通过参数改动评测数值。
+Q2 2.1 是保留基座算法的接口版本，不能将 2.0 的历史运行改标为 2.1 新实验。Q1 V3 的原始搜索分数含 43 组近似值，上表全部使用独立官方成绩。
 
-### 运行
+辅助实验：[Q1 五组件消融，2400 行](results/q1_ablation_2400_20260926/README.md)；[V1 β 灵敏度，20 图 × 5 策略、仅 5 核](results/q1_sensitivity_5cores_20260927/README.md)。
 
-以下命令中的 `python` 应指向 Python 3.12；Windows 可替换为 `.\.venv\Scripts\python.exe`，无需激活环境或安装第三方库。
+### Q3：固定同核数 Q2 方案的 L2 收益
 
-```powershell
-# 全部 100 个正式用例，按 CPU 数自动选择并发数（最多 8 个）
-python src/problem_1_baseline.py
+令 $T_2$ 为冻结 Q2 方案无 L2 的周期，$T_{2\to3}$ 为同一方案启用 L2 的周期，$T_3$ 为优化后周期。分别计算 $T_2/T_{2\to3}$、$T_{2\to3}/T_3$、$T_2/T_3$，再逐例取均值；三列均值不能直接相乘。
 
-# 指定同时运行 8 个官方评估进程
-python src/problem_1_baseline.py --workers 8 --output-dir outputs/singlecore_parallel
+| 核数 | 平均硬件加速 | 平均算法加速 | 平均总加速 |
+|---|---:|---:|---:|
+| 1 | 1.008622 | 1.047241 | 1.058105 |
+| 2 | 1.001360 | 1.005152 | 1.006514 |
+| 3 | 1.003354 | 1.008749 | 1.012185 |
+| 4 | 1.008125 | 1.016289 | 1.024626 |
+| 5 | 1.012939 | 1.027696 | 1.041054 |
 
-# 中断后在原输出目录续跑，已验证的成功用例不重新计算
-python src/problem_1_baseline.py --workers 8 --resume
+[已发布 Q3 归档](results/q3_full_20260927/README.md)覆盖 **500/500 组独立官方复评**，每图共享 600 秒。源码身份由 `provenance.json` 的逐文件哈希记录，发布基点为 `c20df63`；Q2 分子来自 Repair 2.0 档案，接口使用 Repair 2.1，N1 使用固定整图单核参照。263 组相对直接启用 L2 严格提速，237 组持平；`case_092/N3` 相对无 L2 的总加速比为 0.995674，保留在统计中。预算截断与评价超时见归档。
 
-# 单例；含空格的路径请加引号
-python src/problem_1_baseline.py official/data/case_001.json --output-dir outputs/case_001_check
+[Q3v3 修订 `q1q2-memory-traffic-1`](docs/q3v3_validation.md)验证了 **20 图／核数组合、40 份最终方案**，仅覆盖 2–5 核，每组上限 120 秒、64 次评价，准备与最终复评单列。相对冻结样本的旧 Q3，折衷方案 DDR 总字节下降 **48.490%**、spill 下降 **55.483%**；逐例周期降低率平均 **0.792%**，9 快／6 平／5 稍慢。纯最快方案为 10 快／10 平／0 慢。完整原始产物保留本地，该结果不代表百例或等预算冷启动比较。
 
-# 自选目录，只读取其中的 case_*.json
-python src/problem_1_baseline.py path/to/cases --output-dir outputs/subset_check
+<p align="center">
+  <img src="results/q3_full_20260927/figures/mean_curves.png" alt="Q3 百例实验：平均周期与硬件／算法／总加速比。来源为已发布的 500 组归档，包含全部用例。" width="900">
+</p>
 
-# 单元与集成测试（无需跑完正式用例）
-python -m unittest discover -s tests -v
-```
+Q3 百例实验：平均周期与硬件／算法／总加速比。来源为已发布的 500 组归档，包含全部用例。
 
-默认全量输入必须完整覆盖 001–100。每例完成后立即保存并更新汇总；单例失败会记录原因并继续，其余输入的原始内容不会被修改。全部成功时退出码为 0，存在失败或准备条件不满足时为 1，手动中断时为 130。大图可能运行较久，不设置隐式超时；打印 `[START]` 而尚未打印结果的用例仍在运行。
+<a id="data"></a>
+## 数据、输出与目录
 
-默认并发数取逻辑 CPU 数的一半，至少 1 个、最多 8 个；可用 `--workers 1` 串行运行。线程池仅负责管理独立 Python 子进程，实际模拟在多个 CPU 核上执行。大文件优先开始，汇总始终按用例编号排序。增加并发缩短的是整批耗时；每个评估进程仍然模拟一个 NPU 核心和一个 Task。程序处理的是图依赖和事件时间，不实际执行神经网络的矩阵计算，也没有 GPU 计算接口。
+每个 `case_*.json` 是一张具有指定算子周期、张量大小和依赖关系的调度工作负载。图规模、计算／搬运比例及张量复用决定不同的调度压力；仓库没有将这些编号标注为某个具体 LLM 或 GNN 模型。
 
-新实验的输出目录必须为空。重复实验请指定新的 `--output-dir`；继续同一实验时显式传 `--resume`。续跑会核对全部输入、配置及官方代码的 SHA-256，并重新读取已成功用例的结果、Trace 和日志，确认与汇总一致后才复用；来源变化或成功产物损坏时拒绝续跑。失败或未完成用例会重新评估，更新其原有产物。不要手工修改汇总或计算图来混合不同实验。
+| 输入字段 | 含义 |
+|---|---|
+| `ops` | 操作的 `id`、`op`、`pipe` 与 `cycles` |
+| `tensors` | 张量的 `id`、存储位置 `pos` 与字节数 `size` |
+| `edges` | 由 `source`、`target` 描述的有向依赖 |
+| `config.txt` | 官方容量、带宽、Task／COPY 等待和 L2 参数 |
 
-按 Ctrl+C 后取消尚未开始的用例，等待正在运行的进程结束并保存，再用 `--resume` 继续。强制关闭窗口或进程后也可续跑；未记入成功汇总的用例会重算。输出目录的 `.run.lock` 是操作系统文件锁，防止两个批处理同时写入；进程退出即释放锁，文件本身保留，不要在运行时删除。官方调度是确定性的，本入口不使用随机过程，不需要随机种子。
+官方输出包括 `makespan`、搬运统计与事件 Trace；求解器另存方案、搜索记录及来源信息。不同版本的产物格式和归档完整度见对应运行文档，不能用哈希清单代替未发布的原始文件。
 
-### 输出与验收
+| 路径 | 内容 |
+|---|---|
+| `official/` | 原版题面、100 例数据、配置、评估代码及说明 |
+| `src/q1/`、`src/q2/`、`src/q3/`、`src/q3v3/` | 各问题模型与独立入口 |
+| `src/scheduling/`、`src/common/` | 共享搜索编排与产物／基线工具 |
+| `configs/`、`tests/` | 算法参数、官方指纹与现有测试 |
+| `docs/`、`results/` | 方法文档与按实验保存的正式结果 |
+| `outputs/` | 本地新运行产物，Git 忽略 |
 
-默认输出目录结构为：
+详见[数据来源与逐字节校验](docs/data.md)、[文档索引](docs/README.md)和[工程结构](docs/architecture.md)。
 
-```text
-outputs/problem_1_singlecore/
-  summary.csv
-  run_info.json
-  case_001/
-    case_001_singlecore_res.json
-    case_001_singlecore_trace.json
-    case_001_singlecore_log.txt
-  ...
-  case_100/
-    ...
-```
+## 复现边界与协作
 
-三类逐例文件保持官方格式。Trace 可在 Perfetto 中打开。`summary.csv` 使用带 BOM 的 UTF-8，便于直接用 Excel 查看，各字段含义如下：
-
-| 字段 | 含义 |
-| --- | --- |
-| `case`、`status` | 用例名称及 `ok` / `failed` 状态 |
-| `makespan_cycles` | 最终模拟耗时，取官方 `makespan` |
-| `original_graph_copy_bytes`、`scheduled_copy_bytes` | 原始图及调度后的 COPY 搬运量 |
-| `added_copy_bytes` | 调度后搬运量减去原始搬运量 |
-| `partition_added_copy_bytes`、`spill_added_copy_bytes` | 边界重建及缓存换入换出各自产生的额外搬运量 |
-| `l1_peak_bytes`、`ub_peak_bytes` | 官方报告的核内缓存峰值 |
-| `runtime_seconds`、`error` | 调用与检查程序的实际秒数，以及失败原因 |
-
-失败行的评测数值留空，不能参与成功结果统计。`run_info.json` 保存解释器、平台、参数、官方代码及配置和每份输入的 SHA-256、运行起止时间、完成数及状态；`invocations` 记录每次运行的入口版本、并发数、复用数量和实际批处理秒数，总 `runtime_seconds` 表示从首次开始到最后结束的历时（含续跑间停顿）。`status=complete` 才表示本次运行全部成功。中断时已完成结果保留，完成数不足的记录不构成全量实验。
-
-入口检查单核、单 Task、起始时刻、依赖与流量、操作时间线末端、内存峰值，以及结果、Trace、日志的一致性。全量验收要求汇总恰好 100 行且全部 `ok`，同时拥有 100 组完整的三类官方产物。单核加速比定义为 1；后续多核加速比逐例使用本表的 `makespan_cycles` 除以对应多核耗时，再对全部用例的加速比取平均。
-
-已核对的参考值：附录 B.7 最小图为 **6 cycles**；`case_001` 为 **233110 cycles**；`case_003` 为 **602212 cycles**。完整结果见[已归档的 100 例汇总](results/problem_1_singlecore/summary.csv)。
-
-2026-09-23 在 Python 3.12.14 下完成全量复现：**100/100 成功，300 个官方产物齐全**，其中 40 个用例产生 Spill。前 57 个成功用例原样复用，后 43 个用例以 8 进程并行完成，该并行阶段耗时约 467 秒。17 项测试通过；全量结果另已核对操作覆盖、原始计算依赖时序、同 Pipe 不重叠，以及 Trace、日志、汇总和源码/数据校验值的一致性。
-
-### 已上传的完整结果
-
-[单核 baseline 结果归档](results/problem_1_singlecore/README.md)保存 100 例的 300 份官方产物、汇总和运行记录，附本次上传的 SHA-256 清单和核验记录。日常新实验仍写入被 Git 忽略的 `outputs/`，完成并明确要求上传后才整理为正式结果。
-
-## 问题一第二版：基于严格剪枝的多原则候选方案分层改进策略
-
-V2 = V1 最终方案 + `q1.stage2`。数据局部性、管道协同、Task 边界时序、DDR 竞争、多核负载五类原则产生候选；依次进行排程改进、切分/合并域搜索、局部联合搜索。结构检查、B0/B1 和 DDR 下界排除不能改善的分支，完整官方评价决定接受；接受后重新诊断并回到第一层。
-
-```text
-initial = V1 的最终方案
-while 预算允许:
-    从当前官方执行结果诊断候选
-    按三层顺序生成候选或局部域，先严格剪枝，再精确评价
-    若发现 (总周期, 额外搬运) 严格字典序改善：接受并回到第一层
-    若本轮未接受改善：结束，记录是否仍有预算截断的域
-落盘后独立调用原版官方入口复评，通过后写 complete.json
-```
-
-```powershell
-# 新图先运行基座，生成四种核数的初值
-python tools/reference_problem1.py solve official/data/case_001.json --cores 2 3 4 5 --output-root outputs/q1_v1
-
-# 单组合：从基座的已验收结果启动第二版
-python src/solve_problem1.py improve official/data/case_001.json --initial-plan outputs/q1_v1/case_001/N2/plan.json --search-config configs/q1/stage2.json --output-root outputs/q1_v2
-
-# 直接读取仓库已有的 V1 百例 ZIP 归档；并发数按实际 CPU/内存配额选择
-python src/solve_problem1.py improve-batch --initial-root results/q1_adaptive_100cases_20260925 --cases all --cores 2 3 4 5 --jobs 8 --search-config configs/q1/stage2.json --output-root outputs/q1_v2 --resume
-```
-
-`src` 在模块搜索路径中时，也可使用 `python -m q1.stage2 improve ...`。保持原 `improve` / `improve-batch` 命令可用；不改变 V3 的图路径语法和默认行为。
-
-默认每组合搜索 1800 秒、每局部域 120 秒及 256 次兼容评价预算；`--jobs` 控制实际 CPU 工作进程，`--cores` 表示模拟 NPU 核数。实现复用只读 Task 模板、分区/B1 结构及精确结果缓存；二级缓存命中仍消耗原预算名额。严格剪枝不等于全图最优保证：原则短名单、规模约束、时间及评价上限仍限制搜索范围。配置变化、源码更新与限时运行的差异都须单独记录。
-
-算法、公式与字段见[第二版说明](docs/q1/stage2.md)，有限测试及性能测量见[验收记录](docs/q1/stage2_acceptance.md)，运行与跨版本继承见[服务器指南](docs/q1/stage2_server.md)。
-
-[V2（1.2）百例最终结果](results/q1_stage2_100cases_20260926/README.md)已归档 400 个多核组合的汇总、择优来源与运行报告。2/3/4/5 核平均加速比分别为 **1.921852、2.587793、3.102977、3.551904**。这是历史结果、223 个补跑组合和已有预算实验逐例择优后的成绩，不是统一预算的一次独立全量运行；本次下载包未含全部最终方案及官方结果文件，详见归档的校验范围。
-
-## 问题一第三版：基于宏观结构感知的候选扩展与联合优化算法
-
-第三版沿用 PR #6 的基座构造与统一搜索路线，现已移除单核成绩对前置求解和全图策略的依赖，并将公共编排移入 `src/scheduling`。图路径入口继续可用，第二版 `improve` / `improve-batch` 分流保留；其与第二版的关系见上方[模型谱系](#第一问模型谱系)。
-
-第三版复用图校验、COPY 节点收缩、拓扑预处理与 TaskGrowth 子图生长实现。由图的依赖链、分量、计算和搬运负载、内存压力等特征安排搜索，默认以共享近似模型的局部时长进行预分析。保链、阶段、内存优先和后支配区域候选配合局部拆分合并、多 Task 区域重构及多状态搜索，共用调度内核与评估服务。原基座参考入口的官方预分析仍保留。
-
-第三版将协作者的 Task 生长策略与个人的结构候选、局部改进及区域重构放入同一个搜索控制器，共用图模型、方案校验、调度内核、官方评估服务和预算。第三版内部没有两个独立求解管线及最终择优汇合点；第二版仍由自己的显式子命令调用。
-
-当前统一入口允许近似改进立即覆盖方案；官方评估在时间充足时按批次或计时间隔校准。来不及核验时保留近似结果，`score_source` 标明来源；离线重放另存真实评分，不改写原始预测值。架构与接口规则见 [统一说明](docs/q1/unified.md)。
-
-```powershell
-python src/solve_problem1.py path/to/new_graph.json --config official/data/config.txt --cores 2 3 4 5 --seconds 600 --output outputs/new_graph
-```
-
-输入可为任意名称的合法新图。一张图的全部请求核数共享目标预算，默认600秒；保留默认900秒条件延长与1200秒保护机制。三个时间值可在 `configs/unified.json` 的 `time_budget` 中修改，省略命令行 `--seconds` 时直接使用配置；显式传入时覆盖目标并同比缩放另两项。求解不先运行官方单核，固定单核结果仅在报告层用作加速比分母。单图内各核数和候选均串行，本地批量测试可显式并发不同 case。
-
-同一配置的 `artifacts.intermediate` 默认true；设为false时，输出目录只保留各核数的 `plan.json`，恢复必需的临时检查点在返回后清理。API仍返回运行指标，关闭输出不改变候选生成和方案选择规则。此时不生成批测汇总或续跑元数据，详见[配置说明](docs/q1/unified.md#输出开关与时间预算)。
-
-公共框架以 `PlanSemantics / ExecutionModel / PredictionModel / ProposalSet` 四组接口绑定 Q1；旧 `q1.unified` 导入路径保持兼容，新增 `scheduling.api.solve_case(..., problem='q1')` 与 `python -m scheduling --problem q1 ...`。该框架目前仅注册 Q1；Q3 使用下述独立入口及 Q2 准备接口。接口层级图与调用示例见 [接口说明](docs/q1/interfaces.md)，最终要求核对、搬运字段修复及验证见 [合并前复核](docs/q1/merge_review.md)，初次发布与历史成绩取舍见 [验收说明](docs/q1/modular_validation.md)。
-
-详见[彩色分层架构、模块归属、调用与时间口径](docs/q1/unified.md)。新成绩与逐例耗时写入新实验目录；旧版两管线择优的成绩不代表本版本。
-
-原 `initialize` 保留为串行基座对照 API。旧命令行移到 `tools/reference_problem1.py` / `q1.reference_cli`，其中候选并发被禁止。历史公式说明见 [初始化算法](docs/q1/initialization.md)，其中旧入口和并发说明以本页与统一架构文档为准。
-
-## 问题二：联动生长与精确窗口缓存排序新基座
-
-> 基座保留2.1接口版本；优化模型使用独立入口 `solve_problem2_optimized.py`。已有基座实验继续使用固定标签 [q2-baseline-2.0](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-baseline-2.0)；该标签保留2.0完整源码和配置，无需为接口升级重跑2.1实验。
-
-Q2 2.1 延续2.0修复版的联动生长、顺序保真编码与整分量同核候选，补齐当前状态、合法性、评分和搜索快照接口，并复用重复展开及执行等价的精确成绩。默认 adaptive β 持平或下降时继续、严格增时停止，各构造／编码流独立反馈。缓存增强仅在实际 spill 时触发，精确寻找固定窗口内容量可行且扰动最小的排列；基座命令按官方 `(makespan, added_copy_bytes)` 选择，最终文件独立复评后发布。
-
-```powershell
-# python 指向 Python 3.12；先运行单例
-python src/solve_problem2.py solve official/data/case_001.json --cores 2 --output-dir outputs/q2_single
-
-# 自适应 β 消融：只试 β=1；grid 则完整尝试配置中的 β
-python src/solve_problem2.py solve official/data/case_001.json --cores 2 --beta-search fixed --output-dir outputs/q2_fixed
-
-# 显式限定六个冒烟组合，默认串行；不会扩展到其他 case
-python src/solve_problem2.py batch --data-dir official/data --cases case_001 case_067 case_086 --cores 2 5 --workers 1 --wall-seconds 90 --verification-reserve 15 --output-dir outputs/q2_smoke
-```
-
-基座默认预算为每 case/N 600 秒，初始预留 60 秒复核；加速比使用已归档的固定单核分子。基座接口版本为 `Q2-Repair-2.1`，见[接口与兼容说明](docs/q2/interfaces.md)、[2.1有限验证](docs/q2/interfaces_validation.md)。算法说明及历史实验仍见[2.0修复设计](docs/q2/repair.md)、[2.0有限验收](docs/q2/repair_validation.md)。1.1 对照通过 `--algorithm-config configs/q2/legacy_1_1.json` 运行。
-
-### 问题二 v3：基座优化模型
-
-`Q2-Optimized-3.0`（v3）复用当前状态与基座组件，实现粗/细两级事件模型、重排、重新分核、执行反馈迁核、块调整和容量修复的统一搜索。默认完成当次基座保底，并以精确成绩确认接受的改进；全部请求核数共用一张图的 600/900/1200 秒分级预算。
-
-v3 与 v2.1 并存：v2.1 保留 `src/solve_problem2.py`、原 `src/q2` 基座模块及 `configs/q2/baseline.json`；v3 位于 `src/q2/optimized/`，使用独立入口与配置。固定版本分别为 [q2-baseline-2.1](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-baseline-2.1) 与 [q2-optimized-3.0](https://github.com/Kk111777/HuaweiCup2026A/tree/q2-optimized-3.0)。工程编号 v3 对应问题二的第二个数学模型，见[版本与兼容说明](docs/q2/VERSIONS.md)。
-
-```bash
-python src/solve_problem2_optimized.py solve official/data/case_004.json --cores 2 3 4 5 --output outputs/q2-optimized/case_004
-```
-
-见[数学与流程说明](docs/q2/OPTIMIZED_MODEL.md)、[接口和运行命令](docs/q2/OPTIMIZED_INTERFACES.md)、[四组有限验收及 Q1v3 对照](docs/q2/OPTIMIZED_ACCEPTANCE.md)。本轮只做组件回归和四组有限试跑，没有运行100×4或消融，也没有全量优于 Q1v3 的结论。
-
-**原Q2 1.1新基座存在已知算法问题，现已归档。** 原始完整源码、固定提交和问题说明保存在[旧版归档](archive/q2/baseline_1_1_known_issues/README.md)，不删除历史代码；后续问题二实验默认使用2.1接口版，算法延续2.0修复新基座。
-
-## 问题三：固定 Q2 输入与 L2 缓存优化
-
-Q3 直接读取已验证的 Q2 最终方案和成绩；缺少对应输入时，自动调用 `src/solve_problem2.py`，再继续 Q3。复用 Q2 Repair 2.1 的准备与状态接口，按官方 `(makespan, added_copy_bytes)` 严格接受改进，最终文件由未修改的官方 CLI 独立复评。
-
-```powershell
-python src/solve_problem3.py solve official/data/case_016.json --cores 1 2 3 4 5 --output-dir outputs/q3_case016
-python src/solve_problem3.py batch --data-dir official/data --cores 1 2 3 4 5 --workers 8 --output-dir outputs/q3_full
-```
-
-默认每张图所有请求核数共享 600 秒 Q3 预算，Q2 自动生成用时单列。制图需安装 `requirements-q3.txt`，或用 `--no-plots` 运行纯标准库流程。具体输入、续跑和复评方法见 [Q3 运行说明](README_Q3.md)。
-
-[正式百例归档](results/q3_full_20260927/README.md)包含 500/500 组已验证方案及逐组指标；263 组相对初始 L2 方案提速、237 组时间持平。每核平均总加速比为 1.058105、1.006514、1.012185、1.024626、1.041054。预算截断和一组相对无 L2 基准略慢的例外均保留，见[验收记录](docs/q3/validation.md)。
-
-## 问题三 Q3v3：容量重排与搬运折衷
-
-新增独立版本 **Q3v3**（修订 `q1q2-memory-traffic-1`）：入口 `src/solve_q3v3.py`，代码 `src/q3v3/`。完整Q1/Q2方案组合后进行容量约束核内重排、L2窗口及联合搜索；默认最多退让1%周期，以减少实际DDR和额外COPY，另存纯最快方案。已有Q3入口和百例归档保持原样。
-
-参见[Q3v3运行说明](README_Q3V3.md)、[完整算法](docs/q3v3_memory_traffic.md)及[20组验证说明](docs/q3v3_validation.md)。本次只覆盖2～5核，不声称已补齐单核实测或百例验收。
-
-## 日常协作
-
-### 协作者算法完整 100 例实验（2026-09-25）
-
-[完整实验归档](results/q1_adaptive_100cases_20260925/README.md)保存提交 `04634a2` 的默认自适应算法在 100 例、2/3/4/5 核上的全部 400 份验证结果。20 个 CPU 进程运行 10239.945 秒；百例平均加速比分别为 **1.832685、2.463278、2.933060、3.338753**。归档包含可直接提交的方案包、子图调度排布、逐例墙钟/CPU 时间、日志、Trace、来源指纹及无损压缩的完整 case 产物。
-
-1. 开始新任务前，确认工作区干净，更新本地 `main`。
-2. 为每项任务创建 `feat/<用户名>/<任务>` 或 `fix/<用户名>/<任务>` 分支。
-3. 修改和验证程序；需要上传时，检查改动后提交并推送自己的分支。
-4. 创建面向 `main` 的 PR，说明改动和验证方法，约定由另一位成员审核后合并。
-5. 使用 **Squash and merge** 合并；随后更新本地 `main`，下一项任务重新建分支。
-
-双方均可提交、审核和合并 PR。免费个人私有仓库采用团队约定，不将审核规则描述为平台强制保护。
-
-详细协作指南和 PR 模板由首个协作配置 PR 加入，合并前可在该 PR 分支阅读。
-
-## 在 Codex 中操作
-
-日常修改默认只保留在本地。
-
-- “提交”：检查后创建本地 Git 提交，不自动上传。
-- “同步上传”或“上传”：检查改动及远端状态，完成适用验证，提交并推送当前任务分支，创建或更新 PR。
-- “合并 PR”：作为单独操作，需要明确指示。
-
-本项目没有后台自动提交、定时上传或自动合并任务。首次建仓与首个协作 PR 按本次初始化授权完成。
-
-## 文件管理
-
-代码、Notebook、项目说明和 `results/` 下明确归档的正式结果纳入版本管理。虚拟环境、缓存、本机凭据、临时文件和 `outputs/` 下的运行产物不提交。需要作为正式成果保留的图表和文档可放入 `docs/`。比赛数据加入前检查是否适合共享及文件大小；不将完整原始数据直接塞进提交历史。
+- 求解器为启发式方法；官方有效、搜索完成、局部域穷尽和全局最优是不同概念。
+- 重跑历史实验需匹配归档的源码、参数与输入指纹。当前 `main` 不自动等同于每份归档的运行版本；墙钟限时也可能改变搜索轨迹。
+- 本项目通过模拟周期评价调度质量，主机求解秒数单独记录，不作硬件吞吐或真实模型推理加速承诺。
+- 项目开发使用 AI 辅助工具；代码审阅、官方复评和保存的来源记录共同支撑可检查的结论。
+- 协作流程见 [AGENTS.md](AGENTS.md)。引用结果时请附对应归档与源码版本；仓库尚未单独指定项目许可证，官方题面、数据及评估程序保留原来源。
