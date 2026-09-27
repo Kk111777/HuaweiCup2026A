@@ -1,10 +1,10 @@
-# 第三问完整复现工程
+# 第三问：共享 L2 缓存优化
 
 入口为 `src/solve_problem3.py`，Python **3.12**。输入采用官方原始操作—张量 DAG；硬件固定为官方 `official/data/config.txt`。输出方案严格只有 `node_to_subgraph`、`core_schedules` 两个字段，文件名为 `<case>_multicore_res.json`。
 
-2026-09-27 本机正式百例 × 1–5 核已完成 **500/500 组官方复评，0 失败**，完整产物审计通过。相对 Q2 方案直接启用 L2，263 组提速、237 组时间持平；运行预算、基准版本及无 L2 对比中的一项例外详见 `docs/q3/validation.md`。
+2026-09-27 本机正式百例 × 1–5 核已完成 **500/500 组官方复评，0 失败**，结果文件检查通过。相对 Q2 方案直接启用 L2，263 组提速、237 组时间持平；运行预算、基准版本及无 L2 对比中的一项例外详见 `docs/q3/validation.md`。
 
-可下载的 500 个方案、逐组指标、图表和来源记录见[正式结果归档](results/q3_full_20260927/README.md)。原始大体积事件时间线保留在本机，归档中提供文件指纹及重新复评方法。
+可下载的 500 个方案、逐组指标、图表和来源记录见[正式结果归档](results/q3_full_20260927/README.md)。原始大体积事件时间线保留在本机，归档中提供文件校验值及重新复评方法。
 
 Q3 直接接收 Q2 最终计划和已验证成绩。默认寻找仓库内 `results/q2_repair_full_20260926` 的已发布结果；核对发布清单、原图和官方环境后直接继承固定成绩，不重复求解 Q2。缺少对应图、对应核数的结果时，**自动调用 `src/solve_problem2.py` 生成并验证 Q2 结果，再进入 Q3**。只有计划、没有可验证成绩时补做一次 Q2 官方评价。不用手动先跑第二问，也不要求导入旧搜索日志或旧时间线。N=1 的无 L2 基准优先复用 `results/problem_1_singlecore` 的官方固定整图单核档案。
 
@@ -19,7 +19,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-q3.txt
 ```
 
-正式原图已随仓库提供于 `official/data/case_001.json` 至 `case_100.json`；原版题面与逐字节校验见[数据说明](docs/data.md)。官方代码和配置通过 `configs/q2/official_sha256.json` 校验，不允许修改带宽、Cache 容量或官方调度逻辑。只有最终报告需要 matplotlib；可用 `--no-plots` 运行纯标准库流程。
+正式原图已随仓库提供于 `official/data/case_001.json` 至 `case_100.json`；原版题面与逐字节校验见[数据说明](docs/data.md)。官方代码和配置通过 `configs/q2/official_sha256.json` 校验，实验采用原始带宽、Cache 容量与调度规则。只有最终报告需要 matplotlib；可用 `--no-plots` 运行纯标准库流程。
 
 ## 直接运行
 
@@ -65,7 +65,7 @@ python src/solve_problem3.py batch --data-dir official/data --cases case_001 cas
 
 每个 `case_XXX/N<n>/`：
 
-- `q2_plan.json`、`q2_source.json`：冻结参照与输入来源；如自动生成，另有 `q2_bootstrap/` 完整 Q2 证据。
+- `q2_plan.json`、`q2_source.json`：冻结参照与输入来源；如自动生成，另有 `q2_bootstrap/` 完整 Q2 运行记录。
 - `no_l2/`：固定分子 T2；`reference.json` 记录复用的已验证 Q2/固定单核档案及哈希，或保存补做的独立官方 Q2 复评产物。
 - `seed_l2/`：Q2 计划直接启用 L2 的独立官方成绩 T2→3。
 - `case_XXX_multicore_res.json`：Q3 最终提交方案。
@@ -73,7 +73,7 @@ python src/solve_problem3.py batch --data-dir official/data --cases case_001 cas
 - `audit.json`：操作覆盖、依赖、Pipe、跨核同步、私有容量、Cache 容量和实际传输路径复核。
 - `metrics.json`：该组数值指标。
 
-每张图另有 `case.json`、`search.json`、`complete.json`。仅完整官方复评、附加审计、源码稳定性检查和预算检查全部通过，才发布 `SUCCESS_VERIFIED`。`stop_reason=candidate_limit/case_time_budget/evaluation_timeout` 表示保留已验证方案并停止有限搜索，不宣称全局最优。失败不会以部分结果冒充整张图完成。
+每张图另有 `case.json`、`search.json`、`complete.json`。官方复评、结果检查、源码一致性检查和预算检查全部通过后，状态记为 `SUCCESS_VERIFIED`。`stop_reason=candidate_limit/case_time_budget/evaluation_timeout` 分别记录候选数上限、搜索预算或评价超时，停止时保留已验证方案。失败和部分完成的案例单独记录。
 
 对任意已给定方案独立复核：
 
@@ -93,7 +93,7 @@ python src/solve_problem3.py report --output-dir outputs/q3_full
 python tools/audit_q3_results.py --output-dir outputs/q3_full --audit-output outputs/q3_full/final_audit.json
 ```
 
-该命令只读取既有证据，不再次运行搜索或改写方案；审计文件不能覆盖已有文件。运行期间可加 `--allow-partial` 检查已经发布的案例，此时状态明确为 `PARTIAL_VERIFIED`，不表示全量完成。
+该命令读取既有结果，将检查报告写入新文件。运行期间可加 `--allow-partial` 检查已经完成的案例，此时状态记为 `PARTIAL_VERIFIED`，报告列出已完成数量。
 
 退出码：0 为请求全部通过；1 为求解/报告覆盖不完整；2 为输入、环境或复核错误。独立官方日志中的绝对路径记录的是复评时的临时目录；发布后通过同目录方案文件和 SHA-256 对应，不修改原官方结果数值或日志。
 
@@ -113,7 +113,7 @@ python tools/audit_q3_results.py --output-dir outputs/q3_full --audit-output out
 
 ## 算法与回归
 
-实现与限制见 `docs/q3/implementation.md`；实际验收记录见 `docs/q3/validation.md`。
+实现细节见 `docs/q3/implementation.md`；实际验收记录见 `docs/q3/validation.md`。
 
 ```powershell
 python -B -m unittest discover -s tests -p test_q3.py -v

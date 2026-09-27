@@ -20,9 +20,9 @@ Efficient large-language-model execution depends on both computation and data su
 
 This connects naturally to several areas of LLM systems research. **IO-aware operator optimization** considers computation together with data movement: [FlashAttention](https://arxiv.org/abs/2205.14135) uses tiling to reduce reads and writes between HBM and on-chip SRAM. **Memory hierarchy and offloading** address tensor placement and access under capacity constraints: [FlexGen](https://proceedings.mlr.press/v202/sheng23a.html) coordinates GPU, CPU, and disk resources for throughput-oriented LLM inference. **Graph compilation and automatic parallelization** map dependent computation onto execution resources: [Alpa](https://arxiv.org/abs/2201.12023) jointly plans intra-operator and inter-operator parallelism for distributed training of large models. Although these systems operate at different scales, they illustrate the need to consider graph structure, memory capacity, and communication cost together.
 
-This repository develops that perspective as inspectable graph-theoretic and combinatorial optimization problems. Its three competition scenarios study **multiple-Task partitioning and scheduling, shared intra-core memory, and shared L2 reuse**, using heuristic construction, local search, dynamic programming, and official event simulation. The project originated from Huawei Cup Problem A, *Multicore Scheduling for General-Purpose Neural Network Processors*, and uses its 100 original graphs. The connection to the research above is structural, through scheduling and memory decisions: current results measure simulated cycles and traffic in the official model, rather than real LLM token throughput or end-to-end latency.
+This repository develops that perspective as graph-theoretic and combinatorial optimization problems. Its three competition scenarios study **multiple-Task partitioning and scheduling, shared intra-core memory, and shared L2 reuse**, using heuristic construction, local search, dynamic programming, and official event simulation. The project originated from Huawei Cup Problem A, *Multicore Scheduling for General-Purpose Neural Network Processors*, and uses its 100 original graphs. Scheduling plans are evaluated by execution cycles and data movement reported by the official simulator.
 
-The repository is owned by [Kk111777](https://github.com/Kk111777), with [Zysishuiyears](https://github.com/Zysishuiyears) as a collaborator. The team maintains code and experiments through task branches and pull requests; each archive preserves its source and contribution provenance.
+The repository is owned by [Kk111777](https://github.com/Kk111777), with [Zysishuiyears](https://github.com/Zysishuiyears) as a collaborator. The team maintains code and experiments through task branches and pull requests; each experiment archive records the source revision and run settings.
 
 ### At a Glance
 
@@ -49,7 +49,7 @@ Official `makespan` is measured in **cycles**, and traffic in **bytes**. Search 
 - Q1 TaskGrowth initialization, layered improvement with strict pruning, and structure-aware joint search.
 - Q2 repaired initialization, capacity-window ordering, and a separate optimization model.
 - Q3 optimization of frozen Q2 plans, and Q3v3 initialized from complete Q1/Q2 plans.
-- Versioned plans, metrics, source hashes, and validation records, with artifact coverage stated in [Results](#results).
+- Versioned plans, metrics, and experiment records, summarized in [Results](#results).
 
 ### Research Line: From Cache Scheduling to Multicore Coordination
 
@@ -95,7 +95,7 @@ python src/solve_problem2_optimized.py solve official/data/case_001.json --cores
 python src/solve_problem3.py solve official/data/case_001.json --cores 2 --no-plots --output-dir outputs/demo_q3
 ```
 
-Q1/Q2 v3 share a 600-second target across all requested core counts for one graph, with conditional extension to 900 seconds and a 1200-second safeguard. This is not 600 seconds per core count. Q3 shares 600 seconds per graph and records missing-Q2 generation time separately. Host concurrency (`--workers` / `--jobs`) differs from simulated core count (`--cores`).
+Q1/Q2 v3 share a 600-second target across all requested core counts for one graph, with conditional extension to 900 seconds and a 1200-second safeguard. Q3 shares 600 seconds per graph and records missing-Q2 generation time separately. Host concurrency (`--workers` / `--jobs`) differs from simulated core count (`--cores`).
 
 Legacy entrypoints, complete-plan inputs for Q3v3, and output formats are linked below and in the [documentation index](docs/README.md). New searches depend on version, budget, and machine load. To check a published score, use the **independent replay commands** in its result archive.
 
@@ -116,7 +116,7 @@ flowchart LR
     V1 -->|"construction components"| V3["Q1 V3 · Structure-aware joint search"]
 ```
 
-V2 accepts a candidate $p'$ when
+V2 accepts a candidate $`p'`$ when
 
 $$
 \bigl(T(p'), B_{\mathrm{added}}(p')\bigr)
@@ -124,9 +124,9 @@ $$
 \bigl(T(p), B_{\mathrm{added}}(p)\bigr),
 $$
 
-where $T$ is the official makespan and $B_{\mathrm{added}}$ is additional traffic. After acceptance, it diagnoses the new plan and restarts at the first layer. Strict lower bounds exclude branches only within their stated applicability conditions.
+where $`T`$ is the official makespan and $`B_{\mathrm{added}}`$ is additional traffic. After acceptance, it diagnoses the new plan and restarts at the first layer. Strict lower bounds exclude branches only within their stated applicability conditions.
 
-V2 and V3 are separate extensions of V1. V3 permits approximate acceptance with official calibration, so raw `score_source` values may differ; its published 100-graph scores uniformly use independent official replay of frozen plans. None of the three models claims global optimality.
+V2 and V3 are separate extensions of V1. V3 permits approximate acceptance with official calibration, so raw `score_source` values may differ; its published 100-graph scores uniformly use independent official replay of frozen plans. All three models use heuristic search.
 
 ### Q2: Joint partitioning, placement, and capacity ordering
 
@@ -144,7 +144,7 @@ Maintain separate β streams for construction / scope / encoding
     → write, reread, and independently replay the final plan
 ```
 
-Adaptive β continues when cycles tie or decrease and stops on a strict increase. Exact window DP does not imply whole-graph optimality. v3 confirms improvements through exact evaluation; an unfinished baseline guard does not guarantee non-regression against the complete baseline. Engineering version v3 is Q2's second mathematical model; see [versions and fixed tags](docs/q2/VERSIONS.md).
+Adaptive β continues when cycles tie or decrease and stops on a strict increase. Window DP solves a fixed local window exactly, while whole-graph optimization uses heuristic search. v3 confirms improvements through exact evaluation and compares against the completed baseline whenever that run finishes. Version v3 is Q2's second mathematical model; see [versions and fixed tags](docs/q2/VERSIONS.md).
 
 ### Q3: L2 optimization and time–traffic tradeoffs
 
@@ -153,7 +153,7 @@ Adaptive β continues when cycles tie or decrease and stops on a strict increase
 | Published Q3 | Freezes a Q2 plan, evaluates and searches under Q3, and accepts strict improvements in official cycles/additional traffic | `src/solve_problem3.py`; [usage](README_Q3.md) |
 | Q3v3 | Inherits complete Q1/Q2/optional previous Q3 plans, reevaluates them under Q3, and combines capacity reordering, L2 windows, and joint search | `src/solve_q3v3.py`; [usage](README_Q3V3.md) |
 
-Q3v3 uses the following default engineering objective:
+Q3v3 uses the following default search objective:
 
 $$
 J(p)=\frac{T(p)}{T_{\mathrm{ref}}}
@@ -162,14 +162,14 @@ J(p)=\frac{T(p)}{T_{\mathrm{ref}}}
 \qquad T(p)\leq 1.01\,T_{\mathrm{fastest}}.
 $$
 
-$D$ is actual DDR traffic, $A$ is additional COPY traffic, and positive normalizers are fixed from the initial plans. $T_{\mathrm{fastest}}$ is the fastest evaluated feasible plan. This policy allows at most a 1% cycle concession to reduce traffic and separately saves the fastest plan. It is not an official weighted score or a bound relative to an unknown global optimum. See the [full algorithm](docs/q3v3_memory_traffic.md).
+$`D`$ is actual DDR traffic, $`A`$ is additional COPY traffic, and positive normalizers are fixed from the initial plans. $`T_{\mathrm{fastest}}`$ is the fastest evaluated feasible plan. This policy allows at most a 1% cycle concession to reduce traffic and separately saves the fastest plan. $`J`$ guides plan selection during search; experiments report official cycles and traffic alongside it. See the [full algorithm](docs/q3v3_memory_traffic.md).
 
 <a id="results"></a>
-## Results and Evidence
+## Results
 
 ### Q1 / Q2: Speedup over the fixed single-core reference
 
-For each core count $N$, compute matched-graph ratios and then their arithmetic mean over 100 graphs:
+For each core count $`N`$, compute matched-graph ratios and then their arithmetic mean over 100 graphs:
 
 $$
 \overline{S}_N=\frac{1}{100}\sum_{i=1}^{100}
@@ -184,23 +184,33 @@ $$
 | [Q2 Repair 2.0](results/q2_repair_full_20260926/README.md) | 2.038162 | 2.775597 | 3.452734 | 3.991946 | 400 combinations |
 | [Q2 v3](results/q2_optimized_full_20260927/README.md) | 2.083251 | 2.880824 | 3.594802 | 4.184883 | 400 combinations |
 
-These are published historical experiments, **not a ranking under equal search budgets**:
+The following table records source revisions and settings for the historical experiments. Search budgets vary by version, and Q1 V2 selects the best result per instance across multiple runs:
 
-| Model | Source identity and budget / evidence limits |
+| Model | Source revision and experiment settings |
 |---|---|
 | Q1 V1 | `04634a2`; native adaptive β scan; 400 plans and official artifacts archived |
-| Q1 V2 | Server source hashes in the archived protocol; per-instance selection across historical runs and reruns, starting at 1800 seconds with selective extensions; not all final plans or traces are published |
+| Q1 V2 | Server source records in the archive; per-instance selection across historical runs and reruns, starting at 1800 seconds with selective extensions; the archive contains metrics and per-instance selection records for 400 combinations |
 | Q1 V3 | Fixed main `7471470`, execution checkout `93be2aa`, with a source snapshot; shared 600/900/1200-second graph budget; 400 independent replays |
 | Q2 Repair 2.0 | `11501c5`, tag `q2-baseline-2.0`; 600 seconds per graph/core-count pair; 400 replays passed, with 16 searches stopped early |
 | Q2 v3 | `29747d8`; shared 600/900/1200-second graph budget; 400 replays passed, 80 combinations exhausted proposals, and 331 completed the baseline guard |
 
-Q2 2.1 preserves the baseline algorithm while extending its interfaces; historical 2.0 experiments are not relabeled as new 2.1 runs. Q1 V3's raw search output contains 43 approximate scores; the table uses independent official scores throughout.
+Q2 2.1 extends the interfaces of the 2.0 baseline algorithm; the baseline results above come from the 2.0 experiment. Q1 V3's raw search output contains 43 approximate scores; the table uses independent official scores throughout.
 
 Additional experiments: [Q1 five-component ablation, 2400 rows](results/q1_ablation_2400_20260926/README.md); [V1 β sensitivity, 20 graphs × 5 strategies, 5 cores only](results/q1_sensitivity_5cores_20260927/README.md).
 
 ### Q3: L2 gains over a frozen Q2 plan at the same core count
 
-Let $T_2$ be the frozen Q2 plan's cycles without L2, $T_{2\to3}$ its cycles with L2 enabled, and $T_3$ the optimized cycles. Hardware, algorithm, and total speedup are respectively $T_2/T_{2\to3}$, $T_{2\to3}/T_3$, and $T_2/T_3$, averaged per graph. The three column means cannot simply be multiplied.
+Let $`T_2`$ be the fixed Q2 plan's cycles without L2, $`T_{2\to 3}`$ the same plan's cycles with L2 enabled, and $`T_3`$ the optimized plan's cycles. Hardware, algorithm, and total speedup are defined as:
+
+$$
+S_{\mathrm{hardware}}=\frac{T_2}{T_{2\to 3}},
+\qquad
+S_{\mathrm{algorithm}}=\frac{T_{2\to 3}}{T_3},
+\qquad
+S_{\mathrm{total}}=\frac{T_2}{T_3}.
+$$
+
+For each core count, compute these three speedups for each of the 100 graphs, then average each metric separately to obtain the table below.
 
 | Cores | Mean hardware speedup | Mean algorithm speedup | Mean total speedup |
 |---|---:|---:|---:|
@@ -210,9 +220,9 @@ Let $T_2$ be the frozen Q2 plan's cycles without L2, $T_{2\to3}$ its cycles with
 | 4 | 1.008125 | 1.016289 | 1.024626 |
 | 5 | 1.012939 | 1.027696 | 1.041054 |
 
-The [published Q3 archive](results/q3_full_20260927/README.md) covers **500/500 independently replayed combinations**, with 600 seconds shared per graph. Per-file hashes in `provenance.json` identify the source, with publication base `c20df63`. Q2 reference times come from Repair 2.0, using Repair 2.1 interfaces; N1 uses the fixed whole-graph single-core reference. Compared with directly enabling L2, 263 combinations are faster and 237 tie. The total speedup of `case_092/N3` against the no-L2 reference is 0.995674 and remains in the statistics. Budget stops and evaluation timeouts are recorded in the archive.
+The [published Q3 archive](results/q3_full_20260927/README.md) covers **500/500 independently replayed combinations**, with 600 seconds shared per graph. Source revisions are recorded in `provenance.json`, with publication base `c20df63`. Q2 reference times come from Repair 2.0, using Repair 2.1 interfaces; N1 uses the fixed whole-graph single-core reference. Compared with directly enabling L2, 263 combinations are faster and 237 tie. The total speedup of `case_092/N3` against the no-L2 reference is 0.995674 and remains in the statistics. Budget stops and evaluation timeouts are recorded in the archive.
 
-[Q3v3 revision `q1q2-memory-traffic-1`](docs/q3v3_validation.md) validates **20 graph/core-count pairs and 40 final plans**, covering only 2–5 cores, with 120 seconds and 64 evaluations per pair; preparation and final replay are timed separately. Against previous Q3 on the frozen sample, the tradeoff plans reduce total DDR bytes by **48.490%** and spill by **55.483%**. The mean per-instance cycle reduction is **0.792%**: 9 faster, 6 tied, and 5 slightly slower. The fastest-only plans are 10 faster, 10 tied, and 0 slower. Complete raw artifacts remain local; these are not 100-graph or equal-budget cold-start results.
+[Q3v3 revision `q1q2-memory-traffic-1`](docs/q3v3_validation.md) validates **20 graph/core-count pairs and 40 final plans**, covering 2–5 cores, with 120 seconds and 64 evaluations per pair; preparation and final replay are timed separately. Against previous Q3 on the frozen sample, the tradeoff plans reduce total DDR bytes by **48.490%** and spill by **55.483%**. The mean per-instance cycle reduction is **0.792%**: 9 faster, 6 tied, and 5 slightly slower. The fastest-only plans are 10 faster, 10 tied, and 0 slower. This experiment warm-starts from existing complete plans; complete plans and logs remain local.
 
 <p align="center">
   <img src="results/q3_full_20260927/figures/mean_curves.png" alt="Q3 over 100 graphs: mean cycles and hardware / algorithm / total speedup. The figure uses all 500 combinations from the published archive." width="900">
@@ -223,7 +233,7 @@ Q3 over 100 graphs: mean cycles and hardware / algorithm / total speedup. The fi
 <a id="data"></a>
 ## Data, Outputs, and Layout
 
-Each `case_*.json` is a scheduling workload with specified operator cycles, tensor sizes, and dependencies. Graph size, compute/transfer balance, and tensor reuse create different scheduling pressures; case IDs are not identified as particular LLM or GNN models.
+Each `case_*.json` is a scheduling workload with specified operator cycles, tensor sizes, and dependencies. Graph size, compute/transfer balance, and tensor reuse create different scheduling pressures.
 
 | Input field | Meaning |
 |---|---|
@@ -232,14 +242,14 @@ Each `case_*.json` is a scheduling workload with specified operator cycles, tens
 | `edges` | Directed dependencies through `source` and `target` |
 | `config.txt` | Official capacity, bandwidth, Task/COPY delays, and L2 parameters |
 
-Official outputs include `makespan`, traffic statistics, and event traces. Solvers also save plans, search records, and provenance. Artifact formats and completeness depend on the version; a hash list does not make unpublished files available.
+Official outputs include `makespan`, traffic statistics, and event traces. Solvers also save plans, search records, and provenance. File formats and archive contents are described in each version's usage guide.
 
 | Path | Contents |
 |---|---|
 | `official/` | Original statement, 100 graphs, configuration, evaluators, and documentation |
 | `src/q1/`, `src/q2/`, `src/q3/`, `src/q3v3/` | Models and separate entrypoints for each problem |
 | `src/scheduling/`, `src/common/` | Shared search orchestration and artifact/baseline utilities |
-| `configs/`, `tests/` | Algorithm parameters, official fingerprints, and existing tests |
+| `configs/`, `tests/` | Algorithm parameters, official file checksums, and tests |
 | `docs/`, `results/` | Method documentation and experiment archives |
 | `outputs/` | New local runs, ignored by Git |
 
@@ -247,8 +257,7 @@ See [data provenance and byte verification](docs/data.md), the [documentation in
 
 ## Reproducibility and Collaboration
 
-- These are heuristic solvers. Official validity, completed search, exhausted local neighborhoods, and global optimality are distinct claims.
-- Historical reproduction requires the archived source, parameters, and input fingerprints. Current `main` is not automatically the execution version of every archive; wall-clock limits can change search trajectories.
-- Scheduling quality is measured in simulated cycles. Host solving time is recorded separately and does not establish hardware throughput or real-model inference gains.
-- Development uses AI-assisted tools; code review, official replay, and preserved provenance support inspectable conclusions.
+- To reproduce a historical experiment, use the source revision, parameters, and inputs recorded in its archive. Machine load can affect time-limited search trajectories.
+- Scheduling quality is measured in official simulated cycles, with host solving time recorded separately.
+- Development uses AI-assisted tools, and experimental plans are replayed with the official evaluator.
 - See [AGENTS.md](AGENTS.md) for collaboration rules. Cite the specific archive and source revision when using results. No separate project license has been specified; official statements, data, and evaluators retain their original provenance.
